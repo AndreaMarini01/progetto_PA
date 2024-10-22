@@ -1,7 +1,20 @@
 import express, { Request, Response, NextFunction } from 'express';
+import Player from './models/Player';
+import Game from './models/Game';
+import Move from './models/Move';
 
 const app = express();
 const port = 3000;
+
+// Inizializza i modelli
+Player.initialize();
+Game.initialize();
+Move.initialize();
+
+// Configura le associazioni
+Player.associate();
+Game.associate();
+Move.associate();
 
 // Middleware di logging semplice
 app.use((req: Request, res: Response, next: NextFunction) => {
