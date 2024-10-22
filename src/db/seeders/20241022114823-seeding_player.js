@@ -11,7 +11,7 @@ const crypto = require('crypto');
  */
 function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
   const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha256').toString('hex');
-  return { salt, hash };
+  return { salt, password_hash: hash };
 }
 
 module.exports = {
@@ -21,7 +21,7 @@ module.exports = {
       {
         username: 'Andrea Marini',
         email: 'andrea@gmail.com',
-        ...hashPassword('password1'), // Hash della password
+        ...hashPassword('password1'), // Hash della password con salt
         tokens: 5,
         role: 'user',
         score: 10,
@@ -31,7 +31,7 @@ module.exports = {
       {
         username: 'Alessio Capriotti',
         email: 'alessio@gmail.com',
-        ...hashPassword('password2'), // Hash della password
+        ...hashPassword('password2'), // Hash della password con salt
         tokens: 3,
         role: 'user',
         score: 7,
@@ -41,7 +41,7 @@ module.exports = {
       {
         username: 'Admin Admin',
         email: 'admin@gmail.com',
-        ...hashPassword('adminpassword'), // Hash della password
+        ...hashPassword('adminpassword'), // Hash della password con salt
         tokens: 200,
         role: 'admin',
         score: 2,
@@ -59,3 +59,4 @@ module.exports = {
     await queryInterface.bulkDelete('Player', null, {});
   }
 };
+

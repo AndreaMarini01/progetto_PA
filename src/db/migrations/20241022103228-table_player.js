@@ -2,7 +2,7 @@
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up (queryInterface, Sequelize) {
+  async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Player', {
       id_player: {
         type: Sequelize.INTEGER,
@@ -24,19 +24,23 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
+      salt: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
       tokens: {
         type: Sequelize.FLOAT,
         allowNull: false,
         defaultValue: 0
       },
       role: {
-        type: Sequelize.STRING,
+        type: Sequelize.ENUM('user', 'admin'),
         allowNull: false,
         defaultValue: 'user'
       },
       score: {
         type: Sequelize.FLOAT,
-        allowNull: false,
+        allowNull: false
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -48,10 +52,10 @@ module.exports = {
         allowNull: false,
         defaultValue: Sequelize.NOW
       }
-    })
+    });
   },
 
-  down: async (queryInterface, Sequelize) => {
+  async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('Player');
   }
 };

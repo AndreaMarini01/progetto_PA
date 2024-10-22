@@ -12,7 +12,7 @@ module.exports = {
       game_id: {
         type: Sequelize.INTEGER,
         references: {
-          model: 'Games',
+          model: 'Game',
           key: 'id_game'
         },
         onUpdate: 'CASCADE',
@@ -22,8 +22,8 @@ module.exports = {
       user_id: {
         type: Sequelize.INTEGER,
         references: {
-          model: 'Users',
-          key: 'id_user'
+          model: 'Player',
+          key: 'id_player'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
