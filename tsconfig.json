@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true,// Permette l'uso di file JavaScript
+    "types": ["node", "express"],
+    "resolveJsonModule": true
+  },
+
+  "include": ["src//*.ts", "src//.js", "types/**/.d.ts"],
+
+  "exclude": [
+    "node_modules"
+  ]
+}
+

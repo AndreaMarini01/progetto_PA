@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node dist/app.js",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
@@ -14,5 +15,10 @@
     "rapid-draughts": "^1.0.2",
     "sequelize": "^6.37.4",
     "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "sqlite3": "^5.1.7",
+    "typescript": "^5.0.0"
   }
 }

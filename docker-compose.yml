@@ -1,0 +1,29 @@
+services:
+  app:
+    # Costruisce l'immagine a partire dai file presenti nella directory
+    build: .
+    container_name: express_app
+    # Mappa la porta 3001 dell'host alla porta 3000 del container
+    ports:
+      - "3001:3000"
+    # L'app dipende dal servizio db
+    depends_on:
+      - db
+    # Recupera le variabile d'ambiente, necessarie per la connessione al db, dal .env
+    env_file:
+      - .env
+    command: npm start
+
+  db:
+    image: postgres:17
+    container_name: postgres_db
+    # Riavvia il container se si arresta inaspettatamente
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    # Mappa la porta 5432 dell'host alla porta 5432 del container
+    ports:
+      - "5432:5432"
+
