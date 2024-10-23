@@ -12,7 +12,7 @@ services:
     # Recupera le variabile d'ambiente, necessarie per la connessione al db, dal .env
     env_file:
       - .env
-    command: npm start
+    entrypoint: ["/bin/bash", "/usr/src/app/entrypoint.sh"]
 
   db:
     image: postgres:17
