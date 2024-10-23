@@ -17,7 +17,7 @@ module.exports = {
         status: 'Completed',
         created_at: new Date(Date.now() - 3600 * 1000), // 1 ora fa
         ended_at: new Date(),
-        type: 'PvAI',
+        type: 'PvE',
         ai_difficulty: 'Hard',
         updatedAt: new Date()
       },
@@ -26,7 +26,7 @@ module.exports = {
         status: 'Timed Out',
         created_at: new Date(Date.now() - 7200 * 1000), // 2 ore fa
         ended_at: new Date(),
-        type: 'PvAI',
+        type: 'PvE',
         ai_difficulty: 'Easy',
         updatedAt: new Date()
       }

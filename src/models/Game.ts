@@ -9,7 +9,7 @@ interface GameAttributes {
     status: 'Ongoing' | 'Completed' | 'Abandoned' | 'Timed Out';
     created_at: Date;
     ended_at?: Date;
-    type: 'PvP' | 'PvAI';
+    type: 'PvP' | 'PvE';
     ai_difficulty?: 'Easy' | 'Hard';
     updatedAt?: Date;
 }
@@ -23,7 +23,7 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
     public status!: 'Ongoing' | 'Completed' | 'Abandoned' | 'Timed Out';
     public created_at!: Date;
     public ended_at?: Date;
-    public type!: 'PvP' | 'PvAI';
+    public type!: 'PvP' | 'PvE';
     public ai_difficulty?: 'Easy' | 'Hard';
     public readonly updatedAt!: Date;
 
@@ -51,7 +51,7 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
                     allowNull: true,
                 },
                 type: {
-                    type: DataTypes.ENUM('PvP', 'PvAI'),
+                    type: DataTypes.ENUM('PvP', 'PvE'),
                     allowNull: false,
                 },
                 ai_difficulty: {

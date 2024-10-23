@@ -23,7 +23,7 @@ module.exports = {
         allowNull: true
       },
       type: {
-        type: Sequelize.ENUM('PvP', 'PvAI'),
+        type: Sequelize.ENUM('PvP', 'PvE'),
         allowNull: false
       },
       ai_difficulty: {

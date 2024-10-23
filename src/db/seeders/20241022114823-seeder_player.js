@@ -1,18 +1,9 @@
 'use strict';
 
-// Libreria nativa di node per l'hash della password
 const crypto = require('crypto');
 
-/**
- * Genera un hash della password utilizzando l'algoritmo PBKDF2.
- * @param {string} password - La password in chiaro da hashare.
- * @param {string} salt - Il sale utilizzato per l'hashing.
- * @returns {Object} - Un oggetto contenente il sale e l'hash della password.
- */
-function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
-  const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha256').toString('hex');
-  return { salt, password_hash: hash };
-}
+//import {hashPassword} from 'src/utils/cryptoUtils'; // Importa la funzione hashPassword da utils
+// const { hashPassword } = require('../../utils/cryptoUtils');
 
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -60,3 +51,7 @@ module.exports = {
   }
 };
 
+function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
+  const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha256').toString('hex');
+  return { salt, password_hash: hash };
+}
