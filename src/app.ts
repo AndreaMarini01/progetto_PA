@@ -24,7 +24,8 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.use(express.json()); // Questo middleware è necessario per il parsing del corpo delle richieste JSON
-app.use('/auth', authRoutes);
+// app.use('/auth', authRoutes);
+app.use('/', authRoutes)
 
 app.use(authErrorHandler);
 

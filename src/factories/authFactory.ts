@@ -1,3 +1,11 @@
+// Variabile di tipo ENUM che permette di gestire i vari errori
+export enum authErrorType {
+    INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
+    TOKEN_EXPIRED = 'TOKEN_EXPIRED',
+    UNAUTHORIZED = 'UNAUTHORIZED'
+}
+
+/*
 // Classe che estende la classe Error per gli errori personalizzati
 class AuthError extends Error {
     public statusCode: number;
@@ -41,3 +49,29 @@ class AuthErrorFactory {
 }
 
 export { AuthError, InvalidCredentialsError, TokenExpiredError, AuthErrorFactory };
+
+ */
+
+class AuthFactory {
+    static getErrorMessage(errorType: authErrorType): string {
+        switch (errorType) {
+            case authErrorType.INVALID_CREDENTIALS:
+                return 'Invalid Credentials. Try again.';
+            case authErrorType.TOKEN_EXPIRED:
+                return 'Your token expired. Please, log again.';
+            case authErrorType.UNAUTHORIZED:
+                return 'You class unauthorized. Try again.';
+            default:
+                return 'Unknown error type';
+        }
+    }
+
+    static createError(errorType: authErrorType): Error {
+        const message = this.getErrorMessage(errorType);
+        const error = new Error(message);
+        (error as any).type = errorType; // Imposta il tipo di errore personalizzato
+        return error;
+    }
+}
+
+export default AuthFactory;

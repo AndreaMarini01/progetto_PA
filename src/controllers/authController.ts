@@ -3,7 +3,8 @@ import jwt from 'jsonwebtoken';
 import Player from '../models/Player';
 import { verifyPassword } from '../utils/cryptoUtils'; // Importa la funzione per la verifica della password
 
-import { AuthErrorFactory } from '../factories/authFactory';
+// import { AuthErrorFactory } from '../factories/authFactory';
+import AuthFactory, { authErrorType } from '../factories/authFactory';
 
 
 // Funzione per gestire il login dell'utente
@@ -14,15 +15,13 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
         // Cerca l'utente nel database utilizzando l'email
         const user = await Player.findOne({ where: { email } });
         if (!user) {
-            throw AuthErrorFactory.createError('InvalidCredentials');
-            //return res.status(401).json({ message: 'Invalid email or password' });
+            throw AuthFactory.createError(authErrorType.INVALID_CREDENTIALS);
         }
 
         // Verifica la password fornita con l'hash salvato e il salt
         const isPasswordValid = verifyPassword(password, user.password_hash, user.salt);
         if (!isPasswordValid) {
-            throw AuthErrorFactory.createError('InvalidCredentials');
-            //return res.status(401).json({ message: 'Invalid email or password' });
+            throw AuthFactory.createError(authErrorType.INVALID_CREDENTIALS);
         }
 
         // Genera un token JWT per l'utente autenticato

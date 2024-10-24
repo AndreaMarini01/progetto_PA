@@ -1,14 +1,36 @@
 // src/middleware/errorHandler.ts
 import { Request, Response, NextFunction } from 'express';
-import { AuthError } from '../factories/authFactory'; // Importa la classe di errore personalizzato
+// import { AuthError } from '../factories/authFactory'; // Importa la classe di errore personalizzato
+import AuthFactory, { authErrorType } from '../factories/authFactory';
+
 
 function authErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {
-    if (err instanceof AuthError) {
-        // Gestisci gli errori di autenticazione
-        res.status(err.statusCode).json({ message: err.message });
+    // Controlla se l'errore ha un tipo specifico definito nell'ENUM
+    if (err.type && Object.values(authErrorType).includes(err.type)) {
+        const errorMessage = AuthFactory.getErrorMessage(err.type as authErrorType);
+
+        // Mappa i tipi di errore ai codici di stato HTTP
+        let statusCode;
+        switch (err.type) {
+            case authErrorType.INVALID_CREDENTIALS:
+                statusCode = 401;
+                break
+            case authErrorType.TOKEN_EXPIRED:
+                statusCode = 401; // Forbidden
+                break;
+            case authErrorType.UNAUTHORIZED:
+                statusCode = 403; // Forbidden
+                break;
+            default:
+                statusCode = 500; // Internal Server Error
+                break;
+        }
+
+        // Invia la risposta con il messaggio di errore e il codice di stato
+        res.status(statusCode).json({ error: errorMessage });
     } else {
-        // Gestione generica per altri tipi di errori
-        res.status(500).json({ message: 'Server Error' });
+        // Se l'errore non è un errore di autenticazione riconosciuto, passa al middleware successivo
+        next(err);
     }
 }
 
