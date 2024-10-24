@@ -3,6 +3,11 @@ import Database from "../db/database";
 import Move from './Move';
 import Game from './Game';
 
+export enum PlayerRole {
+    USER = 'user',
+    ADMIN = 'admin',
+}
+
 // Definisce i tipi per i campi del modello Player
 interface PlayerAttributes {
     id_player: number;
@@ -11,7 +16,7 @@ interface PlayerAttributes {
     password_hash: string;
     salt: string;
     tokens: number;
-    role: 'user' | 'admin';
+    role: PlayerRole;
     score: number;
     createdAt?: Date;
     updatedAt?: Date;
@@ -28,7 +33,7 @@ class Player extends Model<PlayerAttributes, PlayerCreationAttributes> implement
     public password_hash!: string;
     public salt!: string;
     public tokens!: number;
-    public role!: 'user' | 'admin';
+    public role!: PlayerRole;
     public score!: number;
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
@@ -67,7 +72,7 @@ class Player extends Model<PlayerAttributes, PlayerCreationAttributes> implement
                     defaultValue: 0
                 },
                 role: {
-                    type: DataTypes.ENUM('user', 'admin'),
+                    type: DataTypes.ENUM(PlayerRole.USER, PlayerRole.ADMIN),
                     allowNull: false,
                     defaultValue: 'user'
                 },

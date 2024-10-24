@@ -9,6 +9,14 @@ module.exports = {
         primaryKey: true,
         allowNull: false
       },
+      player_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+      },
+      opponent_id: {
+        type: Sequelize.INTEGER,
+        allowNull: true
+      },
       status: {
         type: Sequelize.ENUM('Ongoing', 'Completed', 'Abandoned', 'Timed Out'),
         allowNull: false
@@ -27,10 +35,15 @@ module.exports = {
         allowNull: false
       },
       ai_difficulty: {
-        type: Sequelize.ENUM('Easy', 'Hard'),
+        type: Sequelize.ENUM('Absent','Easy', 'Hard'),
         allowNull: true
       },
       updatedAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.NOW
+      },
+      date: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.NOW

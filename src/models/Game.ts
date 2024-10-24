@@ -3,15 +3,36 @@ import Database from '../db/database'; // Importa l'istanza Singleton del Databa
 import Player from './Player';
 import Move from './Move';
 
+export enum GameStatus {
+    ONGOING = 'Ongoing',
+    COMPLETED = 'Completed',
+    ABANDONED = 'Abandoned',
+    TIMED_OUT = 'Timed Out',
+}
+
+export enum GameType {
+    PVP = 'PvP',
+    PVE = 'PvE',
+}
+
+export enum AIDifficulty {
+    ABSENT = 'Absent',
+    EASY = 'Easy',
+    HARD = 'Hard'
+}
+
 // Definisce i tipi per i campi del modello Game
 interface GameAttributes {
     id_game: number;
-    status: 'Ongoing' | 'Completed' | 'Abandoned' | 'Timed Out';
-    created_at: Date;
+    player_id: number;
+    opponent_id?: number | null;
+    status: GameStatus;
+    created_at?: Date;
     ended_at?: Date;
-    type: 'PvP' | 'PvE';
-    ai_difficulty?: 'Easy' | 'Hard';
+    type: GameType;
+    ai_difficulty: AIDifficulty;
     updatedAt?: Date;
+    date: Date;
 }
 
 // Definisce i tipi per l'inserimento di nuovi record
@@ -20,12 +41,15 @@ interface GameCreationAttributes extends Optional<GameAttributes, 'id_game' | 'e
 // Crea la classe Game che estende il modello di Sequelize
 class Game extends Model<GameAttributes, GameCreationAttributes> implements GameAttributes {
     public id_game!: number;
-    public status!: 'Ongoing' | 'Completed' | 'Abandoned' | 'Timed Out';
+    public player_id!: number;
+    public opponent_id?: number | null;
+    public status!: GameStatus;
     public created_at!: Date;
     public ended_at?: Date;
-    public type!: 'PvP' | 'PvE';
-    public ai_difficulty?: 'Easy' | 'Hard';
+    public type!: GameType;
+    public ai_difficulty!: AIDifficulty;
     public readonly updatedAt!: Date;
+    public date!: Date;
 
     // Inizializza il modello Game con Sequelize
     public static initialize() {
@@ -37,8 +61,24 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
                     primaryKey: true,
                     allowNull: false,
                 },
+                player_id: {
+                    type: DataTypes.INTEGER,
+                    allowNull: false,
+                    references: {
+                        model: Player,
+                        key: 'id_player',
+                    },
+                },
+                opponent_id: {
+                    type: DataTypes.INTEGER,
+                    allowNull: true,
+                    references: {
+                        model: Player,
+                        key: 'id_player',
+                    },
+                },
                 status: {
-                    type: DataTypes.ENUM('Ongoing', 'Completed', 'Abandoned', 'Timed Out'),
+                    type: DataTypes.ENUM(GameStatus.ONGOING, GameStatus.COMPLETED, GameStatus.ABANDONED, GameStatus.TIMED_OUT),
                     allowNull: false,
                 },
                 created_at: {
@@ -51,18 +91,24 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
                     allowNull: true,
                 },
                 type: {
-                    type: DataTypes.ENUM('PvP', 'PvE'),
+                    type: DataTypes.ENUM(GameType.PVP, GameType.PVE),
                     allowNull: false,
                 },
                 ai_difficulty: {
-                    type: DataTypes.ENUM('Easy', 'Hard'),
-                    allowNull: true,
+                    type: DataTypes.ENUM(AIDifficulty.ABSENT, AIDifficulty.EASY, AIDifficulty.HARD),
+                    allowNull: false,
+                    defaultValue: AIDifficulty.ABSENT
                 },
                 updatedAt: {
                     type: DataTypes.DATE,
                     allowNull: false,
                     defaultValue: DataTypes.NOW,
                 },
+                date: {
+                    type: DataTypes.DATE,
+                    allowNull: false,
+                    defaultValue: DataTypes.NOW,
+                }
             },
             {
                 sequelize: Database.getSequelize(),
@@ -79,6 +125,7 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
         // Associazioni con altri modelli
         Game.hasMany(Move, { foreignKey: 'game_id', as: 'moves' });
         Game.belongsTo(Player, { foreignKey: 'player_id', as: 'player' });
+        Game.belongsTo(Player, { foreignKey: 'opponent_id', as: 'opponent' });
     }
     }
 
