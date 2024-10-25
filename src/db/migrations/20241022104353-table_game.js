@@ -1,7 +1,13 @@
 'use strict';
 
+const { readFileSync } = require('fs');
+const path = require('path');
+
 module.exports = {
   up: async (queryInterface, Sequelize) => {
+    const initialBoardPath = 'src/initialBoard.json';
+    const initialBoard = JSON.parse(readFileSync(initialBoardPath, 'utf8'));
+
     await queryInterface.createTable('Game', {
       id_game: {
         type: Sequelize.INTEGER,
@@ -47,6 +53,11 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.NOW
+      },
+      board: {
+        type: Sequelize.JSON, // Aggiungi questa riga per il campo JSON
+        allowNull: false,
+        defaultValue: initialBoard
       }
     });
   },

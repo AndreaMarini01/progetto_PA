@@ -1,0 +1,12 @@
+{
+  "board": [
+    [null, "B", null, "B", null, "B", null, "B"],
+    ["B", null, "B", null, "B", null, "B", null],
+    [null, "B", null, "B", null, "B", null, "B"],
+    [null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null],
+    ["W", null, "W", null, "W", null, "W", null],
+    [null, "W", null, "W", null, "W", null, "W"],
+    ["W", null, "W", null, "W", null, "W", null]
+  ]
+}

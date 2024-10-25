@@ -34,8 +34,20 @@ export const createGameController = async (req: Request, res: Response, next: Ne
             throw GameFactory.createError(gameErrorType.MISSING_GAME_PARAMETERS);
         }
 
-        // Usa il servizio per creare la partita
-        const newGame = await createGame(playerId, opponent_email, type, ai_difficulty);
+        const initialBoard = {
+            board: [
+                [null, "B", null, "B", null, "B", null, "B"],
+                ["B", null, "B", null, "B", null, "B", null],
+                [null, "B", null, "B", null, "B", null, "B"],
+                [null, null, null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null],
+                ["W", null, "W", null, "W", null, "W", null],
+                [null, "W", null, "W", null, "W", null, "W"],
+                ["W", null, "W", null, "W", null, "W", null]
+            ]
+        };
+
+        const newGame = await createGame(playerId, opponent_email, type, ai_difficulty, initialBoard);
 
         res.status(201).json({ game: newGame });
     } catch (error) {

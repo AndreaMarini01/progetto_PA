@@ -10,6 +10,7 @@ const GAME_CREATION_COST = 0.35;
  * @param opponentEmail
  * @param type Il tipo di partita (PvP o PvE).
  * @param aiDifficulty La difficoltà dell'IA, se applicabile.
+ * @param board
  * @returns La nuova partita creata.
  * @throws Error se si verificano problemi durante la creazione della partita.
  */
@@ -17,7 +18,8 @@ export const createGame = async (
     playerId: number,
     opponentEmail: number | null,
     type: GameType,
-    aiDifficulty: AIDifficulty = AIDifficulty.ABSENT
+    aiDifficulty: AIDifficulty = AIDifficulty.ABSENT,
+    board: any
 ) => {
     // Recupera il giocatore dal database
     const player = await Player.findByPk(playerId);
@@ -53,7 +55,8 @@ export const createGame = async (
         status: GameStatus.ONGOING,
         type,
         ai_difficulty: type === GameType.PVE ? aiDifficulty : AIDifficulty.ABSENT,
-        date: new Date()
+        date: new Date(),
+        board:board
     });
 
     return newGame;
