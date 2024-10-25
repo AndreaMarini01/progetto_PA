@@ -4,6 +4,7 @@ import Game from './models/Game';
 import Move from './models/Move';
 import authRoutes from './routes/authRoute';
 import gameRoute from "./routes/gameRoute";
+import adminRoutes from './routes/adminRoute';
 import errorHandler from './factories/errorHandler';
 
 const app = express();
@@ -28,6 +29,7 @@ app.use(express.json()); // Questo middleware è necessario per il parsing del c
 // app.use('/auth', authRoutes);
 app.use('/', authRoutes)
 app.use('/create', gameRoute)
+app.use('/', adminRoutes);
 
 app.use(errorHandler);
 
