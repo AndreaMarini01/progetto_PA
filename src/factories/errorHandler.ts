@@ -2,6 +2,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { GameError, gameErrorType } from './gameFactory';
 import { AuthError,  authErrorType } from './authFactory';
+import {TokenError, tokenErrorType} from "./tokenFactory";
 
 function errorHandler(err: any, req: Request, res: Response, next: NextFunction) {
     if (err instanceof GameError) {
@@ -46,6 +47,23 @@ function errorHandler(err: any, req: Request, res: Response, next: NextFunction)
                 break;
         }
         res.status(statusCode).json({ error: err.message});
+    } else if (err instanceof TokenError) {
+        let statusCode: number;
+        switch (err.type) {
+            case tokenErrorType.ADMIN_AUTHORIZATION:
+                statusCode = 401
+                break;
+            case tokenErrorType.MISSING_PARAMETERS:
+                statusCode = 401; // Forbidden
+                break;
+            case tokenErrorType.USER_NOT_FOUND:
+                statusCode = 403; // Forbidden
+                break;
+            default:
+                statusCode = 500; // Internal Server Error
+                break;
+        }
+        res.status(statusCode).json({error: err.message});
     } else {
         // Gestione di errori generici non riconosciuti
         res.status(500).json({ error: 'Internal Server Error' });

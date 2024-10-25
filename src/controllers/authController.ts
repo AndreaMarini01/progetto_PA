@@ -12,6 +12,9 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     const { email, password } = req.body;
 
     try {
+        if(!email || !password) {
+            throw AuthFactory.createError(authErrorType.INVALID_CREDENTIALS);
+        }
         // Cerca l'utente nel database utilizzando l'email
         const user = await Player.findOne({ where: { email } });
         if (!user) {
