@@ -13,7 +13,7 @@ module.exports = {
         username: 'Andrea Marini',
         email: 'andrea@gmail.com',
         ...hashPassword('password1'), // Hash della password con salt
-        tokens: 5,
+        tokens: 0.3,
         role: 'user',
         score: 10,
         createdAt: new Date(),

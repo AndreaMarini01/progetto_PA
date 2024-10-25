@@ -3,8 +3,8 @@ import Player from './models/Player';
 import Game from './models/Game';
 import Move from './models/Move';
 import authRoutes from './routes/authRoute';
-import authErrorHandler from './middleware/authErrorMiddleware';
 import gameRoute from "./routes/gameRoute";
+import errorHandler from './factories/errorHandler';
 
 const app = express();
 const port = 3000;
@@ -29,7 +29,7 @@ app.use(express.json()); // Questo middleware è necessario per il parsing del c
 app.use('/', authRoutes)
 app.use('/create', gameRoute)
 
-app.use(authErrorHandler);
+app.use(errorHandler);
 
 app.listen(port, () => {
     console.log(`Server in ascolto sulla porta ${port}`);

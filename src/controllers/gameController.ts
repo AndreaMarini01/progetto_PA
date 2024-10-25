@@ -1,7 +1,8 @@
-// gameController.ts
 import { Request, Response, NextFunction } from 'express';
 import { createGame } from '../services/gameService';
 import { GameType, AIDifficulty } from '../models/Game';
+
+import GameFactory, {gameErrorType} from '../factories/gameFactory';
 
 export const createGameController = async (req: Request, res: Response, next: NextFunction) => {
     const { opponent_email, ai_difficulty } = req.body;
@@ -9,12 +10,11 @@ export const createGameController = async (req: Request, res: Response, next: Ne
 
     try {
         if (!playerId) {
-            console.log('ID giocatore autenticato:', playerId);
-            return res.status(400).json({ message: 'ID del giocatore mancante.' });
+            throw GameFactory.createError(gameErrorType.MISSING_PLAYER_ID);
         }
 
         if (opponent_email && ai_difficulty) {
-            return res.status(400).json({ message: "Puoi specificare o l'email dell'avversario o il livello di difficoltà dell'IA, ma non entrambi." });
+            throw GameFactory.createError(gameErrorType.INVALID_GAME_PARAMETERS);
         }
 
         let type: GameType;
@@ -27,11 +27,11 @@ export const createGameController = async (req: Request, res: Response, next: Ne
 
             // Verifica che il livello di difficoltà sia valido
             if (!Object.values(AIDifficulty).includes(ai_difficulty)) {
-                return res.status(400).json({ message: 'Livello di difficoltà non valido.' });
+                throw GameFactory.createError(gameErrorType.INVALID_DIFFICULTY);
             }
         } else {
             // Se non sono forniti né opponent_email né aiDifficulty, restituisci un errore
-            return res.status(400).json({ message: 'Devi specificare l\'email dell\'avversario o il livello di difficoltà dell\'IA.' });
+            throw GameFactory.createError(gameErrorType.MISSING_GAME_PARAMETERS);
         }
 
         // Usa il servizio per creare la partita

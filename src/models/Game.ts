@@ -12,13 +12,13 @@ export enum GameStatus {
 
 export enum GameType {
     PVP = 'PvP',
-    PVE = 'PvE',
+    PVE = 'PvE'
 }
 
 export enum AIDifficulty {
     ABSENT = 'Absent',
     EASY = 'Easy',
-    HARD = 'Hard'
+    HARD = 'Hard',
 }
 
 // Definisce i tipi per i campi del modello Game

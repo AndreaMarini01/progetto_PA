@@ -1,5 +1,6 @@
 import Game, { GameType, GameStatus, AIDifficulty } from '../models/Game';
 import Player from '../models/Player';
+import GameFactory, { gameErrorType } from '../factories/gameFactory';
 
 const GAME_CREATION_COST = 0.35;
 
@@ -21,12 +22,12 @@ export const createGame = async (
     // Recupera il giocatore dal database
     const player = await Player.findByPk(playerId);
     if (!player) {
-        throw new Error('Giocatore non trovato.');
+        throw GameFactory.createError(gameErrorType.MISSING_PLAYER_ID);
     }
 
     // Verifica che il giocatore abbia credito sufficiente per creare la partita
     if (player.tokens < GAME_CREATION_COST) {
-        throw new Error('Credito insufficiente per creare la partita.');
+        throw GameFactory.createError(gameErrorType.INSUFFICIENT_CREDIT);
     }
 
     // Deduce il costo di creazione della partita
@@ -36,11 +37,11 @@ export const createGame = async (
     let opponentId: number | null = null;
     if (type === GameType.PVP) {
         if (!opponentEmail) {
-            throw new Error('Email dell\'avversario mancante per una partita PvP.');
+            throw GameFactory.createError(gameErrorType.MISSING_GAME_PARAMETERS);
         }
         const opponent = await Player.findOne({ where: { email: opponentEmail } });
         if (!opponent) {
-            throw new Error('Avversario non trovato.');
+            throw GameFactory.createError(gameErrorType.OPPONENT_NOT_FOUND);
         }
         opponentId = opponent.id_player;
     }
