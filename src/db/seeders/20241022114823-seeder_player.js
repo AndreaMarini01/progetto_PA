@@ -38,7 +38,17 @@ module.exports = {
         score: 2,
         createdAt: new Date(),
         updatedAt: new Date()
+      }, {
+        username: 'Prova Prova',
+        email: 'prova@gmail.com',
+        ...hashPassword('password3'), // Hash della password con salt
+        tokens: 3,
+        role: 'user',
+        score: 7,
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
+
     ];
 
     // Inserimento dei dati nella tabella Player

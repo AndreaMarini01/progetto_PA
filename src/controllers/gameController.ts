@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { createGame } from '../services/gameService';
+import {createGame, findActiveGameForPlayer} from '../services/gameService';
 import { GameType, AIDifficulty } from '../models/Game';
 
 import GameFactory, {gameErrorType} from '../factories/gameFactory';
+import Player from "../models/Player";
 
 export const createGameController = async (req: Request, res: Response, next: NextFunction) => {
     const { opponent_email, ai_difficulty } = req.body;
@@ -11,6 +12,33 @@ export const createGameController = async (req: Request, res: Response, next: Ne
     try {
         if (!playerId) {
             throw GameFactory.createError(gameErrorType.MISSING_PLAYER_ID);
+        }
+
+        let opponentId: number | null = null;
+        if (opponent_email) {
+            const opponent = await Player.findOne({ where: { email: opponent_email } });
+            if (!opponent) {
+                throw GameFactory.createError(gameErrorType.OPPONENT_NOT_FOUND);
+            }
+            opponentId = opponent.id_player;
+        }
+
+        // Vede se il giocatore è gia impegnato in un'altra partita
+        const existingGame = await findActiveGameForPlayer(playerId, opponentId);
+        if (existingGame) {
+            let message = 'The player is already playing';
+            if (existingGame.player_id === playerId || existingGame.opponent_id === playerId) {
+                throw GameFactory.createError(gameErrorType.PLAYER_ALREADY_IN_GAME);
+            }
+            else if (opponentId !== null && (existingGame.player_id === opponentId || existingGame.opponent_id === opponentId)) {
+                throw GameFactory.createError(gameErrorType.OPPONENT_ALREADY_IN_GAME);
+            }
+
+            return res.status(400).json({ message });
+        }
+
+        if (req.user?.email === opponent_email){
+            throw GameFactory.createError(gameErrorType.SELF_CHALLENGE_NOT_ALLOWED);
         }
 
         if (opponent_email && ai_difficulty) {

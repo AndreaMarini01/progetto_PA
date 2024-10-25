@@ -7,13 +7,25 @@ const GAME_CREATION_COST = 0.35;
 /**
  * Crea una nuova partita.
  * @param playerId L'ID del giocatore che crea la partita.
- * @param opponentEmail
- * @param type Il tipo di partita (PvP o PvE).
- * @param aiDifficulty La difficoltà dell'IA, se applicabile.
- * @param board
+ * @param opponentId
  * @returns La nuova partita creata.
  * @throws Error se si verificano problemi durante la creazione della partita.
  */
+import { Op } from 'sequelize';
+
+export const findActiveGameForPlayer = async (playerId: number, opponentId: number | null) => {
+    return Game.findOne({
+        where: {
+            status: GameStatus.ONGOING,
+            [Op.or]: [
+                { player_id: playerId },
+                { opponent_id: playerId },
+                ...(opponentId !== null ? [{ player_id: opponentId }, { opponent_id: opponentId }] : [])
+            ]
+        }
+    });
+};
+
 export const createGame = async (
     playerId: number,
     opponentEmail: number | null,

@@ -46,7 +46,10 @@ export enum gameErrorType {
     INVALID_GAME_PARAMETERS = 'INVALID_GAME_PARAMETERS',
     MISSING_GAME_PARAMETERS = 'MISSING_GAME_PARAMETERS',
     INSUFFICIENT_CREDIT = 'INSUFFICIENT_CREDIT',
-    OPPONENT_NOT_FOUND = 'OPPONENT_NOT_FOUND'
+    OPPONENT_NOT_FOUND = 'OPPONENT_NOT_FOUND',
+    PLAYER_ALREADY_IN_GAME = 'PLAYER_ALREADY_IN_GAME',
+    OPPONENT_ALREADY_IN_GAME = 'OPPONENT_ALREADY_IN_GAME',
+    SELF_CHALLENGE_NOT_ALLOWED = 'SELF_CHALLENGE_NOT_ALLOWED'
 }
 
 // Classe di errore personalizzata per gli errori di gioco
@@ -76,6 +79,12 @@ class GameFactory {
                 return 'Insufficient credit to create a match.';
             case gameErrorType.OPPONENT_NOT_FOUND:
                 return 'Opponent not found.';
+            case gameErrorType.PLAYER_ALREADY_IN_GAME:
+                return 'The requesting player is already in an active game';
+            case gameErrorType.OPPONENT_ALREADY_IN_GAME:
+                return 'The opponent is already in an active game';
+            case gameErrorType.SELF_CHALLENGE_NOT_ALLOWED:
+                return 'You can\'t challenge yourself!';
             default:
                 return 'An unknown error occurred.';
         }

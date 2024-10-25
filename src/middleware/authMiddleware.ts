@@ -44,8 +44,9 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction): void =
 };
 */
 
-import { Request, Response, NextFunction } from 'express';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import {NextFunction, Request, Response} from 'express';
+import jwt, {JwtPayload} from 'jsonwebtoken';
+import AuthFactory, {authErrorType} from "../factories/authFactory";
 
 export const authenticationWithJWT = (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
@@ -55,7 +56,8 @@ export const authenticationWithJWT = (req: Request, res: Response, next: NextFun
 
         jwt.verify(token, process.env.JWT_SECRET as string, (err, decoded) => {
             if (err) {
-                return res.status(403).json({ message: 'Token non valido o scaduto.' });
+                //return res.status(403).json({ message: 'Token non valido o scaduto.' });
+                throw AuthFactory.createError(authErrorType.TOKEN_EXPIRED);
             }
 
             // Verifica che decoded sia di tipo JwtPayload
@@ -67,14 +69,13 @@ export const authenticationWithJWT = (req: Request, res: Response, next: NextFun
                 };
                 next();
             } else {
-                res.status(403).json({ message: 'Token non valido.' });
+                throw AuthFactory.createError(authErrorType.NOT_VALID_TOKEN);
             }
         });
     } else {
-        res.status(401).json({ message: 'Autenticazione richiesta. Fornisci il token.' });
+        throw AuthFactory.createError(authErrorType.NEED_AUTHORIZATION);
     }
 
-    console.log('Utente autenticato:', req.user);
 };
 
 

@@ -22,7 +22,16 @@ function errorHandler(err: any, req: Request, res: Response, next: NextFunction)
                 statusCode = 400; // Bad Request
                 break;
             case gameErrorType.OPPONENT_NOT_FOUND:
-                statusCode = 404; // Not Found
+                statusCode = 403; // Not Found
+                break;
+            case gameErrorType.PLAYER_ALREADY_IN_GAME:
+                statusCode = 403; // Not Found
+                break;
+            case gameErrorType.OPPONENT_ALREADY_IN_GAME:
+                statusCode = 403; // Not Found
+                break;
+            case gameErrorType.SELF_CHALLENGE_NOT_ALLOWED:
+                statusCode = 403; // Not Found
                 break;
             default:
                 statusCode = 500; // Internal Server Error
@@ -41,6 +50,12 @@ function errorHandler(err: any, req: Request, res: Response, next: NextFunction)
                 break;
             case authErrorType.UNAUTHORIZED:
                 statusCode = 403; // Forbidden
+                break;
+            case authErrorType.NOT_VALID_TOKEN:
+                statusCode = 401;
+                break;
+            case authErrorType.NEED_AUTHORIZATION:
+                statusCode = 401;
                 break;
             default:
                 statusCode = 500; // Internal Server Error

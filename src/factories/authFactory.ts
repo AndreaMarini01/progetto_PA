@@ -2,7 +2,9 @@
 export enum authErrorType {
     INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
     TOKEN_EXPIRED = 'TOKEN_EXPIRED',
-    UNAUTHORIZED = 'UNAUTHORIZED'
+    UNAUTHORIZED = 'UNAUTHORIZED',
+    NOT_VALID_TOKEN = 'NOT_VALID_TOKEN',
+    NEED_AUTHORIZATION = 'NEED_AUTHORIZATION'
 }
 
 // Classe di errore personalizzata per gli errori di autenticazione
@@ -26,6 +28,10 @@ class AuthFactory {
                 return 'The token has expired.';
             case authErrorType.UNAUTHORIZED:
                 return 'You are not authorized to perform this action.';
+            case authErrorType.NOT_VALID_TOKEN:
+                return 'Not valid token.';
+            case authErrorType.NEED_AUTHORIZATION:
+                return 'You need to authenticate';
             default:
                 return 'An unknown authentication error occurred.';
         }
