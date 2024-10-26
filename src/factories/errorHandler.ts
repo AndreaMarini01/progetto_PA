@@ -1,8 +1,9 @@
 // src/factories/errorHandler.ts
-import { Request, Response, NextFunction } from 'express';
-import { GameError, gameErrorType } from './gameFactory';
-import { AuthError,  authErrorType } from './authFactory';
+import {NextFunction, Request, Response} from 'express';
+import {GameError, gameErrorType} from './gameFactory';
+import {AuthError, authErrorType} from './authFactory';
 import {TokenError, tokenErrorType} from "./tokenFactory";
+import {MoveError, moveErrorType} from "./moveFactory";
 
 function errorHandler(err: any, req: Request, res: Response, next: NextFunction) {
     if (err instanceof GameError) {
@@ -73,6 +74,29 @@ function errorHandler(err: any, req: Request, res: Response, next: NextFunction)
                 break;
             case tokenErrorType.USER_NOT_FOUND:
                 statusCode = 403; // Forbidden
+                break;
+            default:
+                statusCode = 500; // Internal Server Error
+                break;
+        }
+        res.status(statusCode).json({error: err.message});
+    } else if (err instanceof MoveError) {
+        let statusCode: number;
+        switch (err.type) {
+            case moveErrorType.GAME_NOT_FOUND:
+                statusCode = 401
+                break;
+            case moveErrorType.FAILED_PARSING:
+                statusCode = 401; // Forbidden
+                break;
+            case moveErrorType.NOT_VALID_ARRAY:
+                statusCode = 403; // Forbidden
+                break;
+            case moveErrorType.NOT_VALID_MOVE:
+                statusCode = 403;
+                break;
+            case moveErrorType.MISSING_PARAMS:
+                statusCode = 403;
                 break;
             default:
                 statusCode = 500; // Internal Server Error
