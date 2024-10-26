@@ -11,6 +11,12 @@ interface MoveAttributes {
     details: object;
     createdAt?: Date;
     updatedAt?: Date;
+    moveNumber?: number;
+    board?: object;
+    fromPosition?: string;
+    toPosition?: string;
+    pieceType?: string;
+    move_number?: number;
 }
 
 // Definisce i tipi per l'inserimento di nuovi record
@@ -24,6 +30,11 @@ class Move extends Model<MoveAttributes, MoveCreationAttributes> implements Move
     public details!: object;
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
+    public moveNumber?: number;
+    public board?: object;
+    public fromPosition?: string;
+    public toPosition?: string;
+    public pieceType?: string;
 
 
     // Metodo statico per inizializzare il modello
@@ -59,6 +70,26 @@ class Move extends Model<MoveAttributes, MoveCreationAttributes> implements Move
                 details: {
                     type: DataTypes.JSON,
                     allowNull: false,
+                },
+                moveNumber: {
+                    type: DataTypes.INTEGER,
+                    allowNull: false,
+                },
+                board: {
+                    type: DataTypes.JSON,
+                    allowNull: true,
+                },
+                fromPosition: {
+                    type: DataTypes.STRING,
+                    allowNull: false,
+                },
+                toPosition: {
+                    type: DataTypes.STRING,
+                    allowNull: false,
+                },
+                pieceType: {
+                    type: DataTypes.STRING,
+                    allowNull: true,
                 },
                 createdAt: {
                     type: DataTypes.DATE,

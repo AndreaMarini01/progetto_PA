@@ -31,7 +31,8 @@ module.exports = {
         ai_difficulty: 'Absent',
         updatedAt: new Date(),
         date: getRandomDate(),
-        board: generateRandomBoardConfig()
+        board: generateRandomBoardConfig(),
+        total_moves:0
       },
       {
         status: 'Completed',
@@ -43,7 +44,8 @@ module.exports = {
         ai_difficulty: 'Hard',
         updatedAt: new Date(),
         date: getRandomDate(),
-        board: generateRandomBoardConfig()
+        board: generateRandomBoardConfig(),
+        total_moves:0
       },
       {
         player_id: 2,
@@ -55,7 +57,8 @@ module.exports = {
         ai_difficulty: 'Easy',
         updatedAt: new Date(),
         date: getRandomDate(),
-        board: generateRandomBoardConfig()
+        board: generateRandomBoardConfig(),
+        total_moves:0
       }
     ];
 

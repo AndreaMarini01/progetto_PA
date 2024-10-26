@@ -6,6 +6,7 @@ import authRoutes from './routes/authRoute';
 import gameRoute from "./routes/gameRoute";
 import adminRoutes from './routes/adminRoute';
 import errorHandler from './factories/errorHandler';
+import moveRoute from "./routes/moveRoute";
 
 const app = express();
 const port = 3000;
@@ -30,6 +31,7 @@ app.use(express.json()); // Questo middleware è necessario per il parsing del c
 app.use('/', authRoutes)
 app.use('/create', gameRoute)
 app.use('/', adminRoutes);
+app.use('/create', moveRoute)
 
 app.use(errorHandler);
 

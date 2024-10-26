@@ -31,7 +31,8 @@ export const createGame = async (
     opponentEmail: number | null,
     type: GameType,
     aiDifficulty: AIDifficulty = AIDifficulty.ABSENT,
-    board: any
+    board: any,
+    total_moves: number,
 ) => {
     // Recupera il giocatore dal database
     const player = await Player.findByPk(playerId);
@@ -68,7 +69,8 @@ export const createGame = async (
         type,
         ai_difficulty: type === GameType.PVE ? aiDifficulty : AIDifficulty.ABSENT,
         date: new Date(),
-        board:board
+        board:board,
+        total_moves // Aggiungi questa proprietà per risolvere l'errore
     });
 
     return newGame;

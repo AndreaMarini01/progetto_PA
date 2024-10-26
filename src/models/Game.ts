@@ -33,7 +33,8 @@ interface GameAttributes {
     ai_difficulty: AIDifficulty;
     updatedAt?: Date;
     date: Date;
-    board: object;
+    board: any;
+    total_moves: number;
 }
 
 // Definisce i tipi per l'inserimento di nuovi record
@@ -51,7 +52,8 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
     public ai_difficulty!: AIDifficulty;
     public readonly updatedAt!: Date;
     public date!: Date;
-    public board!: object;
+    public board!: any;
+    public total_moves!: number;
 
     // Inizializza il modello Game con Sequelize
     public static initialize() {
@@ -114,6 +116,11 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
                 board: {
                     type: DataTypes.JSON,
                     allowNull: false,
+                },
+                total_moves: {
+                    type: DataTypes.INTEGER,
+                    allowNull: false,
+                    defaultValue: 0,
                 }
             },
             {

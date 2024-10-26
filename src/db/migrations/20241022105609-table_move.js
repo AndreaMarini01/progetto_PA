@@ -42,6 +42,26 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.NOW
+      },
+      moveNumber:{
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      board: {
+        type: Sequelize.JSON, // Campo per memorizzare la configurazione del tabellone
+        allowNull: true
+      },
+      pieceType: {
+        type: Sequelize.STRING, // Tipo del pezzo mosso (es. "king" o "single")
+        allowNull: true
+      },
+      fromPosition: {
+        type: Sequelize.STRING, // Posizione di partenza (es. "A7")
+        allowNull: false
+      },
+      toPosition: {
+        type: Sequelize.STRING, // Posizione di destinazione (es. "E7")
+        allowNull: false
       }
     });
   },

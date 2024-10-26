@@ -58,7 +58,12 @@ module.exports = {
         type: Sequelize.JSON, // Aggiungi questa riga per il campo JSON
         allowNull: false,
         defaultValue: initialBoard
-      }
+      },
+      total_moves:{
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+      },
     });
   },
 

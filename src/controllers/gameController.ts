@@ -62,6 +62,7 @@ export const createGameController = async (req: Request, res: Response, next: Ne
             throw GameFactory.createError(gameErrorType.MISSING_GAME_PARAMETERS);
         }
 
+        const total_moves = 0
         const initialBoard = {
             board: [
                 [null, "B", null, "B", null, "B", null, "B"],
@@ -75,7 +76,7 @@ export const createGameController = async (req: Request, res: Response, next: Ne
             ]
         };
 
-        const newGame = await createGame(playerId, opponent_email, type, ai_difficulty, initialBoard);
+        const newGame = await createGame(playerId, opponent_email, type, ai_difficulty, initialBoard, total_moves);
 
         res.status(201).json({ game: newGame });
     } catch (error) {
