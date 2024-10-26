@@ -25,7 +25,7 @@ class MoveFactory {
             case moveErrorType.FAILED_PARSING:
                 return 'The parsing of the board has failed';
             case moveErrorType.NOT_VALID_ARRAY:
-                return 'The board\' array is not valid!';
+                return 'The board\'s conversion is not valid!';
             case moveErrorType.NOT_VALID_MOVE:
                 return 'The move is not valid!';
             case moveErrorType.MISSING_PARAMS:

@@ -35,7 +35,7 @@ module.exports = {
         total_moves:0
       },
       {
-        status: 'Completed',
+        status: 'Ongoing',
         player_id: 1,
         opponent_id: null,
         created_at: new Date(Date.now() - 3600 * 1000), // 1 ora fa

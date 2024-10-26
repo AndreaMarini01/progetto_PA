@@ -27,7 +27,7 @@ module.exports = {
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
-        allowNull: false
+        allowNull: true
       },
       details: {
         type: Sequelize.JSON,

@@ -105,7 +105,7 @@ function errorHandler(err: any, req: Request, res: Response, next: NextFunction)
         res.status(statusCode).json({error: err.message});
     } else {
         // Gestione di errori generici non riconosciuti
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Errore generale non gestito' });
     }
 }
 

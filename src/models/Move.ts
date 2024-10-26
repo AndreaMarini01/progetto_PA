@@ -7,7 +7,7 @@ import Player from './Player';
 interface MoveAttributes {
     id_move: number;
     game_id: number;
-    user_id: number;
+    user_id?: number | null;
     details: object;
     createdAt?: Date;
     updatedAt?: Date;
@@ -16,7 +16,6 @@ interface MoveAttributes {
     fromPosition?: string;
     toPosition?: string;
     pieceType?: string;
-    move_number?: number;
 }
 
 // Definisce i tipi per l'inserimento di nuovi record
@@ -26,7 +25,7 @@ interface MoveCreationAttributes extends Optional<MoveAttributes, 'id_move'> {}
 class Move extends Model<MoveAttributes, MoveCreationAttributes> implements MoveAttributes {
     public id_move!: number;
     public game_id!: number;
-    public user_id!: number;
+    public user_id?: number;
     public details!: object;
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
@@ -59,7 +58,7 @@ class Move extends Model<MoveAttributes, MoveCreationAttributes> implements Move
                 },
                 user_id: {
                     type: DataTypes.INTEGER,
-                    allowNull: false,
+                    allowNull: true,
                     references: {
                         model: 'Player',
                         key: 'id_player',
