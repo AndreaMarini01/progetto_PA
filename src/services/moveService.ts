@@ -5,6 +5,12 @@ import {DraughtsMove1D, DraughtsSquare1D, DraughtsStatus} from 'rapid-draughts';
 import { EnglishDraughtsComputerFactory as ComputerFactory } from 'rapid-draughts/english';
 import {EnglishDraughts as Draughts} from 'rapid-draughts/english';
 import MoveFactory, {moveErrorType} from "../factories/moveFactory";
+import AuthFactory, {authErrorType} from "../factories/authFactory";
+import GameFactory, {gameErrorType} from "../factories/gameFactory";
+
+const TIMEOUT_MINUTES = 1; // Tempo prima dell'abbandono
+const MOVE_COST = 0.02;
+
 
 /**
  * Servizio per la gestione delle mosse in una partita.
@@ -104,6 +110,19 @@ class MoveService {
             throw MoveFactory.createError(moveErrorType.GAME_NOT_FOUND);
         }
 
+        // Lancia un errore nel caso in cui la partita non sia in corso
+        if (game.status !== GameStatus.ONGOING) {
+            throw GameFactory.createError(gameErrorType.GAME_NOT_IN_PROGRESS);
+        }
+
+        // Se il giocatore che esegue la mossa non è uno dei due giocatori coinvolti, restituisce un errore
+        if (game.player_id !== playerId && game.opponent_id !== playerId) {
+            throw AuthFactory.createError(authErrorType.UNAUTHORIZED);
+        }
+
+        player.tokens -= MOVE_COST;
+        await player.save();
+
         // Carica la board salvata nel database
         let savedData: { board: DraughtsSquare1D[] } | null = null;
 
@@ -151,6 +170,25 @@ class MoveService {
             where: { game_id: gameId },
             order: [['createdAt', 'DESC']]
         });
+
+        if (lastMove) {
+            const lastMoveTime = new Date(lastMove.createdAt);
+            const currentTime = new Date();
+            const timeDifference = (currentTime.getTime() - lastMoveTime.getTime()) / (1000 * 60); // Differenza in minuti
+
+            if (timeDifference > TIMEOUT_MINUTES) {
+                // Imposta lo stato della partita come persa per "timeout"
+                game.status = GameStatus.TIMED_OUT;
+                game.ended_at = currentTime;
+                await game.save();
+
+                return {
+                    message: `The game has ended due to a timeout after ${TIMEOUT_MINUTES} minutes.`,
+                    game_id: gameId,
+                    status: game.status,
+                };
+            }
+        }
 
         if (lastMove && lastMove.fromPosition === from && lastMove.toPosition === to) {
             throw MoveFactory.createError(moveErrorType.NOT_VALID_MOVE);
@@ -200,6 +238,10 @@ class MoveService {
                 game.board = JSON.stringify({ board: draughts.board });
                 game.total_moves += 1;
                 await game.save();
+
+                // Riduce i token del giocatore anche per la mossa dell'IA
+                player.tokens -= MOVE_COST;
+                await player.save();
 
                 // Salva la mossa dell'IA nel database
                 const fromPositionAI = MoveService.convertPositionBack(aiMove.origin);

@@ -46,6 +46,9 @@ function errorHandler(err: any, req: Request, res: Response, next: NextFunction)
             case gameErrorType.SELF_CHALLENGE_NOT_ALLOWED:
                 statusCode = 400; // Bad Request
                 break;
+            case gameErrorType.GAME_NOT_IN_PROGRESS:
+                statusCode = 409; // Conflict
+                break;
             default:
                 statusCode = 500; // Internal Server Error
                 break;

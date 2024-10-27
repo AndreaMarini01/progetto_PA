@@ -15,7 +15,8 @@ export enum gameErrorType {
     OPPONENT_NOT_FOUND = 'OPPONENT_NOT_FOUND',
     PLAYER_ALREADY_IN_GAME = 'PLAYER_ALREADY_IN_GAME',
     OPPONENT_ALREADY_IN_GAME = 'OPPONENT_ALREADY_IN_GAME',
-    SELF_CHALLENGE_NOT_ALLOWED = 'SELF_CHALLENGE_NOT_ALLOWED'
+    SELF_CHALLENGE_NOT_ALLOWED = 'SELF_CHALLENGE_NOT_ALLOWED',
+    GAME_NOT_IN_PROGRESS = 'GAME_NOT_IN_PROGRESS',
 }
 
 /**
@@ -79,6 +80,8 @@ class GameFactory {
                 return 'The opponent is already in an active game';
             case gameErrorType.SELF_CHALLENGE_NOT_ALLOWED:
                 return 'You can\'t challenge yourself!';
+            case gameErrorType.GAME_NOT_IN_PROGRESS:
+                return 'The game is not more available.';
             default:
                 return 'An unknown error occurred.';
         }
