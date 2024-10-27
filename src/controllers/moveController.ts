@@ -1,5 +1,5 @@
 import {NextFunction, Request, Response} from 'express';
-import MoveService from '../services/moveService';
+import moveService from '../services/moveService';
 import AuthFactory, {authErrorType} from "../factories/authFactory";
 import MoveFactory, {moveErrorType} from "../factories/moveFactory";
 
@@ -36,7 +36,7 @@ class MoveController {
             throw MoveFactory.createError(moveErrorType.MISSING_PARAMS);
         }
             // Passa i parametri al servizio per eseguire la mossa
-            const result = await MoveService.executeMove(gameId, from, to, playerId);
+            const result = await moveService.executeMove(gameId, from, to, playerId);
             res.status(200).json(result);
         } catch (err) {
             next(err)

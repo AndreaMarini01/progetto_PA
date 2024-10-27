@@ -1,7 +1,7 @@
 import express from 'express';
 import { authenticationWithJWT } from '../middleware/authMiddleware';
 import { adminAuthMiddleware } from '../middleware/adminAuthMiddleware';
-import { chargeTokens } from '../controllers/adminController';
+import adminController from '../controllers/adminController';
 
 /**
  * Router per le rotte amministrative.
@@ -26,7 +26,7 @@ const router = express.Router();
  * - `chargeTokens`: Gestisce l'aggiornamento dei token per il giocatore specificato.
  */
 
-router.put('/chargeTokens', authenticationWithJWT, adminAuthMiddleware, chargeTokens);
+router.put('/chargeTokens', authenticationWithJWT, adminAuthMiddleware, adminController.chargeTokens);
 
 export default router;
 

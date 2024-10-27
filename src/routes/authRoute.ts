@@ -1,5 +1,6 @@
 import express from 'express';
-import { login } from '../controllers/authController';
+import AuthController from '../controllers/authController';
+import authController from "../controllers/authController";
 
 /**
  * Router per le rotte di autenticazione.
@@ -20,7 +21,7 @@ const router = express.Router();
  * - `login`: Gestisce l'autenticazione dell'utente e restituisce un token JWT.
  */
 
-router.post('/login', login);
+router.post('/login', authController.login);
 
 export default router;
 

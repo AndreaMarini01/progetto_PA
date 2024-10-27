@@ -8,7 +8,7 @@ import MoveFactory, {moveErrorType} from "../factories/moveFactory";
 import AuthFactory, {authErrorType} from "../factories/authFactory";
 import GameFactory, {gameErrorType} from "../factories/gameFactory";
 
-const TIMEOUT_MINUTES = 1; // Tempo prima dell'abbandono
+const TIMEOUT_MINUTES = 1;
 const MOVE_COST = 0.02;
 
 
@@ -21,7 +21,7 @@ const MOVE_COST = 0.02;
  * la verifica delle condizioni di vittoria o pareggio.
  */
 
-class MoveService {
+class moveService {
 
     /**
      * Sceglie una mossa per l'IA in base alla difficoltà specificata.
@@ -150,13 +150,13 @@ class MoveService {
 
         console.log("Mosse possibili dalla configurazione data:");
         draughts.moves.forEach(move => {
-            const moveFrom = MoveService.convertPositionBack(move.origin);
-            const moveTo = MoveService.convertPositionBack(move.destination);
+            const moveFrom = moveService.convertPositionBack(move.origin);
+            const moveTo = moveService.convertPositionBack(move.destination);
             console.log(`Mossa: da ${moveFrom} a ${moveTo}`);
         });
 
-        const origin = MoveService.convertPosition(from);
-        const destination = MoveService.convertPosition(to);
+        const origin = moveService.convertPosition(from);
+        const destination = moveService.convertPosition(to);
 
         // Verifica che una mossa sia valida
         const validMoves = draughts.moves;
@@ -218,7 +218,7 @@ class MoveService {
 
         // Verifica se la mossa del giocatore ha concluso il gioco
         if ([DraughtsStatus.LIGHT_WON, DraughtsStatus.DARK_WON, DraughtsStatus.DRAW].includes(draughts.status as DraughtsStatus)) {
-            const gameOverResult = MoveService.handleGameOver(draughts, game);
+            const gameOverResult = moveService.handleGameOver(draughts, game);
             game.status = GameStatus.COMPLETED;
             game.ended_at = new Date();
             await game.save();
@@ -232,7 +232,7 @@ class MoveService {
 
         // Se la partita è PvE, esegui anche la mossa dell'IA
         if (game.type === GameType.PVE) {
-            const aiMove = await MoveService.chooseAIMove(draughts, game.ai_difficulty);
+            const aiMove = await moveService.chooseAIMove(draughts, game.ai_difficulty);
             if (aiMove) {
                 draughts.move(aiMove);
                 game.board = JSON.stringify({ board: draughts.board });
@@ -244,8 +244,8 @@ class MoveService {
                 await player.save();
 
                 // Salva la mossa dell'IA nel database
-                const fromPositionAI = MoveService.convertPositionBack(aiMove.origin);
-                const toPositionAI = MoveService.convertPositionBack(aiMove.destination);
+                const fromPositionAI = moveService.convertPositionBack(aiMove.origin);
+                const toPositionAI = moveService.convertPositionBack(aiMove.destination);
 
                 await Move.create({
                     moveNumber: moveNumber + 1,
@@ -260,7 +260,7 @@ class MoveService {
 
                 // Verifica se la mossa dell'IA ha concluso il gioco
                 if ([DraughtsStatus.LIGHT_WON, DraughtsStatus.DARK_WON, DraughtsStatus.DRAW].includes(draughts.status as DraughtsStatus)) {
-                    const gameOverResult = MoveService.handleGameOver(draughts, game);
+                    const gameOverResult = moveService.handleGameOver(draughts, game);
                     game.status = GameStatus.COMPLETED;
                     game.ended_at = new Date();
                     await game.save();
@@ -324,4 +324,4 @@ class MoveService {
     }
 }
 
-export default MoveService;
+export default moveService;

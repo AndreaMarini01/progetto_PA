@@ -1,5 +1,5 @@
 import express from 'express';
-import {abandonGameController, createGameController} from '../controllers/gameController';
+import gameController from '../controllers/gameController';
 import { authenticationWithJWT } from '../middleware/authMiddleware';
 
 /**
@@ -23,7 +23,7 @@ const router = express.Router();
  * - `createGameController`: Gestisce la logica per la creazione di una nuova partita.
  */
 
-router.post('/create/new-game', authenticationWithJWT, createGameController);
-router.post('/abandon-game/:gameId', authenticationWithJWT, abandonGameController)
+router.post('/create/new-game', authenticationWithJWT, gameController.createGame);
+router.post('/abandon-game/:gameId', authenticationWithJWT, gameController.abandonGame)
 
 export default router;
