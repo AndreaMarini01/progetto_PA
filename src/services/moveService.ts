@@ -7,6 +7,10 @@ import {EnglishDraughts as Draughts} from 'rapid-draughts/english';
 import MoveFactory, {moveErrorType} from "../factories/moveFactory";
 import AuthFactory, {authErrorType} from "../factories/authFactory";
 import GameFactory, {gameErrorType} from "../factories/gameFactory";
+import {NextFunction} from "express";
+import * as jsPDF from "jspdf";
+import PDFDocument from 'pdfkit';
+
 
 const TIMEOUT_MINUTES = 1;
 const MOVE_COST = 0.02;
@@ -340,6 +344,74 @@ class moveService {
             board: draughts.board,
         };
     }
+
+    /**
+     * Recupera lo storico delle mosse per una specifica partita ed esporta nel formato richiesto (JSON o PDF).
+     *
+     * Questo metodo recupera tutte le mosse associate all'ID della partita specificato, ordinandole in ordine cronologico.
+     * L'output può essere restituito in formato JSON o PDF, a seconda del valore del parametro `format`.
+     *
+     * @param {number} gameId - L'ID della partita di cui recuperare lo storico delle mosse.
+     * @param {string} format - Il formato di esportazione desiderato ("json" o "pdf").
+     * @returns {Promise<Buffer | object>} Una promessa che risolve con lo storico delle mosse nel formato richiesto:
+     *                                     un array di oggetti nel caso di JSON, oppure un buffer nel caso di PDF.
+     * @throws {Error} - Lancia un errore se non vengono trovate mosse per la partita specificata o se il formato è non supportato.
+     */
+
+    public static async exportMoveHistory(gameId: number, format: string): Promise<Buffer | object> {
+        // Retrieve all moves for the specified game
+        const moves = await Move.findAll({
+            where: { game_id: gameId },
+            order: [['createdAt', 'ASC']],
+        });
+
+        if (!moves.length) {
+            throw new Error('No moves found for the specified game.');
+        }
+
+        // Handle export format
+        if (format === 'json') {
+            // Return as JSON
+            return moves.map(move => ({
+                moveNumber: move.moveNumber,
+                fromPosition: move.fromPosition,
+                toPosition: move.toPosition,
+                pieceType: move.pieceType,
+                timestamp: move.createdAt,
+            }));
+        } else if (format === 'pdf') {
+            // Create a PDF document
+            const doc = new PDFDocument();
+            let buffer: Buffer;
+            const buffers: Uint8Array[] = [];
+
+            doc.on('data', (chunk) => buffers.push(chunk));
+            doc.on('end', () => {
+                buffer = Buffer.concat(buffers);
+            });
+
+            doc.fontSize(16).text(`Move History for Game ID: ${gameId}`, { align: 'center' });
+            doc.moveDown();
+
+            moves.forEach(move => {
+                doc.fontSize(12).text(
+                    `Move #${move.moveNumber}: From ${move.fromPosition} to ${move.toPosition} - Piece: ${move.pieceType} - Timestamp: ${move.createdAt}`
+                );
+                doc.moveDown();
+            });
+
+            // Finalize the PDF file
+            doc.end();
+
+            // Wait for the PDF to be fully generated before returning the buffer
+            return new Promise<Buffer>((resolve) => {
+                doc.on('end', () => resolve(buffer!));
+            });
+        } else {
+            throw new Error('Unsupported format. Please choose "json" or "pdf".');
+        }
+    }
+
 }
 
 export default moveService;

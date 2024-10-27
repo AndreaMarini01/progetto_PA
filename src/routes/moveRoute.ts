@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import MoveController from '../controllers/moveController';
 import {authenticationWithJWT} from "../middleware/authMiddleware";
+import moveController from "../controllers/moveController";
 
 /**
  * Router per le rotte relative alle mosse di gioco.
@@ -23,6 +23,8 @@ const router = Router();
  * - `MoveController.executeMove`: Gestisce la logica per l'esecuzione di una mossa.
  */
 
-router.post('/new-move', authenticationWithJWT, MoveController.executeMove);
+router.post('/new-move', authenticationWithJWT, moveController.executeMove);
+router.get('/game/:gameId/moves', authenticationWithJWT, moveController.getMoveHistory);
+
 
 export default router;

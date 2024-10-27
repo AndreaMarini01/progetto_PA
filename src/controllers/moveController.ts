@@ -42,6 +42,34 @@ class MoveController {
             next(err)
         }
     }
+
+    /**
+     * Restituisce lo storico delle mosse di una data partita in formato JSON o PDF.
+     *
+     * @param req - L'oggetto della richiesta Express contenente l'ID della partita e il formato desiderato (json o pdf).
+     * @param res - L'oggetto della risposta Express utilizzato per inviare il risultato al client.
+     * @param next - La funzione di callback `NextFunction` per passare il controllo al middleware successivo in caso di errore.
+     */
+
+    public static async getMoveHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const gameId = parseInt(req.params.gameId, 10);
+        const format = req.query.format as string || 'json'; // Formato di default è JSON
+
+        try {
+            const result = await moveService.exportMoveHistory(gameId, format);
+
+            if (format === 'pdf') {
+                res.setHeader('Content-Type', 'application/pdf');
+                res.setHeader('Content-Disposition', `attachment; filename=game_${gameId}_moves.pdf`);
+                res.send(result);
+            } else {
+                res.status(200).json(result);
+            }
+        } catch (error) {
+            next(error);
+        }
+    }
+
 }
 
 export default MoveController;
