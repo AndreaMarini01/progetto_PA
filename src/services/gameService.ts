@@ -2,6 +2,7 @@ import Game, { GameType, GameStatus, AIDifficulty } from '../models/Game';
 import Player from '../models/Player';
 import GameFactory, { gameErrorType } from '../factories/gameFactory';
 import { Op } from 'sequelize';
+import AuthFactory, {authErrorType} from "../factories/authFactory";
 
 const GAME_CREATION_COST = 0.35;
 
@@ -95,3 +96,24 @@ export const createGame = async (
 
     return newGame;
 };
+
+export const abandonGame = async (gameId: number, playerId: number): Promise<Game> => {
+    const game = await Game.findByPk(gameId);
+    if (!game) {
+        throw GameFactory.createError(gameErrorType.INVALID_GAME_PARAMETERS);
+    }
+    // Controlla se l'utente è uno dei giocatori coinvolti nella partita
+    if (game.player_id !== playerId && game.opponent_id !== playerId) {
+        throw AuthFactory.createError(authErrorType.UNAUTHORIZED);
+    }
+    if (game.status !== GameStatus.ONGOING) {
+        throw GameFactory.createError(gameErrorType.GAME_NOT_IN_PROGRESS);
+    }
+    // Aggiorna lo stato della partita a "Abandoned"
+    game.status = GameStatus.ABANDONED;
+    game.ended_at = new Date();
+    await game.save();
+    return game;
+};
+
+

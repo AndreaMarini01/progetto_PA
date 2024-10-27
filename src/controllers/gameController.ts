@@ -3,6 +3,7 @@ import {createGame, findActiveGameForPlayer} from '../services/gameService';
 import { GameType, AIDifficulty } from '../models/Game';
 import GameFactory, {gameErrorType} from '../factories/gameFactory';
 import Player from "../models/Player";
+import { abandonGame } from '../services/gameService';
 
 /**
  * Gestisce la creazione di una nuova partita, sia PvP (Player vs. Player) che PvE (Player vs. Environment).
@@ -88,5 +89,20 @@ export const createGameController = async (req: Request, res: Response, next: Ne
     } catch (error) {
         next(error);
     }
+};
 
+export const abandonGameController = async (req: Request, res: Response, next: NextFunction) => {
+    const gameId = parseInt(req.params.gameId, 10);
+    const playerId = req.user?.id_player;
+
+    try {
+        const game = await abandonGame(gameId, playerId!);
+        res.status(200).json({
+            message: `Game with ID ${gameId} has been abandoned.`,
+            game_id: gameId,
+            status: game.status,
+        });
+    } catch (error) {
+        next(error);
+    }
 };

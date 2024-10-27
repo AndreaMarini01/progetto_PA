@@ -46,7 +46,7 @@ app.use(express.json());
  */
 
 app.use('/', authRoutes) // Rotte di autenticazione
-app.use('/create', gameRoute) // Rotte per la creazione di partite
+app.use('/', gameRoute) // Rotte per la gestione di partite
 app.use('/', adminRoutes); // Rotte amministrative
 app.use('/create', moveRoute) // Rotte per la gestione delle mosse
 
