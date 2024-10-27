@@ -182,6 +182,13 @@ class moveService {
                 game.ended_at = currentTime;
                 await game.save();
 
+                // Decrementa il punteggio del giocatore di 0.5 punti
+                const player = await Player.findByPk(playerId);
+                if (player) {
+                    player.score -= 0.5;
+                    await player.save();
+                }
+
                 return {
                     message: `The game has ended due to a timeout after ${TIMEOUT_MINUTES} minutes.`,
                     game_id: gameId,
@@ -207,7 +214,7 @@ class moveService {
         // Salva la mossa nel database
         await Move.create({
             moveNumber: moveNumber,
-            board: { initialBoard: draughts.board },
+            board: { board: draughts.board },
             fromPosition: from,
             toPosition: to,
             pieceType: savedBoard[origin]?.piece?.king ? 'king' : 'single',
@@ -218,7 +225,7 @@ class moveService {
 
         // Verifica se la mossa del giocatore ha concluso il gioco
         if ([DraughtsStatus.LIGHT_WON, DraughtsStatus.DARK_WON, DraughtsStatus.DRAW].includes(draughts.status as DraughtsStatus)) {
-            const gameOverResult = moveService.handleGameOver(draughts, game);
+            const gameOverResult = await moveService.handleGameOver(draughts, game);
             game.status = GameStatus.COMPLETED;
             game.ended_at = new Date();
             await game.save();
@@ -249,7 +256,7 @@ class moveService {
 
                 await Move.create({
                     moveNumber: moveNumber + 1,
-                    board: { initialBoard: draughts.board },
+                    board: { board: draughts.board },
                     fromPosition: fromPositionAI,
                     toPosition: toPositionAI,
                     pieceType: savedBoard[aiMove.origin]?.piece?.king ? 'king' : 'single',
@@ -260,7 +267,7 @@ class moveService {
 
                 // Verifica se la mossa dell'IA ha concluso il gioco
                 if ([DraughtsStatus.LIGHT_WON, DraughtsStatus.DARK_WON, DraughtsStatus.DRAW].includes(draughts.status as DraughtsStatus)) {
-                    const gameOverResult = moveService.handleGameOver(draughts, game);
+                    const gameOverResult = await moveService.handleGameOver(draughts, game);
                     game.status = GameStatus.COMPLETED;
                     game.ended_at = new Date();
                     await game.save();
@@ -302,20 +309,31 @@ class moveService {
      * @returns {object} Un oggetto che descrive il risultato della partita e lo stato finale della scacchiera.
      */
 
-    private static handleGameOver(draughts: any, game: any) {
+    private static async handleGameOver(draughts: any, game: any) {
         let result;
+        let winnerId: number | null = null;
         if (draughts.status === DraughtsStatus.LIGHT_WON) {
-            game.winnerId = game.player1Id;
+            winnerId = game.player_id;
             result = 'You have won!';
         } else if (draughts.status === DraughtsStatus.DARK_WON) {
-            game.winnerId = game.player2Id;
+            winnerId = game.opponent_id;
             result = 'Your opponent has won!';
         } else {
             result = 'The game ended in a draw!';
         }
 
         game.status = GameStatus.COMPLETED;
+        game.ended_at = new Date();
         game.save();
+
+        //Assegna un punto al vincitore, se esiste
+        if (winnerId !== null) {
+            const winner = await Player.findByPk(winnerId);
+            if (winner) {
+                winner.score += 1;
+                await winner.save();
+            }
+        }
 
         return {
             message: result,

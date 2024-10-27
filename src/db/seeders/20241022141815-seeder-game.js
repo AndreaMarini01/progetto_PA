@@ -21,7 +21,7 @@ function getRandomDate() {
  * @returns {string} La configurazione iniziale della tavola di gioco in formato JSON.
  */
 
-function   generateRandomBoardConfig() {
+function generateBoardConfig() {
   const board = Array(32).fill(null); // Crea una tavola 32-caselle per i pezzi scuri (configurazione Draughts)
   // Popola la tavola con i pezzi iniziali per Giocatore 1 e Giocatore 2
   for (let i = 0; i < 12; i++) {
@@ -30,7 +30,7 @@ function   generateRandomBoardConfig() {
   for (let i = 20; i < 32; i++) {
     board[i] = { dark: true, position: i, piece: { player: 'light', king: false } }; // Giocatore 2
   }
-  return JSON.stringify({ initialBoard: board });
+  return JSON.stringify({ board: board });
 }
 
 /**
@@ -79,33 +79,33 @@ module.exports = {
         ai_difficulty: 'Absent',
         updatedAt: new Date(),
         date: getRandomDate(),
-        board: generateRandomBoardConfig(),
+        board: generateBoardConfig(),
         total_moves:0
       },
       {
         status: 'Ongoing',
         player_id: 1,
         opponent_id: null,
-        created_at: new Date(Date.now() - 3600 * 1000), // 1 ora fa
+        created_at: new Date(Date.now() - 3600 * 1000),
         ended_at: new Date(),
         type: 'PvE',
         ai_difficulty: 'Hard',
         updatedAt: new Date(),
         date: getRandomDate(),
-        board: generateRandomBoardConfig(),
+        board: generateBoardConfig(),
         total_moves:0
       },
       {
         player_id: 2,
         opponent_id: null,
         status: 'Timed Out',
-        created_at: new Date(Date.now() - 7200 * 1000), // 2 ore fa
+        created_at: new Date(Date.now() - 7200 * 1000),
         ended_at: new Date(),
         type: 'PvE',
         ai_difficulty: 'Easy',
         updatedAt: new Date(),
         date: getRandomDate(),
-        board: generateRandomBoardConfig(),
+        board: generateBoardConfig(),
         total_moves:0
       }
     ];

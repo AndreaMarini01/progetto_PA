@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import gameService from '../services/gameService';
-import { GameType, AIDifficulty } from '../models/Game';
+import Game, {GameType, AIDifficulty, GameStatus} from '../models/Game';
 import GameFactory, { gameErrorType } from '../factories/gameFactory';
 import Player from "../models/Player";
+import gameFactory from "../factories/gameFactory";
 
 /**
  * Classe `GameController` per gestire le operazioni legate alle partite.
@@ -108,6 +109,45 @@ class gameController {
             next(error);
         }
     }
+
+    /**
+     * Restituisce lo stato di una partita e la configurazione attuale della board.
+     *
+     * Questo metodo cerca una partita nel database utilizzando l'ID fornito. Se la partita esiste,
+     * restituisce lo stato corrente della partita e la configurazione della board. Se la partita
+     * non viene trovata, genera un errore di parametri non validi.
+     *
+     * @param req - L'oggetto della richiesta Express che contiene l'ID della partita nei parametri.
+     * @param res - L'oggetto della risposta Express utilizzato per inviare la risposta al client.
+     * @param next - La funzione di callback `NextFunction` per passare il controllo al middleware successivo in caso di errore.
+     *
+     * @throws {GameFactory.createError} - Lancia un errore se la partita con l'ID specificato non viene trovata.
+     *
+     * @returns {Promise<void>} Una risposta JSON con lo stato della partita e la configurazione della board.
+     */
+
+    public async evaluateGameStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const gameId = parseInt(req.params.gameId, 10);
+        try {
+            const game = await Game.findByPk(gameId);
+
+            if (!game) {
+                throw GameFactory.createError(gameErrorType.INVALID_GAME_PARAMETERS);
+            }
+
+            // Restituisce lo stato della partita e la configurazione della board
+            res.status(200).json({
+                message: `The current status of the game is: ${game.status}`,
+                game_id: gameId,
+                board: game.board
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+
+
 }
 
 export default new gameController();

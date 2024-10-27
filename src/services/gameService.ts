@@ -109,6 +109,7 @@ class gameService {
      * @throws {AuthError} - Lancia un errore se l'utente non è autorizzato ad abbandonare la partita.
      * @throws {GameError} - Lancia un errore se la partita non esiste o non è in corso.
      */
+
     public async abandonGame(gameId: number, playerId: number): Promise<Game> {
         const game = await Game.findByPk(gameId);
         if (!game) {
@@ -123,9 +124,17 @@ class gameService {
             throw GameFactory.createError(gameErrorType.GAME_NOT_IN_PROGRESS);
         }
 
+        // Cambia lo stato della partita in "Abandoned"
         game.status = GameStatus.ABANDONED;
         game.ended_at = new Date();
         await game.save();
+
+        // Decrementa il punteggio del giocatore che ha abbandonato
+        const player = await Player.findByPk(playerId);
+        if (player) {
+            player.score -= 0.5;
+            await player.save();
+        }
 
         return game;
     }
