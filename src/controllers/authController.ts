@@ -2,15 +2,29 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import Player from '../models/Player';
 import { verifyPassword } from '../utils/cryptoUtils'; // Importa la funzione per la verifica della password
-
-// import { AuthErrorFactory } from '../factories/authFactory';
 import AuthFactory, { authErrorType } from '../factories/authFactory';
 
+/**
+ * Gestisce il login dell'utente autenticando l'email e la password forniti.
+ *
+ * Questa funzione verifica le credenziali fornite (email e password) e, se valide, genera un token JWT
+ * per l'utente autenticato. Controlla se l'email esiste nel database e verifica la corrispondenza della
+ * password. Se le credenziali sono corrette, il token JWT viene restituito. In caso di credenziali non
+ * valide o altri errori, viene generato un errore gestito dal middleware di gestione degli errori.
+ *
+ * @param req - L'oggetto della richiesta Express contenente l'email e la password nel corpo della richiesta.
+ * @param res - L'oggetto della risposta Express utilizzato per inviare il token JWT generato al client.
+ * @param next - La funzione di callback `NextFunction` per passare il controllo al middleware successivo in caso di errore.
+ *
+ * @throws {AuthFactory.createError} - Lancia un errore se le credenziali (email o password) sono mancanti o non valide.
+ *
+ * @returns Una risposta JSON contenente il token JWT se l'autenticazione ha successo. Il token include
+ *          informazioni come l'ID dell'utente, l'email e il ruolo, ed è valido per un'ora.
+ */
 
 // Funzione per gestire il login dell'utente
 export const login = async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
-
     try {
         if(!email || !password) {
             throw AuthFactory.createError(authErrorType.INVALID_CREDENTIALS);
@@ -20,23 +34,20 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
         if (!user) {
             throw AuthFactory.createError(authErrorType.INVALID_CREDENTIALS);
         }
-
         // Verifica la password fornita con l'hash salvato e il salt
         const isPasswordValid = verifyPassword(password, user.password_hash, user.salt);
         if (!isPasswordValid) {
             throw AuthFactory.createError(authErrorType.INVALID_CREDENTIALS);
         }
-
         // Genera un token JWT per l'utente autenticato
         const token = jwt.sign(
             { id_player: user.id_player, email: user.email, role: user.role },
             process.env.JWT_SECRET as string,
             { expiresIn: '1h' }
         );
-
         // Restituisce il token JWT all'utente
         res.json({ token });
     } catch (error) {
-        next(error); // Gestione degli errori tramite il middleware di error handling
+        next(error);
     }
 };

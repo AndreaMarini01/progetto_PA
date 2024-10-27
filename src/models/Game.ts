@@ -3,6 +3,10 @@ import Database from '../db/database'; // Importa l'istanza Singleton del Databa
 import Player from './Player';
 import Move from './Move';
 
+/**
+ * Enumerazione che definisce gli stati possibili per il gioco.
+ */
+
 export enum GameStatus {
     ONGOING = 'Ongoing',
     COMPLETED = 'Completed',
@@ -10,10 +14,18 @@ export enum GameStatus {
     TIMED_OUT = 'Timed Out',
 }
 
+/**
+ * Enumerazione che definisce i tipi di gioco.
+ */
+
 export enum GameType {
     PVP = 'PvP',
     PVE = 'PvE'
 }
+
+/**
+ * Enumerazione che definisce i livelli di difficoltà dell'IA.
+ */
 
 export enum AIDifficulty {
     ABSENT = 'Absent',
@@ -21,7 +33,10 @@ export enum AIDifficulty {
     HARD = 'Hard',
 }
 
-// Definisce i tipi per i campi del modello Game
+/**
+ * Interfaccia che definisce gli attributi del modello `Game`.
+ */
+
 interface GameAttributes {
     id_game: number;
     player_id: number;
@@ -37,10 +52,23 @@ interface GameAttributes {
     total_moves: number;
 }
 
-// Definisce i tipi per l'inserimento di nuovi record
+/**
+ * Interfaccia che definisce i tipi per l'inserimento di nuovi record `Game`.
+ * Rende opzionali alcuni campi durante la creazione del record.
+ */
+
 interface GameCreationAttributes extends Optional<GameAttributes, 'id_game' | 'ended_at' | 'ai_difficulty'> {}
 
-// Crea la classe Game che estende il modello di Sequelize
+/**
+ * Classe che rappresenta il modello `Game`.
+ *
+ * Questa classe estende il modello di Sequelize per rappresentare una partita, con
+ * attributi come ID del giocatore, ID dell'avversario, stato, tipo, difficoltà
+ * dell'IA, configurazione della tavola e numero totale di mosse. Fornisce metodi
+ * statici per l'inizializzazione e la configurazione delle associazioni con altri
+ * modelli, come `Player` e `Move`.
+ */
+
 class Game extends Model<GameAttributes, GameCreationAttributes> implements GameAttributes {
     public id_game!: number;
     public player_id!: number;
@@ -55,7 +83,13 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
     public board!: any;
     public total_moves!: number;
 
-    // Inizializza il modello Game con Sequelize
+    /**
+     * Inizializza il modello `Game` con Sequelize.
+     *
+     * Configura gli attributi del modello e le impostazioni del database, come il nome
+     * della tabella e l'utilizzo di timestamp personalizzati.
+     */
+
     public static initialize() {
         Game.init(
             {
@@ -133,13 +167,19 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
         );
     }
 
-    // Metodo statico per configurare le associazioni
+    /**
+     * Configura le associazioni del modello `Game` con altri modelli.
+     *
+     * Associa il modello `Game` con il modello `Move` tramite una relazione "hasMany",
+     * e con il modello `Player` tramite relazioni "belongsTo" per i campi `player_id` e `opponent_id`.
+     */
+
     public static associate() {
         // Associazioni con altri modelli
         Game.hasMany(Move, { foreignKey: 'game_id', as: 'moves' });
         Game.belongsTo(Player, { foreignKey: 'player_id', as: 'player' });
         Game.belongsTo(Player, { foreignKey: 'opponent_id', as: 'opponent' });
     }
-    }
+}
 
-    export default Game;
+export default Game;

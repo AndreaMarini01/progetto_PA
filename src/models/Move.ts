@@ -3,7 +3,10 @@ import Database from '../db/database'; // Importa l'istanza Singleton del Databa
 import Game from './Game';
 import Player from './Player';
 
-// Definisce i tipi per i campi del modello Move
+/**
+ * Interfaccia che definisce gli attributi del modello `Move`.
+ */
+
 interface MoveAttributes {
     id_move: number;
     game_id: number;
@@ -18,10 +21,23 @@ interface MoveAttributes {
     pieceType?: string;
 }
 
-// Definisce i tipi per l'inserimento di nuovi record
+/**
+ * Interfaccia che definisce i tipi per l'inserimento di nuovi record `Move`.
+ * Rende opzionali alcuni campi durante la creazione del record.
+ */
+
 interface MoveCreationAttributes extends Optional<MoveAttributes, 'id_move'> {}
 
-// Crea la classe Move che estende il modello di Sequelize
+/**
+ * Classe che rappresenta il modello `Move`.
+ *
+ * Questa classe estende il modello di Sequelize per rappresentare una mossa,
+ * con attributi come ID della partita, ID del giocatore, dettagli della mossa,
+ * posizione di partenza e destinazione, e configurazione della tavola. Fornisce
+ * metodi statici per l'inizializzazione e la configurazione delle associazioni
+ * con altri modelli, come `Game` e `Player`.
+ */
+
 class Move extends Model<MoveAttributes, MoveCreationAttributes> implements MoveAttributes {
     public id_move!: number;
     public game_id!: number;
@@ -36,7 +52,13 @@ class Move extends Model<MoveAttributes, MoveCreationAttributes> implements Move
     public pieceType?: string;
 
 
-    // Metodo statico per inizializzare il modello
+    /**
+     * Inizializza il modello `Move` con Sequelize.
+     *
+     * Configura gli attributi del modello e le impostazioni del database, come il nome
+     * della tabella e l'utilizzo di timestamp.
+     */
+
     public static initialize() {
         Move.init(
             {
@@ -109,7 +131,13 @@ class Move extends Model<MoveAttributes, MoveCreationAttributes> implements Move
         );
     }
 
-    // Metodo statico per configurare le associazioni
+    /**
+     * Configura le associazioni del modello `Move` con altri modelli.
+     *
+     * Associa il modello `Move` con il modello `Game` tramite una relazione "belongsTo",
+     * e con il modello `Player` tramite una relazione "belongsTo" per il campo `user_id`.
+     */
+
     public static associate() {
         // Associazioni con altri modelli
         Move.belongsTo(Game, { foreignKey: 'game_id', as: 'game' });

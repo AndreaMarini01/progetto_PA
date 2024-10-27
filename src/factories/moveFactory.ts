@@ -1,3 +1,11 @@
+/**
+ * Enumerazione che definisce i tipi di errore di mossa.
+ *
+ * I valori rappresentano vari scenari di errore che possono verificarsi durante
+ * l'esecuzione di una mossa, come la mancanza di parametri, un gioco non trovato,
+ * o la mossa non valida.
+ */
+
 export enum moveErrorType {
     GAME_NOT_FOUND = 'GAME_NOT_FOUND',
     FAILED_PARSING = 'FAILED_PARSING',
@@ -6,8 +14,23 @@ export enum moveErrorType {
     MISSING_PARAMS = 'MISSING_PARAMS',
 }
 
+/**
+ * Classe di errore personalizzata per gli errori di mossa.
+ *
+ * Estende la classe `Error` di JavaScript per rappresentare errori specifici
+ * relativi all'esecuzione delle mosse. Include un tipo di errore che indica
+ * il tipo di problema verificatosi.
+ */
+
 class MoveError extends Error {
     type: moveErrorType;
+
+    /**
+     * Costruisce un nuovo oggetto `MoveError`.
+     *
+     * @param {moveErrorType} type - Il tipo di errore di mossa.
+     * @param {string} message - Il messaggio di errore descrittivo.
+     */
 
     constructor(type: moveErrorType, message: string) {
         super(message);
@@ -16,8 +39,22 @@ class MoveError extends Error {
     }
 }
 
+/**
+ * Classe per creare e gestire errori di mossa.
+ *
+ * `MoveFactory` fornisce metodi statici per ottenere messaggi di errore
+ * e creare oggetti `MoveError` in base al tipo di errore di mossa.
+ */
+
 class MoveFactory {
-    // Restituisce un messaggio di errore in base al tipo di errore di autenticazione
+
+    /**
+     * Restituisce un messaggio di errore in base al tipo di errore di mossa.
+     *
+     * @param {moveErrorType} errorType - Il tipo di errore di mossa.
+     * @returns {string} Il messaggio di errore corrispondente.
+     */
+
     static getErrorMessage(errorType: moveErrorType): string {
         switch (errorType) {
             case moveErrorType.GAME_NOT_FOUND:
@@ -35,7 +72,13 @@ class MoveFactory {
         }
     }
 
-    // Crea un'istanza di AuthError con il tipo e il messaggio appropriato
+    /**
+     * Crea un'istanza di `MoveError` con il tipo e il messaggio appropriato.
+     *
+     * @param {moveErrorType} errorType - Il tipo di errore di mossa.
+     * @returns {MoveError} Un oggetto `MoveError` con il tipo di errore e il messaggio corrispondente.
+     */
+
     static createError(errorType: moveErrorType): MoveError {
         const message = this.getErrorMessage(errorType);
         return new MoveError(errorType, message);

@@ -3,12 +3,19 @@ import Database from "../db/database";
 import Move from './Move';
 import Game from './Game';
 
+/**
+ * Enumerazione che definisce i ruoli possibili per un giocatore.
+ */
+
 export enum PlayerRole {
     USER = 'user',
     ADMIN = 'admin',
 }
 
-// Definisce i tipi per i campi del modello Player
+/**
+ * Interfaccia che definisce gli attributi del modello `Player`.
+ */
+
 interface PlayerAttributes {
     id_player: number;
     username: string;
@@ -22,10 +29,22 @@ interface PlayerAttributes {
     updatedAt?: Date;
 }
 
-// Definisce i tipi per l'inserimento di nuovi record
+/**
+ * Interfaccia che definisce i tipi per l'inserimento di nuovi record `Player`.
+ * Rende opzionali alcuni campi durante la creazione del record.
+ */
+
 interface PlayerCreationAttributes extends Optional<PlayerAttributes, 'id_player'> {}
 
-// Crea la classe Player che estende il modello di Sequelize
+/**
+ * Classe che rappresenta il modello `Player`.
+ *
+ * Questa classe estende il modello di Sequelize per rappresentare un giocatore,
+ * con attributi come ID, nome utente, email, hash della password, token, ruolo,
+ * e punteggio. Fornisce metodi statici per l'inizializzazione e la configurazione
+ * delle associazioni con altri modelli, come `Move` e `Game`.
+ */
+
 class Player extends Model<PlayerAttributes, PlayerCreationAttributes> implements PlayerAttributes {
     public id_player!: number;
     public username!: string;
@@ -38,7 +57,13 @@ class Player extends Model<PlayerAttributes, PlayerCreationAttributes> implement
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
 
-    // Metodo statico per inizializzare il modello
+    /**
+     * Inizializza il modello `Player` con Sequelize.
+     *
+     * Configura gli attributi del modello e le impostazioni del database, come il nome
+     * della tabella e l'utilizzo di timestamp.
+     */
+
     public static initialize() {
         Player.init(
             {
@@ -89,7 +114,13 @@ class Player extends Model<PlayerAttributes, PlayerCreationAttributes> implement
         );
     }
 
-    // Metodo statico per configurare le associazioni
+    /**
+     * Configura le associazioni del modello `Player` con altri modelli.
+     *
+     * Associa il modello `Player` con il modello `Move` tramite una relazione "hasMany",
+     * e con il modello `Game` tramite una relazione "hasMany".
+     */
+
     public static associate() {
         Player.hasMany(Move, { foreignKey: 'user_id', as: 'moves' });
         Player.hasMany(Game, { foreignKey: 'player_id', as: 'games' });

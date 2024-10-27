@@ -6,8 +6,27 @@ import { EnglishDraughtsComputerFactory as ComputerFactory } from 'rapid-draught
 import {EnglishDraughts as Draughts} from 'rapid-draughts/english';
 import MoveFactory, {moveErrorType} from "../factories/moveFactory";
 
+/**
+ * Servizio per la gestione delle mosse in una partita.
+ *
+ * La classe `MoveService` fornisce metodi per l'esecuzione delle mosse,
+ * la gestione del gioco dell'IA e la verifica dello stato della partita.
+ * Gestisce le regole delle mosse, il salvataggio delle mosse nel database e
+ * la verifica delle condizioni di vittoria o pareggio.
+ */
 
 class MoveService {
+
+    /**
+     * Sceglie una mossa per l'IA in base alla difficoltà specificata.
+     *
+     * Se la difficoltà è EASY, viene utilizzato un algoritmo casuale.
+     * Se la difficoltà è HARD, viene utilizzato l'algoritmo AlphaBeta con profondità massima pari a 5.
+     *
+     * @param draughts - L'istanza di `Draughts` per gestire la logica del gioco.
+     * @param difficulty - Il livello di difficoltà dell'IA.
+     * @returns {Promise<DraughtsMove1D | null>} La mossa scelta dall'IA o `null` se non ci sono mosse disponibili.
+     */
 
     private static async chooseAIMove(draughts: any, difficulty: AIDifficulty): Promise<DraughtsMove1D | null> {
         const validMoves = draughts.moves;
@@ -28,23 +47,49 @@ class MoveService {
         }
     }
 
-    // Prende una posizione della scacchiera espressa come stringa ("A7")
-    // e la converte in un numero intero corrispondente alla posizione unidimensionale sulla scacchiera.
-    // Rapid-draughts utilizaa questo formato
+    /**
+     * Converte una posizione della scacchiera espressa come stringa (ad esempio, "A7")
+     * in un numero intero corrispondente alla posizione unidimensionale.
+     *
+     * @param position - La posizione della scacchiera in formato stringa.
+     * @returns {number} La posizione convertita in formato numerico.
+     */
+
     public static convertPosition(position: string): number {
         const file = position.charCodeAt(0) - 'A'.charCodeAt(0);
         const rank = 8 - parseInt(position[1]);
         return rank * 8 + file;
     }
 
-    // Funzione inversa di convertPosition
+    /**
+     * Converte una posizione unidimensionale in una rappresentazione della scacchiera (ad esempio, "A7").
+     *
+     * @param index - La posizione numerica unidimensionale.
+     * @returns {string} La posizione convertita in formato stringa.
+     */
+
     public static convertPositionBack(index: number): string {
         const file = String.fromCharCode('A'.charCodeAt(0) + (index % 8));
         const rank = 8 - Math.floor(index / 8);
         return `${file}${rank}`;
     }
 
-    // Funzione principale per l'esecuzione della mossa
+    /**
+     * Esegue una mossa per il giocatore in una partita.
+     *
+     * Questo metodo gestisce la logica per eseguire una mossa, verificare la sua validità,
+     * aggiornare lo stato della partita e, se necessario, eseguire la mossa dell'IA per le partite PvE.
+     *
+     * @param {number} gameId - L'ID della partita.
+     * @param {string} from - La posizione iniziale della mossa.
+     * @param {string} to - La posizione finale della mossa.
+     * @param {number} playerId - L'ID del giocatore che esegue la mossa.
+     * @returns {Promise<object>} Un oggetto che rappresenta il risultato della mossa.
+     *
+     * @throws {MoveError} - Lancia un errore se la partita o il giocatore non sono trovati,
+     * se la mossa non è valida o se ci sono errori nel parsing della scacchiera.
+     */
+
     public static async executeMove(gameId: number, from: string, to: string, playerId: number) {
         console.log('Eseguendo la mossa:', { gameId, from, to, playerId });
 
@@ -205,6 +250,16 @@ class MoveService {
         };
     }
 
+    /**
+     * Gestisce la fine del gioco.
+     *
+     * Verifica lo stato del gioco per determinare il vincitore o se il gioco è finito in pareggio.
+     *
+     * @param draughts - L'istanza di `Draughts` che contiene lo stato della partita.
+     * @param game - L'istanza del modello `Game` che rappresenta la partita nel database.
+     * @returns {object} Un oggetto che descrive il risultato della partita e lo stato finale della scacchiera.
+     */
+
     private static handleGameOver(draughts: any, game: any) {
         let result;
         if (draughts.status === DraughtsStatus.LIGHT_WON) {
@@ -226,6 +281,5 @@ class MoveService {
         };
     }
 }
-
 
 export default MoveService;

@@ -1,45 +1,11 @@
-/*
-export enum gameErrorType {
-    MISSING_PLAYER_ID = 'MISSING_PLAYER_ID',
-    INVALID_DIFFICULTY = 'INVALID_DIFFICULTY',
-    INVALID_GAME_PARAMETERS = 'INVALID_GAME_PARAMETERS',
-    MISSING_GAME_PARAMETERS = 'MISSING_GAME_PARAMETERS',
-    INSUFFICIENT_CREDIT = 'INSUFFICIENT_CREDIT',
-    OPPONENT_NOT_FOUND = 'OPPONENT_NOT_FOUND'
-}
+/**
+ * Enumerazione che definisce i tipi di errore di gioco.
+ *
+ * I valori rappresentano vari scenari di errore che possono verificarsi durante
+ * la creazione o la gestione di una partita, come l'assenza di ID del giocatore,
+ * difficoltà non valida, parametri mancanti o avversario non trovato.
+ */
 
-class GameFactory {
-    static getErrorMessage(errorType: gameErrorType): string {
-        switch (errorType) {
-            case gameErrorType.MISSING_PLAYER_ID:
-                return "Player's id is missing!";
-            case gameErrorType.INVALID_DIFFICULTY:
-                return 'Invalid difficulty level.';
-            case gameErrorType.INVALID_GAME_PARAMETERS:
-                return "You can specify either the opponent's email or the AI difficulty, but not both.";
-            case gameErrorType.MISSING_GAME_PARAMETERS:
-                return "You must specify the opponent's email or the AI difficulty level.";
-            case gameErrorType.INSUFFICIENT_CREDIT:
-                return 'Insufficient credit to create a match.';
-            case gameErrorType.OPPONENT_NOT_FOUND:
-                return 'Opponent not found.';
-            default:
-                return 'Unknown error.';
-        }
-    }
-
-    static createError(errorType: gameErrorType): Error {
-        const message = this.getErrorMessage(errorType);
-        const error = new Error(message);
-        (error as any).type = errorType; // Imposta il tipo di errore personalizzato
-        return error;
-    }
-}
-
-export default GameFactory;
-*/
-
-// src/factories/gameFactory.ts
 export enum gameErrorType {
     MISSING_PLAYER_ID = 'MISSING_PLAYER_ID',
     INVALID_DIFFICULTY = 'INVALID_DIFFICULTY',
@@ -52,9 +18,23 @@ export enum gameErrorType {
     SELF_CHALLENGE_NOT_ALLOWED = 'SELF_CHALLENGE_NOT_ALLOWED'
 }
 
-// Classe di errore personalizzata per gli errori di gioco
+/**
+ * Classe di errore personalizzata per gli errori di gioco.
+ *
+ * Estende la classe `Error` di JavaScript per rappresentare errori specifici
+ * relativi alla creazione o gestione delle partite. Include un tipo di errore
+ * che indica il tipo di problema verificatosi.
+ */
+
 class GameError extends Error {
     type: gameErrorType;
+
+    /**
+     * Costruisce un nuovo oggetto `GameError`.
+     *
+     * @param {gameErrorType} type - Il tipo di errore di gioco.
+     * @param {string} message - Il messaggio di errore descrittivo.
+     */
 
     constructor(type: gameErrorType, message: string) {
         super(message);
@@ -63,8 +43,22 @@ class GameError extends Error {
     }
 }
 
+/**
+ * Classe per creare e gestire errori di gioco.
+ *
+ * `GameFactory` fornisce metodi statici per ottenere messaggi di errore
+ * e creare oggetti `GameError` in base al tipo di errore di gioco.
+ */
+
 class GameFactory {
-    // Restituisce un messaggio di errore in base al tipo di errore
+
+    /**
+     * Restituisce un messaggio di errore in base al tipo di errore di gioco.
+     *
+     * @param {gameErrorType} errorType - Il tipo di errore di gioco.
+     * @returns {string} Il messaggio di errore corrispondente.
+     */
+
     static getErrorMessage(errorType: gameErrorType): string {
         switch (errorType) {
             case gameErrorType.MISSING_PLAYER_ID:
@@ -90,7 +84,13 @@ class GameFactory {
         }
     }
 
-    // Crea un'istanza di GameError con il tipo e il messaggio appropriato
+    /**
+     * Crea un'istanza di `GameError` con il tipo e il messaggio appropriato.
+     *
+     * @param {gameErrorType} errorType - Il tipo di errore di gioco.
+     * @returns {GameError} Un oggetto `GameError` con il tipo di errore e il messaggio corrispondente.
+     */
+
     static createError(errorType: gameErrorType): GameError {
         const message = this.getErrorMessage(errorType);
         return new GameError(errorType, message);
@@ -98,5 +98,4 @@ class GameFactory {
 }
 
 export default GameFactory;
-//export { GameError, gameErrorType };
 export {GameError};

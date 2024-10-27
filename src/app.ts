@@ -21,19 +21,49 @@ Player.associate();
 Game.associate();
 Move.associate();
 
-// Rotta di esempio per la home
+/**
+ * @route GET /
+ * @description Rotta di esempio per la home dell'applicazione.
+ * @access Pubblico
+ *
+ * Risponde con un messaggio di benvenuto.
+ */
 app.get('/', (req: Request, res: Response) => {
     res.send('Benvenuto nella tua applicazione Express TypeScript!');
 });
 
-app.use(express.json()); // Questo middleware è necessario per il parsing del corpo delle richieste JSON
-// app.use('/auth', authRoutes);
-app.use('/', authRoutes)
-app.use('/create', gameRoute)
-app.use('/', adminRoutes);
-app.use('/create', moveRoute)
+/**
+ * Middleware per il parsing del corpo delle richieste JSON.
+ */
+
+app.use(express.json());
+
+/**
+ * Configurazione delle rotte dell'applicazione.
+ *
+ * Le rotte includono autenticazione, creazione di partite, gestione amministrativa,
+ * e gestione delle mosse. Ogni gruppo di rotte ha un prefisso specifico.
+ */
+
+app.use('/', authRoutes) // Rotte di autenticazione
+app.use('/create', gameRoute) // Rotte per la creazione di partite
+app.use('/', adminRoutes); // Rotte amministrative
+app.use('/create', moveRoute) // Rotte per la gestione delle mosse
+
+/**
+ * Middleware per la gestione degli errori.
+ *
+ * Viene utilizzato per catturare e gestire gli errori generati durante le richieste.
+ */
 
 app.use(errorHandler);
+
+/**
+ * Avvia il server Express.
+ *
+ * Il server è in ascolto sulla porta specificata e mostra un messaggio di conferma
+ * nella console quando è attivo.
+ */
 
 app.listen(port, () => {
     console.log(`Server in ascolto sulla porta ${port}`);
