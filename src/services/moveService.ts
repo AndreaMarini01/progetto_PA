@@ -186,6 +186,15 @@ class moveService {
                 // Imposta lo stato della partita come persa per "timeout"
                 game.status = GameStatus.TIMED_OUT;
                 game.ended_at = currentTime;
+
+                if (game.opponent_id === null) {
+                    // La partita è contro l'IA, quindi l'IA vince
+                    game.winner_id = -1; // Usa `null` per indicare la vittoria dell'IA
+                } else {
+                    // La partita è PvP, quindi l'altro giocatore vince
+                    game.winner_id = (game.player_id === playerId) ? game.opponent_id ?? null : game.player_id ?? null;
+                }
+
                 await game.save();
 
                 // Decrementa il punteggio del giocatore di 0.5 punti
@@ -232,9 +241,6 @@ class moveService {
         // Verifica se la mossa del giocatore ha concluso il gioco
         if ([DraughtsStatus.LIGHT_WON, DraughtsStatus.DARK_WON, DraughtsStatus.DRAW].includes(draughts.status as DraughtsStatus)) {
             const gameOverResult = await moveService.handleGameOver(draughts, game);
-            game.status = GameStatus.COMPLETED;
-            game.ended_at = new Date();
-            await game.save();
             return {
                 message: gameOverResult.message,
                 game_id: gameId,
@@ -274,9 +280,6 @@ class moveService {
                 // Verifica se la mossa dell'IA ha concluso il gioco
                 if ([DraughtsStatus.LIGHT_WON, DraughtsStatus.DARK_WON, DraughtsStatus.DRAW].includes(draughts.status as DraughtsStatus)) {
                     const gameOverResult = await moveService.handleGameOver(draughts, game);
-                    game.status = GameStatus.COMPLETED;
-                    game.ended_at = new Date();
-                    await game.save();
                     return {
                         message: gameOverResult.message,
                         game_id: gameId,
@@ -317,20 +320,28 @@ class moveService {
 
     private static async handleGameOver(draughts: any, game: any) {
         let result;
-        let winnerId: number | null = null;
-        if (draughts.status === DraughtsStatus.LIGHT_WON) {
+        let winnerId: number | null = null;    if (draughts.status === DraughtsStatus.LIGHT_WON) {
             winnerId = game.player_id;
             result = 'You have won!';
         } else if (draughts.status === DraughtsStatus.DARK_WON) {
-            winnerId = game.opponent_id;
-            result = 'Your opponent has won!';
+            if (game.type === GameType.PVE) {
+                // Se è una partita PvE, l'IA ha vinto
+                winnerId = null; // Usa `null` per rappresentare la vittoria dell'IA
+                result = 'The AI has won!';
+            } else {
+                // Se è una partita PvP, l'avversario ha vinto
+                winnerId = game.opponent_id;
+                result = 'Your opponent has won!';
+            }
         } else {
             result = 'The game ended in a draw!';
         }
 
+        // Aggiorna lo stato del gioco
         game.status = GameStatus.COMPLETED;
         game.ended_at = new Date();
-        game.save();
+        game.winner_id = winnerId; // Imposta il vincitore
+        await game.save();
 
         //Assegna un punto al vincitore, se esiste
         if (winnerId !== null) {

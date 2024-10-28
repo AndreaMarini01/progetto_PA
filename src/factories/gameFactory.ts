@@ -17,6 +17,9 @@ export enum gameErrorType {
     OPPONENT_ALREADY_IN_GAME = 'OPPONENT_ALREADY_IN_GAME',
     SELF_CHALLENGE_NOT_ALLOWED = 'SELF_CHALLENGE_NOT_ALLOWED',
     GAME_NOT_IN_PROGRESS = 'GAME_NOT_IN_PROGRESS',
+    INVALID_DATE = 'INVALID_DATE',
+    MISSING_DATE = 'MISSING_DATE',
+    INVALID_DATE_RANGE = 'INVALID_DATE_RANGE',
 }
 
 /**
@@ -82,6 +85,12 @@ class GameFactory {
                 return 'You can\'t challenge yourself!';
             case gameErrorType.GAME_NOT_IN_PROGRESS:
                 return 'The game is not more available.';
+            case gameErrorType.INVALID_DATE:
+                return 'The provided date is not valid. Please ensure the date is in the correct format (YYYY-MM-DD) and is a valid calendar date.';
+            case gameErrorType.MISSING_DATE:
+                return 'Start date or end date is missing';
+            case gameErrorType.INVALID_DATE_RANGE:
+                return 'Start date must be lower than end date!'
             default:
                 return 'An unknown error occurred.';
         }

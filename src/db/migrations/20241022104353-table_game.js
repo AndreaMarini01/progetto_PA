@@ -57,6 +57,15 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: true
       },
+      winner_id: {
+        type: Sequelize.INTEGER,
+        /*
+        references: {
+          model: 'Player',
+          key: 'id_player',
+        },*/
+        allowNull: true,
+      },
       status: {
         type: Sequelize.ENUM('Ongoing', 'Completed', 'Abandoned', 'Timed Out'),
         allowNull: false

@@ -129,6 +129,14 @@ class gameService {
         game.ended_at = new Date();
         await game.save();
 
+        if (game.type === GameType.PVE) {
+            // Se è una partita PvE, l'IA vince se il giocatore abbandona
+            game.winner_id = -1;
+        } else {
+            // Se è una partita PvP, l'avversario vince
+            game.winner_id = (game.player_id === playerId) ? game.opponent_id ?? null : game.player_id ?? null;
+        }
+
         // Decrementa il punteggio del giocatore che ha abbandonato
         const player = await Player.findByPk(playerId);
         if (player) {
@@ -138,6 +146,104 @@ class gameService {
 
         return game;
     }
+
+    public async getCompletedGames(
+        playerId: number,
+        startDate?: string,
+        endDate?: string
+    ): Promise<{ message?: string, games: Game[], totalMoves: number, wins: number, losses: number }> {
+        if ((startDate && !endDate) || (!startDate && endDate)) {
+            throw GameFactory.createError(gameErrorType.MISSING_DATE);
+        }
+
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (startDate && !dateRegex.test(startDate)) {
+            throw GameFactory.createError(gameErrorType.INVALID_DATE); // Errore per formato data non valido
+        }
+        if (endDate && !dateRegex.test(endDate)) {
+            throw GameFactory.createError(gameErrorType.INVALID_DATE); // Errore per formato data non valido
+        }
+
+        // Validazione delle date
+        const parsedStartDate = startDate ? new Date(startDate) : null;
+        const parsedEndDate = endDate ? new Date(endDate) : null;
+        if (startDate && parsedStartDate && isNaN(parsedStartDate.getTime())) {
+            throw GameFactory.createError(gameErrorType.INVALID_DATE);
+        }
+
+        if (endDate && parsedEndDate && isNaN(parsedEndDate.getTime())) {
+            throw GameFactory.createError(gameErrorType.INVALID_DATE);
+        }
+
+        // Verifica che startDate sia minore o uguale a endDate
+        if (parsedStartDate && parsedEndDate && parsedStartDate > parsedEndDate) {
+            throw GameFactory.createError(gameErrorType.INVALID_DATE_RANGE); // Errore per intervallo di date non valido
+        }
+
+        // Aggiungi un giorno alla fine per includere tutte le partite fino alla fine di endDate
+        const nextDay = parsedEndDate ? new Date(parsedEndDate) : null;
+        if (nextDay) {
+            nextDay.setDate(nextDay.getDate() + 1);
+        }
+
+        // Costruzione della query di ricerca
+        const whereClause: any = {
+            status: { [Op.in]: [GameStatus.COMPLETED, GameStatus.ABANDONED, GameStatus.TIMED_OUT] },
+            [Op.or]: [
+                { player_id: playerId },
+                { opponent_id: playerId }
+            ]
+        };
+
+        // Data compresa tra la dati di inizio e quella di fine
+        if (parsedStartDate) {
+            whereClause.ended_at = { [Op.gte]: parsedStartDate };
+        }
+        if (nextDay) {
+            whereClause.ended_at = whereClause.ended_at
+                ? { ...whereClause.ended_at, [Op.lt]: nextDay }
+                : { [Op.lt]: nextDay };
+        }
+
+        // Esecuzione della query
+        const games = await Game.findAll({ where: whereClause });
+
+        if (games.length === 0) {
+            return {
+                message: "Nessuna partita trovata per l'intervallo di date specificato.",
+                games: [],
+                totalMoves: 0,
+                wins: 0,
+                losses: 0
+            };
+        }
+
+        // Calcolo dei risultati
+        let wins = 0;
+        let losses = 0;
+        let totalMoves = 0;
+
+        // Elimina il campo "board" direttamente dalle istanze di Game
+        for (const game of games) {
+            delete game.dataValues.board; // Rimuovi il campo "board"
+
+            if (game.winner_id === playerId) {
+                // Il giocatore ha vinto
+                wins++;
+            } else if (game.winner_id === -1 && game.type === GameType.PVE) {
+                // L'IA ha vinto in una partita PvE
+                losses++;
+            } else if (game.opponent_id === playerId || game.player_id === playerId) {
+                // Controllo per le sconfitte nelle partite PvP
+                losses++;
+            }
+            totalMoves += game.total_moves;
+        }
+
+        return { games, totalMoves, wins, losses };
+    }
+
+
 }
 
 export default new gameService();

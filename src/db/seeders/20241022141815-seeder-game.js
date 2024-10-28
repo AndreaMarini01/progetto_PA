@@ -78,6 +78,7 @@ module.exports = {
         type: 'PvP',
         ai_difficulty: 'Absent',
         updatedAt: new Date(),
+        winner_id: null,
         date: getRandomDate(),
         board: generateBoardConfig(),
         total_moves:0
@@ -91,6 +92,7 @@ module.exports = {
         type: 'PvE',
         ai_difficulty: 'Hard',
         updatedAt: new Date(),
+        winner_id: null,
         date: getRandomDate(),
         board: generateBoardConfig(),
         total_moves:0
@@ -102,7 +104,8 @@ module.exports = {
         created_at: new Date(Date.now() - 7200 * 1000),
         ended_at: new Date(),
         type: 'PvE',
-        ai_difficulty: 'Easy',
+        ai_difficulty: 'Hard',
+        winner_id: -1,
         updatedAt: new Date(),
         date: getRandomDate(),
         board: generateBoardConfig(),

@@ -50,6 +50,7 @@ interface GameAttributes {
     date: Date;
     board: any;
     total_moves: number;
+    winner_id: number | null;
 }
 
 /**
@@ -82,6 +83,7 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
     public date!: Date;
     public board!: any;
     public total_moves!: number;
+    public winner_id!: number | null;
 
     /**
      * Inizializza il modello `Game` con Sequelize.
@@ -155,6 +157,11 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
                     type: DataTypes.INTEGER,
                     allowNull: false,
                     defaultValue: 0,
+                },
+                winner_id: {
+                    type: DataTypes.INTEGER,
+                    allowNull: true,
+                    defaultValue: null
                 }
             },
             {

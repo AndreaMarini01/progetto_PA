@@ -49,6 +49,15 @@ function errorHandler(err: any, req: Request, res: Response, next: NextFunction)
             case gameErrorType.GAME_NOT_IN_PROGRESS:
                 statusCode = 409; // Conflict
                 break;
+            case gameErrorType.INVALID_DATE:
+                statusCode = 400;
+                break;
+            case gameErrorType.MISSING_DATE:
+                statusCode = 400;
+                break;
+            case gameErrorType.INVALID_DATE_RANGE:
+                statusCode = 400;
+                break;
             default:
                 statusCode = 500; // Internal Server Error
                 break;

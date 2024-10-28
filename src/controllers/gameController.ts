@@ -24,7 +24,7 @@ class gameController {
      * @returns Una risposta JSON con i dettagli della partita appena creata se l'operazione è completata con successo.
      */
     public async createGame(req: Request, res: Response, next: NextFunction): Promise<void> {
-        const { opponent_email, ai_difficulty } = req.body;
+        const {opponent_email, ai_difficulty} = req.body;
         const playerId = req.user?.id_player;
         try {
             if (!playerId) {
@@ -32,14 +32,14 @@ class gameController {
             }
             let opponentId: number | null = null;
             if (opponent_email) {
-                const opponent = await Player.findOne({ where: { email: opponent_email } });
+                const opponent = await Player.findOne({where: {email: opponent_email}});
                 if (!opponent) {
                     throw GameFactory.createError(gameErrorType.OPPONENT_NOT_FOUND);
                 }
                 opponentId = opponent.id_player;
             }
             const existingGame = await gameService.findActiveGameForPlayer(playerId, opponentId);
-            if (existingGame) {
+            if (existingGame && existingGame.status === GameStatus.ONGOING) {
                 if (existingGame.player_id === playerId || existingGame.opponent_id === playerId) {
                     throw GameFactory.createError(gameErrorType.PLAYER_ALREADY_IN_GAME);
                 }
@@ -78,7 +78,7 @@ class gameController {
                 ]
             };
             const newGame = await gameService.createGame(playerId, opponent_email, type, ai_difficulty, initialBoard, total_moves);
-            res.status(201).json({ game: newGame });
+            res.status(201).json({game: newGame});
         } catch (error) {
             next(error);
         }
@@ -146,8 +146,31 @@ class gameController {
         }
     }
 
+    public async getCompletedGames(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const playerId = req.user?.id_player;
+        const {startDate, endDate} = req.query;
+
+        try {
+            if (!playerId) {
+                throw GameFactory.createError(gameErrorType.MISSING_PLAYER_ID);
+            }
+
+            // Chiama il metodo del servizio per ottenere le partite concluse
+            const result = await gameService.getCompletedGames(playerId, startDate as string, endDate as string);
+
+            // Rimuove dalla risposta il campo board
+            result.games.forEach(game => delete game.board);
+
+            // Invia la risposta con i dati delle partite concluse
+            res.status(200).json({
+                data: result
+            });
+        } catch (error) {
+            next(error);
 
 
+        }
+    }
 }
 
 export default new gameController();
