@@ -167,10 +167,28 @@ class gameController {
             });
         } catch (error) {
             next(error);
-
-
         }
     }
+
+    public async getPlayerLeaderboard(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            // Recupera il parametro di ordinamento dalla query, predefinito "desc"
+            const order = req.query.order === 'asc' ? 'asc' : 'desc';
+
+            // Chiama il servizio per ottenere la classifica dei giocatori
+            const leaderboard = await gameService.getPlayerLeaderboard(order);
+
+            // Invia la risposta con la classifica dei giocatori
+            res.status(200).json({
+                message: 'Classifica giocatori recuperata con successo.',
+                data: leaderboard
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+
 }
 
 export default new gameController();

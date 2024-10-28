@@ -243,6 +243,22 @@ class gameService {
         return { games, totalMoves, wins, losses };
     }
 
+    /**
+     * Ottiene la classifica dei giocatori ordinata per punteggio (score).
+     *
+     * @param {string} order - Specifica l'ordinamento, "asc" per ascendente, "desc" per discendente.
+     * @returns {Promise<Player[]>} Una promessa che restituisce un array di giocatori ordinati.
+     */
+    public async getPlayerLeaderboard(order: 'asc' | 'desc'): Promise<Player[]> {
+        // Recupera i giocatori ordinati per punteggio
+        const players = await Player.findAll({
+            order: [['score', order]], // Ordina in base al punteggio (score)
+            attributes: ['username', 'score'], // Specifica i campi da restituire
+        });
+
+        return players;
+    }
+
 
 }
 

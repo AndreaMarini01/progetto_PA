@@ -24,8 +24,9 @@ const router = express.Router();
  */
 
 router.post('/create/new-game', authenticationWithJWT, gameController.createGame);
-router.post('/abandon-game/:gameId', authenticationWithJWT, gameController.abandonGame)
-router.get('/game-status/:gameId', authenticationWithJWT, gameController.evaluateGameStatus)
-router.get('/completed-games', authenticationWithJWT, gameController.getCompletedGames)
+router.post('/abandon-game/:gameId', authenticationWithJWT, gameController.abandonGame);
+router.get('/game-status/:gameId', authenticationWithJWT, gameController.evaluateGameStatus);
+router.get('/completed-games', authenticationWithJWT, gameController.getCompletedGames);
+router.get('/leaderboard', gameController.getPlayerLeaderboard);
 
 export default router;

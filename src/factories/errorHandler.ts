@@ -58,6 +58,9 @@ function errorHandler(err: any, req: Request, res: Response, next: NextFunction)
             case gameErrorType.INVALID_DATE_RANGE:
                 statusCode = 400;
                 break;
+            case gameErrorType.INSUFFICIENT_CREDIT:
+                statusCode = 401;
+                break;
             default:
                 statusCode = 500; // Internal Server Error
                 break;
