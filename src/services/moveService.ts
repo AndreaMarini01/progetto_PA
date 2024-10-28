@@ -10,6 +10,8 @@ import GameFactory, {gameErrorType} from "../factories/gameFactory";
 import {NextFunction} from "express";
 import * as jsPDF from "jspdf";
 import PDFDocument from 'pdfkit';
+import { format as dateFormat } from 'date-fns';
+
 
 
 const TIMEOUT_MINUTES = 1;
@@ -359,7 +361,7 @@ class moveService {
      */
 
     public static async exportMoveHistory(gameId: number, format: string): Promise<Buffer | object> {
-        // Retrieve all moves for the specified game
+        // Recupera tutte le mose di una partita sepcifica
         const moves = await Move.findAll({
             where: { game_id: gameId },
             order: [['createdAt', 'ASC']],
@@ -369,18 +371,17 @@ class moveService {
             throw new Error('No moves found for the specified game.');
         }
 
-        // Handle export format
+        // Scelta del formato
         if (format === 'json') {
-            // Return as JSON
             return moves.map(move => ({
                 moveNumber: move.moveNumber,
                 fromPosition: move.fromPosition,
                 toPosition: move.toPosition,
                 pieceType: move.pieceType,
-                timestamp: move.createdAt,
+                timestamp: dateFormat(new Date(move.createdAt), 'dd/MM/yyyy HH:mm:ss'),
             }));
         } else if (format === 'pdf') {
-            // Create a PDF document
+            // Crea il documento pdf
             const doc = new PDFDocument();
             let buffer: Buffer;
             const buffers: Uint8Array[] = [];
@@ -394,16 +395,18 @@ class moveService {
             doc.moveDown();
 
             moves.forEach(move => {
-                doc.fontSize(12).text(
-                    `Move #${move.moveNumber}: From ${move.fromPosition} to ${move.toPosition} - Piece: ${move.pieceType} - Timestamp: ${move.createdAt}`
-                );
+                // Formattazione della data
+                const formattedDate = dateFormat(new Date(move.createdAt), 'dd/MM/yyyy HH:mm:ss');
+                doc.fontSize(12).text(`Move #${move.moveNumber}`);
+                doc.text(`From: ${move.fromPosition}`);
+                doc.text(`To: ${move.toPosition}`);
+                doc.text(`Piece: ${move.pieceType}`);
+                doc.text(`Timestamp: ${formattedDate}`);
                 doc.moveDown();
             });
 
-            // Finalize the PDF file
             doc.end();
 
-            // Wait for the PDF to be fully generated before returning the buffer
             return new Promise<Buffer>((resolve) => {
                 doc.on('end', () => resolve(buffer!));
             });

@@ -62,7 +62,7 @@ module.exports = {
         details: JSON.stringify({ from: 'D7', to: 'D5' }), // Serializza l'oggetto JSON
         createdAt: new Date(),
         updatedAt: new Date(),
-        moveNumber: 1,
+        moveNumber: 2,
         fromPosition: 'E2',
         toPosition: 'E4',
         pieceType: 'single',
