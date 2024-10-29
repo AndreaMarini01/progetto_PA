@@ -36,6 +36,53 @@ La progettazione del sistema di gioco della dama è stata sviluppata per garanti
 
 Di seguito viene riportata la struttura della directory:
 
+```
+src
+├── app.ts
+├── controllers
+│   ├── adminController.ts
+│   ├── authController.ts
+│   ├── gameController.ts
+│   └── moveController.ts
+├── db
+│   ├── config.js
+│   ├── database.js
+│   ├── migrations
+│   │   ├── 20241022103228-table_player.js
+│   │   ├── 20241022104353-table_game.js
+│   │   └── 20241022105609-table_move.js
+│   └── seeders
+│       ├── 20241022114823-seeder_player.js
+│       ├── 20241022141815-seeder-game.js
+│       └── 20241022141822-seeder-move.js
+├── express.d.ts
+├── factories
+│   ├── authFactory.ts
+│   ├── errorHandler.ts
+│   ├── gameFactory.ts
+│   ├── moveFactory.ts
+│   └── tokenFactory.ts
+├── initialBoard.json
+├── middleware
+│   ├── adminAuthMiddleware.ts
+│   └── authMiddleware.ts
+├── models
+│   ├── Game.ts
+│   ├── Move.ts
+│   └── Player.ts
+├── routes
+│   ├── adminRoute.ts
+│   ├── authRoute.ts
+│   ├── gameRoute.ts
+│   └── moveRoute.ts
+├── services
+│   ├── gameService.ts
+│   └── moveService.ts
+└── utils
+    └── cryptoUtils.ts
+
+```
+
 Per raggiungere questo scopo, sono stati realizzati diversi diagrammi UML che illustrano i casi d’uso e il flusso delle principali operazioni, come la creazione e gestione delle partite, l’esecuzione delle mosse e la generazione dei certificati di vittoria. Inoltre, sono stati adottati design pattern specifici per risolvere problemi comuni in modo efficiente, con particolare attenzione alla separazione delle responsabilità tra le varie componenti del sistema.
 
 Di seguito vengono descritti i principali diagrammi e pattern utilizzati, spiegandone l'implementazione e la scelta in relazione alle necessità del progetto.
