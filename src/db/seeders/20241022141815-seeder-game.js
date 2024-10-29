@@ -105,7 +105,7 @@ module.exports = {
         ended_at: new Date(),
         type: 'PvE',
         ai_difficulty: 'Hard',
-        winner_id: -1,
+        winner_id: 2,
         updatedAt: new Date(),
         date: getRandomDate(),
         board: generateBoardConfig(),

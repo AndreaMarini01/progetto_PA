@@ -2,16 +2,12 @@ import Game, {AIDifficulty, GameStatus, GameType} from '../models/Game';
 import Player from '../models/Player';
 import Move from "../models/Move";
 import {DraughtsMove1D, DraughtsSquare1D, DraughtsStatus} from 'rapid-draughts';
-import { EnglishDraughtsComputerFactory as ComputerFactory } from 'rapid-draughts/english';
-import {EnglishDraughts as Draughts} from 'rapid-draughts/english';
+import {EnglishDraughts as Draughts, EnglishDraughtsComputerFactory as ComputerFactory} from 'rapid-draughts/english';
 import MoveFactory, {moveErrorType} from "../factories/moveFactory";
 import AuthFactory, {authErrorType} from "../factories/authFactory";
 import GameFactory, {gameErrorType} from "../factories/gameFactory";
-import {NextFunction} from "express";
-import * as jsPDF from "jspdf";
 import PDFDocument from 'pdfkit';
-import { format as dateFormat } from 'date-fns';
-
+import {format as dateFormat} from 'date-fns';
 
 
 const TIMEOUT_MINUTES = 1;
@@ -51,7 +47,7 @@ class moveService {
                 return await randomComputer(draughts);
             case AIDifficulty.HARD:
                 // Se la difficoltà è HARD, usa il computer AlphaBeta con maxDepth pari a 5
-                const alphaBetaComputer = ComputerFactory.alphaBeta({ maxDepth: 5 });
+                const alphaBetaComputer = ComputerFactory.alphaBeta({maxDepth: 5});
                 return await alphaBetaComputer(draughts);
             default:
                 // Difficoltà ASSENTE, l'IA non deve fare mosse
@@ -103,7 +99,7 @@ class moveService {
      */
 
     public static async executeMove(gameId: number, from: string, to: string, playerId: number) {
-        console.log('Eseguendo la mossa:', { gameId, from, to, playerId });
+        console.log('Eseguendo la mossa:', {gameId, from, to, playerId});
 
         const player = await Player.findByPk(playerId);
         if (!player) {
@@ -173,7 +169,10 @@ class moveService {
 
         // Controlla se la mossa corrente è uguale all'ultima mossa effettuata
         const lastMove = await Move.findOne({
-            where: { game_id: gameId },
+            where: {
+                game_id: gameId,
+                user_id: playerId
+            },
             order: [['createdAt', 'DESC']]
         });
 
@@ -220,7 +219,7 @@ class moveService {
         draughts.move(moveToMake);
 
         // Aggiorna la board e salva la mossa del giocatore
-        game.board = JSON.stringify({ board: draughts.board });
+        game.board = JSON.stringify({board: draughts.board});
         game.total_moves = (game.total_moves || 0) + 1;
         await game.save();
 
@@ -229,7 +228,7 @@ class moveService {
         // Salva la mossa nel database
         await Move.create({
             moveNumber: moveNumber,
-            board: { board: draughts.board },
+            board: {board: draughts.board},
             fromPosition: from,
             toPosition: to,
             pieceType: savedBoard[origin]?.piece?.king ? 'king' : 'single',
@@ -251,10 +250,35 @@ class moveService {
 
         // Se la partita è PvE, esegui anche la mossa dell'IA
         if (game.type === GameType.PVE) {
-            const aiMove = await moveService.chooseAIMove(draughts, game.ai_difficulty);
+
+            // Recupera l'ultima mossa dell'IA
+            const lastAIMove = await Move.findOne({
+                where: {
+                    game_id: gameId,
+                    user_id: null, // Controllo solo per l'IA
+                },
+                order: [['createdAt', 'DESC']],
+            });
+
+            let aiMove = await moveService.chooseAIMove(draughts, game.ai_difficulty);
+
+            if (lastAIMove && aiMove &&
+                lastAIMove.fromPosition && lastAIMove.toPosition &&
+                aiMove.origin === moveService.convertPosition(lastAIMove.fromPosition) &&
+                aiMove.destination === moveService.convertPosition(lastAIMove.toPosition)) {
+
+                // Filtra l'ultima mossa dell'IA dalle mosse valide
+                const validMoves = draughts.moves.filter(move =>
+                    aiMove && (move.origin !== aiMove.origin || move.destination !== aiMove.destination)
+                );
+
+                // Scegli una mossa diversa
+                aiMove = validMoves.length ? validMoves[0] : null;
+            }
+
             if (aiMove) {
                 draughts.move(aiMove);
-                game.board = JSON.stringify({ board: draughts.board });
+                game.board = JSON.stringify({board: draughts.board});
                 game.total_moves += 1;
                 await game.save();
 
@@ -268,7 +292,7 @@ class moveService {
 
                 await Move.create({
                     moveNumber: moveNumber + 1,
-                    board: { board: draughts.board },
+                    board: {board: draughts.board},
                     fromPosition: fromPositionAI,
                     toPosition: toPositionAI,
                     pieceType: savedBoard[aiMove.origin]?.piece?.king ? 'king' : 'single',
@@ -320,7 +344,8 @@ class moveService {
 
     private static async handleGameOver(draughts: any, game: any) {
         let result;
-        let winnerId: number | null = null;    if (draughts.status === DraughtsStatus.LIGHT_WON) {
+        let winnerId: number | null = null;
+        if (draughts.status === DraughtsStatus.LIGHT_WON) {
             winnerId = game.player_id;
             result = 'You have won!';
         } else if (draughts.status === DraughtsStatus.DARK_WON) {
@@ -371,6 +396,7 @@ class moveService {
      * @throws {Error} - Lancia un errore se non vengono trovate mosse per la partita specificata o se il formato è non supportato.
      */
 
+    /*
     public static async exportMoveHistory(gameId: number, format: string): Promise<Buffer | object> {
         // Recupera tutte le mose di una partita sepcifica
         const moves = await Move.findAll({
@@ -424,8 +450,102 @@ class moveService {
         } else {
             throw new Error('Unsupported format. Please choose "json" or "pdf".');
         }
-    }
+    }*/
 
+    public static async exportMoveHistory(gameId: number, format: string): Promise<Buffer | object> {
+        // Recupera tutte le mosse di una partita specifica, senza join
+        const moves = await Move.findAll({
+            where: {game_id: gameId},
+            order: [['createdAt', 'ASC']],
+        });
+
+        if (!moves.length) {
+            throw MoveFactory.createError(moveErrorType.NO_MOVES)
+        }
+
+        // Estrai i `user_id` unici, escludendo `null`
+        const userIds = [...new Set(moves.map(move => move.user_id).filter(id => id !== null))];
+
+        // Filtra undefined da userIds, mantenendo solo i valori definiti (numeri)
+        const validUserIds = userIds.filter((id): id is number => id !== undefined);
+
+        // Recupera gli username per i `user_id` validi
+        const players = await Player.findAll({
+            where: {id_player: validUserIds},
+            attributes: ['id_player', 'username'],
+        });
+
+        // Crea una mappa `user_id -> username` per accesso rapido
+        const userMap = players.reduce((map, player) => {
+            map[player.id_player] = player.username;
+            return map;
+        }, {} as Record<number, string>);
+
+        // Mappa le mosse con l'username del giocatore, o "IA" se `user_id` è null
+        const movesWithUsernames = moves.map(move => ({
+            moveNumber: move.moveNumber,
+            fromPosition: move.fromPosition,
+            toPosition: move.toPosition,
+            pieceType: move.pieceType,
+            timestamp: dateFormat(new Date(move.createdAt), 'dd/MM/yyyy HH:mm:ss'),
+            username: move.user_id === null ? 'Artificial Intelligence' : userMap[move.user_id!] || 'Unknown Player',
+        }));
+
+        // Ritorna in formato JSON o PDF
+        if (format === 'json') {
+            return movesWithUsernames;
+        } else if (format === 'pdf') {
+            // Creazione del PDF
+            const doc = new PDFDocument();
+            let buffer: Buffer;
+            const buffers: Uint8Array[] = [];
+
+            doc.on('data', (chunk) => buffers.push(chunk));
+            doc.on('end', () => {
+                buffer = Buffer.concat(buffers);
+            });
+
+            doc.addPage();
+            doc.fontSize(20).fillColor('#4B0082').text(`Move History for Game ID: ${gameId}`, { align: 'center' });
+            doc.moveDown();
+
+            doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#4B0082');
+            doc.moveDown(1.5);
+
+            movesWithUsernames.forEach((move, index) => {
+                // Titolo della mossa con numero progressivo
+                doc.fontSize(16).fillColor('#333').text(`Move #${move.moveNumber}`, { underline: true });
+
+                // Dettagli della mossa
+                doc.fontSize(12).fillColor('#000').text(`Player: ${move.username}`);
+                doc.fontSize(12).fillColor('#000').text(`From: ${move.fromPosition}`);
+                doc.fontSize(12).fillColor('#000').text(`To: ${move.toPosition}`);
+                doc.fontSize(12).fillColor('#000').text(`Piece: ${move.pieceType}`);
+                doc.fontSize(12).fillColor('#000').text(`At time: ${move.timestamp}`);
+                doc.moveDown(1);
+
+                // Linea separatrice per ogni mossa
+                if (index < movesWithUsernames.length - 1) { // Evita di disegnare la linea per l'ultima mossa
+                    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#CCCCCC');
+                    doc.moveDown(1);
+                }
+            });
+
+// Fine della sezione
+            doc.moveDown();
+            doc.fontSize(14).fillColor('#4B0082').text('End of Move History', { align: 'center' });
+
+            doc.end();
+
+            return new Promise<Buffer>((resolve) => {
+                doc.on('end', () => resolve(buffer!));
+            });
+        } else {
+            throw new Error('Unsupported format. Please choose "json" or "pdf".');
+        }
+
+
+    }
 }
 
 export default moveService;

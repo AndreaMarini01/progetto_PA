@@ -2,6 +2,8 @@ import {NextFunction, Request, Response} from 'express';
 import moveService from '../services/moveService';
 import AuthFactory, {authErrorType} from "../factories/authFactory";
 import MoveFactory, {moveErrorType} from "../factories/moveFactory";
+import Game from "../models/Game";
+import GameFactory, {gameErrorType} from "../factories/gameFactory";
 
 class MoveController {
 
@@ -56,6 +58,11 @@ class MoveController {
         const format = req.query.format as string || 'json'; // Formato di default è JSON
 
         try {
+            // Controllo sull'esistenza del gioco
+            const gameExists = await Game.findByPk(gameId);
+            if (!gameExists) {
+                throw GameFactory.createError(gameErrorType.GAME_NOT_FOUND);
+            }
             const result = await moveService.exportMoveHistory(gameId, format);
 
             if (format === 'pdf') {

@@ -28,5 +28,6 @@ router.post('/abandon-game/:gameId', authenticationWithJWT, gameController.aband
 router.get('/game-status/:gameId', authenticationWithJWT, gameController.evaluateGameStatus);
 router.get('/completed-games', authenticationWithJWT, gameController.getCompletedGames);
 router.get('/leaderboard', gameController.getPlayerLeaderboard);
+router.get('/win-certificate/:gameId', authenticationWithJWT, gameController.getVictoryCertificate)
 
 export default router;

@@ -12,6 +12,7 @@ export enum moveErrorType {
     NOT_VALID_ARRAY = 'NOT_VALID_ARRAY',
     NOT_VALID_MOVE = 'NOT_VALID_MOVE',
     MISSING_PARAMS = 'MISSING_PARAMS',
+    NO_MOVES = 'NO_MOVES',
 }
 
 /**
@@ -66,7 +67,9 @@ class MoveFactory {
             case moveErrorType.NOT_VALID_MOVE:
                 return 'The move is not valid!';
             case moveErrorType.MISSING_PARAMS:
-                return 'You have to specify the game id, from and to!'
+                return 'You have to specify the game id, from and to!';
+            case moveErrorType.NO_MOVES:
+                return 'There are no moves for this game';
             default:
                 return 'An unknown authentication error occurred.';
         }

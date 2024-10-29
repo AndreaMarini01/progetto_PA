@@ -1,8 +1,10 @@
-import Game, { GameType, GameStatus, AIDifficulty } from '../models/Game';
+import Game, {AIDifficulty, GameStatus, GameType} from '../models/Game';
 import Player from '../models/Player';
-import GameFactory, { gameErrorType } from '../factories/gameFactory';
-import { Op } from 'sequelize';
-import AuthFactory, { authErrorType } from "../factories/authFactory";
+import GameFactory, {gameErrorType} from '../factories/gameFactory';
+import {Op} from 'sequelize';
+import AuthFactory, {authErrorType} from "../factories/authFactory";
+import Move from "../models/Move";
+import PDFDocument from "pdfkit";
 
 const GAME_CREATION_COST = 0.35;
 
@@ -151,7 +153,7 @@ class gameService {
         playerId: number,
         startDate?: string,
         endDate?: string
-    ): Promise<{ message?: string, games: Game[], totalMoves: number, wins: number, losses: number }> {
+    ): Promise<{ message?: string, games: Game[], wins: number, losses: number }> {
         if ((startDate && !endDate) || (!startDate && endDate)) {
             throw GameFactory.createError(gameErrorType.MISSING_DATE);
         }
@@ -212,7 +214,6 @@ class gameService {
             return {
                 message: "Nessuna partita trovata per l'intervallo di date specificato.",
                 games: [],
-                totalMoves: 0,
                 wins: 0,
                 losses: 0
             };
@@ -227,9 +228,12 @@ class gameService {
         for (const game of games) {
             delete game.dataValues.board; // Rimuovi il campo "board"
 
+            let outcome = "Lost" // Valore di default
+
             if (game.winner_id === playerId) {
                 // Il giocatore ha vinto
                 wins++;
+                outcome = "Won";
             } else if (game.winner_id === -1 && game.type === GameType.PVE) {
                 // L'IA ha vinto in una partita PvE
                 losses++;
@@ -237,10 +241,12 @@ class gameService {
                 // Controllo per le sconfitte nelle partite PvP
                 losses++;
             }
-            totalMoves += game.total_moves;
+            // totalMoves += game.total_moves;
+            (game as any).dataValues.outcome = outcome;
         }
 
-        return { games, totalMoves, wins, losses };
+        //return { games, totalMoves, wins, losses };
+        return { games, wins, losses };
     }
 
     /**
@@ -249,6 +255,7 @@ class gameService {
      * @param {string} order - Specifica l'ordinamento, "asc" per ascendente, "desc" per discendente.
      * @returns {Promise<Player[]>} Una promessa che restituisce un array di giocatori ordinati.
      */
+
     public async getPlayerLeaderboard(order: 'asc' | 'desc'): Promise<Player[]> {
         // Recupera i giocatori ordinati per punteggio
         const players = await Player.findAll({
@@ -257,6 +264,111 @@ class gameService {
         });
 
         return players;
+    }
+
+    /**
+     * Genera un certificato di vittoria in formato PDF per una partita specifica.
+     *
+     * @param gameId - L'ID della partita per la quale generare il certificato.
+     * @param playerId
+     * @returns Una promessa che restituisce un buffer contenente il PDF del certificato.
+     *
+     * @throws {Error} - Lancia un errore se la partita non viene trovata o se non è stata vinta.
+     */
+    public async generateVictoryCertificate(gameId: number, playerId: number): Promise<Buffer> {
+        const game = await Game.findByPk(gameId);
+
+        if (!game) {
+            throw GameFactory.createError(gameErrorType.GAME_NOT_FOUND);
+        }
+
+        if (game.winner_id !== playerId) {
+            throw GameFactory.createError(gameErrorType.ONLY_WINNER);
+        }
+
+        if (game.status === GameStatus.ONGOING) {
+            throw GameFactory.createError(gameErrorType.GAME_IN_PROGRESS);
+        }
+
+        // Calcola il tempo impiegato per vincere
+        const endedAt = game.ended_at ? new Date(game.ended_at).getTime() : 0;
+        const createdAt = game.created_at ? new Date(game.created_at).getTime() : 0;
+        const timeTaken = endedAt - createdAt;
+        const timeTakenMinutes = Math.floor(timeTaken / (1000 * 60)); // Tempo in minuti
+
+
+        // Conta il numero totale di mosse
+        const totalMoves = game.total_moves;
+
+        let winnerName = "Sconosciuto";
+        if (game.winner_id) {
+            const winner = await Player.findOne({ where: { id_player: game.winner_id } });
+            if (winner) {
+                winnerName = winner.username;
+            }
+        }
+
+        // Ottieni il nome dell'avversario
+        let opponentName = "AI";
+        if (game.opponent_id) {
+            const opponent = await Player.findOne({ where: { id_player: game.opponent_id } });
+            if (opponent) {
+                opponentName = opponent.username;
+            }
+        }
+
+        const formattedStartDate = game.created_at ? new Date(game.created_at).toDateString() + ' ' + new Date(game.created_at).toTimeString().split(' ')[0] : "Data non disponibile";
+        const formattedEndDate = game.ended_at ? new Date(game.ended_at).toDateString() + ' ' + new Date(game.ended_at).toTimeString().split(' ')[0] : "Data non disponibile";
+
+
+        // Genera il PDF
+        const doc = new PDFDocument();
+        let buffers: Buffer[] = [];
+        doc.on('data', buffers.push.bind(buffers));
+        doc.on('end', () => {
+            return Buffer.concat(buffers);
+        });
+
+        doc.fontSize(26).fillColor('#4B0082').text('Winner Certificate', { align: 'center' });
+        doc.moveDown();
+
+// Separator line
+        doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#4B0082');
+        doc.moveDown(2);
+
+// Game Details
+        doc.fontSize(18).fillColor('black').text('Game Details', { underline: true });
+        doc.moveDown(0.5);
+        doc.fontSize(14).text(`Game Starting Date: `, { continued: true }).fillColor('#333').text(formattedStartDate);
+        doc.fontSize(14).fillColor('black').text(`Game Ending Date: `, { continued: true }).fillColor('#333').text(formattedEndDate);
+        doc.fontSize(14).fillColor('black').text(`Duration: `, { continued: true }).fillColor('#333').text(`${timeTakenMinutes} minutes`);
+        doc.fontSize(14).fillColor('black').text(`Total Moves: `, { continued: true }).fillColor('#333').text(totalMoves.toString());
+        doc.moveDown(2);
+
+// Player Details
+        doc.fontSize(18).fillColor('black').text('Player Details', { underline: true });
+        doc.moveDown(0.5);
+        doc.fontSize(14).fillColor('black').text(`Winner Name: `, { continued: true }).fillColor('#008000').text(winnerName);
+        doc.fontSize(14).fillColor('black').text(`Opponent Name: `, { continued: true }).fillColor('#FF4500').text(opponentName);
+        doc.moveDown(2);
+
+// Congratulations message
+        doc.fontSize(20).fillColor('#4B0082').text('Congratulations on Your Victory!', { align: 'center' });
+        doc.moveDown();
+
+// Bottom separator line
+        doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#4B0082');
+        doc.moveDown(2);
+
+// Signature
+        doc.fontSize(14).fillColor('#333').text('This certificate is automatically generated by the game system.', { align: 'center' });
+        doc.moveDown();
+        doc.text('Game System Signature', { align: 'center' });
+        doc.end();
+
+
+        await new Promise((resolve) => doc.on('end', resolve));
+        return Buffer.concat(buffers);
     }
 
 

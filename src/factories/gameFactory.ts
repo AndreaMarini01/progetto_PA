@@ -20,6 +20,9 @@ export enum gameErrorType {
     INVALID_DATE = 'INVALID_DATE',
     MISSING_DATE = 'MISSING_DATE',
     INVALID_DATE_RANGE = 'INVALID_DATE_RANGE',
+    GAME_NOT_FOUND = 'GAME_NOT_FOUND',
+    ONLY_WINNER = 'ONLY_WINNER',
+    GAME_IN_PROGRESS = 'GAME_IN_PROGRESS',
 }
 
 /**
@@ -90,7 +93,13 @@ class GameFactory {
             case gameErrorType.MISSING_DATE:
                 return 'Start date or end date is missing';
             case gameErrorType.INVALID_DATE_RANGE:
-                return 'Start date must be lower than end date!'
+                return 'Start date must be lower than end date!';
+            case gameErrorType.GAME_NOT_FOUND:
+                return 'Game not found.';
+            case gameErrorType.ONLY_WINNER:
+                return 'Only the winner of the match can obtain the certificate!';
+            case gameErrorType.GAME_IN_PROGRESS:
+                return 'The game is in progress yet';
             default:
                 return 'An unknown error occurred.';
         }

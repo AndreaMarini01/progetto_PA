@@ -61,6 +61,15 @@ function errorHandler(err: any, req: Request, res: Response, next: NextFunction)
             case gameErrorType.INSUFFICIENT_CREDIT:
                 statusCode = 401;
                 break;
+            case gameErrorType.GAME_NOT_FOUND:
+                statusCode = 404;
+                break;
+            case gameErrorType.ONLY_WINNER:
+                statusCode = 400;
+                break;
+            case gameErrorType.GAME_IN_PROGRESS:
+                statusCode = 400;
+                break;
             default:
                 statusCode = 500; // Internal Server Error
                 break;
@@ -127,6 +136,9 @@ function errorHandler(err: any, req: Request, res: Response, next: NextFunction)
                 break;
             case moveErrorType.MISSING_PARAMS:
                 statusCode = 400; // Bad Request
+                break;
+            case moveErrorType.NO_MOVES:
+                statusCode = 404;
                 break;
             default:
                 statusCode = 500; // Internal Server Error

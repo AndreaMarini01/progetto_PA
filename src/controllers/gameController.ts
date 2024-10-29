@@ -188,6 +188,35 @@ class gameController {
         }
     }
 
+    /**
+     * Gestisce la generazione di un certificato di vittoria in formato PDF.
+     *
+     * @param req - L'oggetto della richiesta Express contenente l'ID della partita.
+     * @param res - L'oggetto della risposta Express utilizzato per inviare il PDF al client.
+     * @param next - La funzione di callback `NextFunction` per passare il controllo al middleware successivo in caso di errore.
+     *
+     * @returns Il certificato di vittoria come PDF in formato binario.
+     */
+    public async getVictoryCertificate(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const gameId = parseInt(req.params.gameId, 10);
+        const playerId = req.user?.id_player;
+
+        try {
+            // Richiama il servizio per generare il certificato
+            const pdfData = await gameService.generateVictoryCertificate(gameId, playerId!);
+
+            // Configura la risposta per il download del PDF
+            res.writeHead(200, {
+                'Content-Type': 'application/pdf',
+                'Content-Disposition': `attachment; filename="certificato_vittoria_partita_${gameId}.pdf"`,
+                'Content-Length': pdfData.length,
+            }).end(pdfData);
+
+        } catch (error) {
+            next(error);
+        }
+    }
+
 
 }
 
