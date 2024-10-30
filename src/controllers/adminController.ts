@@ -7,25 +7,35 @@ import TokenFactory, { tokenErrorType } from "../factories/tokenFactory";
  *
  * Contiene metodi per operazioni come l'aggiornamento del saldo dei token per i giocatori.
  */
+
 class adminController {
+
     /**
-     * Ricarica i token di un giocatore utilizzando l'email fornita.
+     * Aggiorna il saldo dei token di un giocatore aggiungendo un importo specificato.
      *
-     * Questa funzione gestisce la logica per aggiungere token al saldo di un giocatore specificato.
-     * Verifica che l'email e il numero di token siano presenti nella richiesta. Se il giocatore viene
-     * trovato e il numero di token è positivo, aggiorna il saldo dei token. Se mancano i parametri,
-     * il giocatore non viene trovato o il numero di token non è positivo, genera un errore adeguato.
+     * @param req - L'oggetto `Request` di Express contenente `email` e `tokens` nel corpo della richiesta.
+     *   - `email` (string) - L'email del giocatore a cui aggiungere i token.
+     *   - `tokens` (number) - L'importo dei token da aggiungere. Deve essere un valore positivo.
+     * @param res - L'oggetto `Response` di Express utilizzato per inviare la risposta al client.
+     *   - Risponde con un messaggio di successo e il saldo aggiornato dei token se l'operazione va a buon fine.
+     * @param next - La funzione `NextFunction` di Express utilizzata per gestire eventuali errori.
      *
-     * @param req - L'oggetto della richiesta Express che contiene i dati della richiesta, inclusi `email` e `tokens` nel corpo.
-     * @param res - L'oggetto della risposta Express utilizzato per inviare la risposta al client.
-     * @param next - La funzione di callback `NextFunction` per passare il controllo al middleware successivo in caso di errore.
+     * @returns `Promise<void>` - Non restituisce un valore, ma invia una risposta JSON in caso di successo o passa l'errore al middleware di gestione degli errori.
      *
-     * @throws {TokenFactory.createError} - Lancia un errore se i parametri `email` o `tokens` sono mancanti,
-     *                                      se il giocatore non è stato trovato o se i token non sono positivi.
+     * @throws {TokenError} - Genera un errore se:
+     *   - `email` o `tokens` non sono presenti nel corpo della richiesta.
+     *   - Il giocatore con l'email specificata non viene trovato.
+     *   - Il valore di `tokens` è negativo o uguale a zero.
      *
-     * @returns Una risposta JSON con un messaggio di successo e il numero attuale di token del giocatore
-     *          se l'operazione di aggiornamento è riuscita.
+     * Esempio di corpo della richiesta:
+     * ```json
+     * {
+     *   "email": "utente@example.com",
+     *   "tokens": 100
+     * }
+     * ```
      */
+
     public async chargeTokens(req: Request, res: Response, next: NextFunction): Promise<void> {
         const { email, tokens } = req.body;
         try {

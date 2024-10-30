@@ -3,26 +3,78 @@ import gameService from '../services/gameService';
 import Game, {GameType, AIDifficulty, GameStatus} from '../models/Game';
 import GameFactory, { gameErrorType } from '../factories/gameFactory';
 import Player from "../models/Player";
-import gameFactory from "../factories/gameFactory";
 
 /**
  * Classe `GameController` per gestire le operazioni legate alle partite.
  *
  * Contiene metodi per la creazione di nuove partite e l'abbandono di partite esistenti.
  */
+
 class gameController {
+
     /**
-     * Gestisce la creazione di una nuova partita, sia PvP (Player vs. Player) che PvE (Player vs. Environment).
+     * Crea una nuova partita tra due giocatori (PvP) o contro l'IA (PvE) con le impostazioni specificate.
      *
-     * @param req - L'oggetto della richiesta Express contenente i dati del corpo, inclusi `opponent_email` e `ai_difficulty`.
-     * @param res - L'oggetto della risposta Express utilizzato per inviare la risposta al client, contenente i dettagli della nuova partita.
-     * @param next - La funzione di callback `NextFunction` per passare il controllo al middleware successivo in caso di errore.
+     * @param req - L'oggetto `Request` di Express contenente i parametri di creazione della partita nel corpo della richiesta.
+     *   - `opponent_email` (string | opzionale) - L'email dell'avversario per una partita PvP. Necessario se il tipo di partita è PvP.
+     *   - `ai_difficulty` (AIDifficulty | opzionale) - La difficoltà dell'IA per una partita PvE. Necessario se il tipo di partita è PvE.
+     * @param res - L'oggetto `Response` di Express utilizzato per inviare la risposta al client.
+     *   - Risponde con i dettagli della partita appena creata in caso di successo.
+     * @param next - La funzione `NextFunction` di Express utilizzata per gestire eventuali errori.
      *
-     * @throws {GameFactory.createError} - Lancia errori in caso di parametri mancanti, giocatore già in gioco,
-     *                                     difficoltà dell'IA non valida, o altri parametri non coerenti.
+     * @returns `Promise<void>` - Non restituisce un valore diretto, ma invia una risposta JSON contenente i dettagli della partita o passa l'errore al middleware di gestione degli errori.
      *
-     * @returns Una risposta JSON con i dettagli della partita appena creata se l'operazione è completata con successo.
+     * @throws {GameError} - Genera un errore se:
+     *   - `playerId` non è presente (es. l'utente non è autenticato).
+     *   - L'avversario specificato con `opponent_email` non esiste.
+     *   - Il giocatore o l'avversario sono già in una partita attiva.
+     *   - Il giocatore tenta di sfidare sé stesso.
+     *   - Vengono forniti sia `opponent_email` che `ai_difficulty`.
+     *   - Viene fornito un valore di `ai_difficulty` non valido o assente in una partita PvE.
+     *   - I parametri di creazione della partita sono insufficienti.
+     *
+     * Esempio di corpo della richiesta per una partita PvP:
+     * ```json
+     * {
+     *   "opponent_email": "avversario@example.com"
+     * }
+     * ```
+     *
+     * Esempio di corpo della richiesta per una partita PvE:
+     * ```json
+     * {
+     *   "ai_difficulty": "Easy"
+     * }
+     * ```
+     *
+     * Esempio di risposta in caso di successo:
+     * ```json
+     * {
+     *   "game": {
+     *     "game_id": 1,
+     *     "player_id": 123,
+     *     "opponent_id": 456,
+     *     "status": "ONGOING",
+     *     "type": "PVP",
+     *     "ai_difficulty": 'Absent',
+     *     "board": {
+     *       "board": [
+     *         [null, "B", null, "B", null, "B", null, "B"],
+     *         ["B", null, "B", null, "B", null, "B", null],
+     *         [null, "B", null, "B", null, "B", null, "B"],
+     *         [null, null, null, null, null, null, null, null],
+     *         [null, null, null, null, null, null, null, null],
+     *         ["W", null, "W", null, "W", null, "W", null],
+     *         [null, "W", null, "W", null, "W", null, "W"],
+     *         ["W", null, "W", null, "W", null, "W", null]
+     *       ]
+     *     },
+     *     "total_moves": 0
+     *   }
+     * }
+     * ```
      */
+
     public async createGame(req: Request, res: Response, next: NextFunction): Promise<void> {
         const {opponent_email, ai_difficulty} = req.body;
         const playerId = req.user?.player_id;
@@ -88,16 +140,37 @@ class gameController {
     }
 
     /**
-     * Gestisce l'abbandono di una partita esistente.
+     * Permette a un giocatore di abbandonare una partita specifica, aggiornando lo stato della partita.
      *
-     * @param req - L'oggetto della richiesta Express contenente l'ID della partita da abbandonare.
-     * @param res - L'oggetto della risposta Express utilizzato per confermare l'abbandono della partita.
-     * @param next - La funzione di callback `NextFunction` per passare il controllo al middleware successivo in caso di errore.
+     * @param req - L'oggetto `Request` di Express contenente:
+     *   - `gameId` (string) - L'ID della partita da abbandonare, passato come parametro URL.
+     *   - `req.user.player_id` (number) - L'ID del giocatore che sta abbandonando la partita, estratto dall'utente autenticato.
+     * @param res - L'oggetto `Response` di Express utilizzato per inviare la risposta al client.
+     *   - Risponde con un messaggio di conferma e i dettagli della partita aggiornata in caso di successo.
+     * @param next - La funzione `NextFunction` di Express utilizzata per gestire eventuali errori.
      *
-     * @throws {MoveError} - Lancia errori se la partita non esiste o il giocatore non è autorizzato ad abbandonarla.
+     * @returns `Promise<void>` - Non restituisce un valore diretto, ma invia una risposta JSON contenente i dettagli della partita abbandonata o passa l'errore al middleware di gestione degli errori.
      *
-     * @returns Una risposta JSON che conferma l'abbandono della partita.
+     * @throws {GameError} - Genera un errore se:
+     *   - `gameId` non è valido o non corrisponde a nessuna partita.
+     *   - `playerId` non è presente (ad esempio, se l'utente non è autenticato).
+     *   - Il giocatore non ha il permesso di abbandonare la partita o si verifica un altro errore durante l'abbandono.
+     *
+     * Esempio di URL per la richiesta:
+     * ```
+     * POST /abandon-game/4
+     * ```
+     *
+     * Esempio di risposta in caso di successo:
+     * ```json
+     * {
+     *   "message": "Game with ID 4 has been abandoned.",
+     *   "game_id": 4,
+     *   "status": "ABANDONED"
+     * }
+     * ```
      */
+
     public async abandonGame(req: Request, res: Response, next: NextFunction): Promise<void> {
         const gameId = parseInt(req.params.gameId, 10);
         const playerId = req.user?.player_id;
@@ -114,30 +187,50 @@ class gameController {
     }
 
     /**
-     * Restituisce lo stato di una partita e la configurazione attuale della board.
+     * Restituisce lo stato attuale di una partita specifica, inclusa la configurazione della board.
      *
-     * Questo metodo cerca una partita nel database utilizzando l'ID fornito. Se la partita esiste,
-     * restituisce lo stato corrente della partita e la configurazione della board. Se la partita
-     * non viene trovata, genera un errore di parametri non validi.
+     * @param req - L'oggetto `Request` di Express contenente:
+     *   - `gameId` (string) - L'ID della partita di cui si vuole ottenere lo stato, passato come parametro URL.
+     * @param res - L'oggetto `Response` di Express utilizzato per inviare la risposta al client.
+     *   - Risponde con lo stato della partita e la configurazione della board in caso di successo.
+     * @param next - La funzione `NextFunction` di Express utilizzata per gestire eventuali errori.
      *
-     * @param req - L'oggetto della richiesta Express che contiene l'ID della partita nei parametri.
-     * @param res - L'oggetto della risposta Express utilizzato per inviare la risposta al client.
-     * @param next - La funzione di callback `NextFunction` per passare il controllo al middleware successivo in caso di errore.
+     * @returns `Promise<void>` - Non restituisce un valore diretto, ma invia una risposta JSON contenente lo stato attuale della partita e la configurazione della board o passa l'errore al middleware di gestione degli errori.
      *
-     * @throws {GameFactory.createError} - Lancia un errore se la partita con l'ID specificato non viene trovata.
+     * @throws {GameError} - Genera un errore se:
+     *   - `gameId` non è valido o non corrisponde a nessuna partita (GAME_NOT_FOUND).
      *
-     * @returns {Promise<void>} Una risposta JSON con lo stato della partita e la configurazione della board.
+     * Esempio di URL per la richiesta:
+     * ```
+     * GET /game-status/2
+     * ```
+     *
+     * Esempio di risposta in caso di successo:
+     * ```json
+     * {
+     *   "message": "The current status of the game is: ONGOING",
+     *   "game_id": 2,
+     *   "board": [
+     *     [null, "B", null, "B", null, "B", null, "B"],
+     *     ["B", null, "B", null, "B", null, "B", null],
+     *     [null, "B", null, "B", null, "B", null, "B"],
+     *     [null, null, null, null, null, null, null, null],
+     *     [null, null, null, null, null, null, null, null],
+     *     ["W", null, "W", null, "W", null, "W", null],
+     *     [null, "W", null, "W", null, "W", null, "W"],
+     *     ["W", null, "W", null, "W", null, "W", null]
+     *   ]
+     * }
+     * ```
      */
 
     public async evaluateGameStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
         const gameId = parseInt(req.params.gameId, 10);
         try {
             const game = await Game.findByPk(gameId);
-
             if (!game) {
                 throw GameFactory.createError(gameErrorType.GAME_NOT_FOUND);
             }
-
             // Restituisce lo stato della partita e la configurazione della board
             res.status(200).json({
                 message: `The current status of the game is: ${game.status}`,
@@ -149,21 +242,60 @@ class gameController {
         }
     }
 
+    /**
+     * Recupera le partite completate di un giocatore in un intervallo di date specificato.
+     *
+     * @param req - L'oggetto `Request` di Express contenente:
+     *   - `req.user.player_id` (number) - L'ID del giocatore che richiede le partite concluse, estratto dall'utente autenticato.
+     *   - `startDate` (string | opzionale) - Data di inizio dell'intervallo di ricerca delle partite (in formato stringa).
+     *   - `endDate` (string | opzionale) - Data di fine dell'intervallo di ricerca delle partite (in formato stringa).
+     * @param res - L'oggetto `Response` di Express utilizzato per inviare la risposta al client.
+     *   - Risponde con un elenco di partite concluse per il giocatore specificato, senza il campo `board` in ogni partita.
+     * @param next - La funzione `NextFunction` di Express utilizzata per gestire eventuali errori.
+     *
+     * @returns `Promise<void>` - Non restituisce un valore diretto, ma invia una risposta JSON contenente i dettagli delle partite concluse o passa l'errore al middleware di gestione degli errori.
+     *
+     * @throws {GameError} - Genera un errore se:
+     *   - `playerId` non è presente (ad esempio, se l'utente non è autenticato).
+     *
+     * Esempio di URL per la richiesta:
+     * ```
+     * GET /completed-games?startDate=2024-10-26&endDate=2024-10-30
+     * ```
+     *
+     * Esempio di risposta in caso di successo:
+     * ```json
+     * {
+     *   "data": {
+     *     "games": [
+     *       {
+     *         "game_id": 1,
+     *         "player_id": 123,
+     *         "opponent_id": 456,
+     *         "status": "Completed",
+     *         "type": "PVP",
+     *         "total_moves": 42,
+     *         "winner_id": 123,
+     *         "created_at": "2024-10-30T10:32:06.334Z",
+     *         "ended_at": "2024-10-30T10:32:23.428Z"
+     *       },
+     *     ]
+     *   }
+     * }
+     * ```
+     */
+
     public async getCompletedGames(req: Request, res: Response, next: NextFunction): Promise<void> {
         const playerId = req.user?.player_id;
         const {startDate, endDate} = req.query;
-
         try {
             if (!playerId) {
                 throw GameFactory.createError(gameErrorType.MISSING_PLAYER_ID);
             }
-
             // Chiama il metodo del servizio per ottenere le partite concluse
             const result = await gameService.getCompletedGames(playerId, startDate as string, endDate as string);
-
             // Rimuove dalla risposta il campo board
             result.games.forEach(game => delete game.board);
-
             // Invia la risposta con i dati delle partite concluse
             res.status(200).json({
                 data: result
@@ -173,14 +305,52 @@ class gameController {
         }
     }
 
+    /**
+     * Recupera la classifica dei giocatori ordinata per punteggio in ordine crescente o decrescente.
+     *
+     * @param req - L'oggetto `Request` di Express contenente:
+     *   - `order` (string | opzionale) - Il parametro di ordinamento nella query, che può essere "asc" o "desc". Predefinito a "desc".
+     * @param res - L'oggetto `Response` di Express utilizzato per inviare la risposta al client.
+     *   - Risponde con la classifica dei giocatori ordinata per punteggio.
+     * @param next - La funzione `NextFunction` di Express utilizzata per gestire eventuali errori.
+     *
+     * @returns `Promise<void>` - Non restituisce un valore diretto, ma invia una risposta JSON contenente la classifica dei giocatori o passa l'errore al middleware di gestione degli errori.
+     *
+     * @throws {Error} - Genera un errore se:
+     *   - Si verifica un problema durante il recupero della classifica.
+     *
+     * Esempio di URL per la richiesta:
+     * ```
+     * GET /leaderboard?order=asc
+     * ```
+     *
+     * Esempio di risposta in caso di successo:
+     * ```json
+     * {
+     *   "message": "Classifica giocatori recuperata con successo.",
+     *   "data": [
+     *     {
+     *       "player_id": 1,
+     *       "username": "Giocatore1",
+     *       "score": 1500
+     *     },
+     *     {
+     *       "player_id": 2,
+     *       "username": "Giocatore2",
+     *       "score": 1450
+     *     },
+     *     ...
+     *   ]
+     * }
+     * ```
+     */
+
     public async getPlayerLeaderboard(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             // Recupera il parametro di ordinamento dalla query, predefinito "desc"
             const order = req.query.order === 'asc' ? 'asc' : 'desc';
-
             // Chiama il servizio per ottenere la classifica dei giocatori
             const leaderboard = await gameService.getPlayerLeaderboard(order);
-
             // Invia la risposta con la classifica dei giocatori
             res.status(200).json({
                 message: 'Classifica giocatori recuperata con successo.',
@@ -192,14 +362,31 @@ class gameController {
     }
 
     /**
-     * Gestisce la generazione di un certificato di vittoria in formato PDF.
+     * Genera e restituisce un certificato di vittoria in formato PDF per una partita specifica.
      *
-     * @param req - L'oggetto della richiesta Express contenente l'ID della partita.
-     * @param res - L'oggetto della risposta Express utilizzato per inviare il PDF al client.
-     * @param next - La funzione di callback `NextFunction` per passare il controllo al middleware successivo in caso di errore.
+     * @param req - L'oggetto `Request` di Express contenente:
+     *   - `gameId` (string) - L'ID della partita per la quale si desidera generare il certificato, passato come parametro URL.
+     *   - `req.user.player_id` (number) - L'ID del giocatore che richiede il certificato, estratto dall'utente autenticato.
+     * @param res - L'oggetto `Response` di Express utilizzato per inviare il certificato PDF al client.
+     *   - Configura la risposta per il download del PDF, impostando i corretti header HTTP.
+     * @param next - La funzione `NextFunction` di Express utilizzata per gestire eventuali errori.
      *
-     * @returns Il certificato di vittoria come PDF in formato binario.
+     * @returns `Promise<void>` - Non restituisce un valore diretto, ma invia una risposta con il PDF del certificato o passa l'errore al middleware di gestione degli errori.
+     *
+     * @throws {GameError} - Genera un errore se:
+     *   - `gameId` non è valido o non corrisponde a nessuna partita.
+     *   - `playerId` non è presente (ad esempio, se l'utente non è autenticato).
+     *   - Il certificato non può essere generato per altre ragioni (es. partita non completata).
+     *
+     * Esempio di URL per la richiesta:
+     * ```
+     * GET /win-certificate/1
+     * ```
+     *
+     * Esempio di risposta in caso di successo:
+     * - La risposta sarà un file PDF scaricabile con il certificato di vittoria.
      */
+
     public async getVictoryCertificate(req: Request, res: Response, next: NextFunction): Promise<void> {
         const gameId = parseInt(req.params.gameId, 10);
         const playerId = req.user?.player_id;
@@ -207,20 +394,16 @@ class gameController {
         try {
             // Richiama il servizio per generare il certificato
             const pdfData = await gameService.generateVictoryCertificate(gameId, playerId!);
-
             // Configura la risposta per il download del PDF
             res.writeHead(200, {
                 'Content-Type': 'application/pdf',
                 'Content-Disposition': `attachment; filename="certificato_vittoria_partita_${gameId}.pdf"`,
                 'Content-Length': pdfData.length,
             }).end(pdfData);
-
         } catch (error) {
             next(error);
         }
     }
-
-
 }
 
 export default new gameController();

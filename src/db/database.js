@@ -1,28 +1,43 @@
+/**
+ * Classe Singleton `Database` per gestire la connessione al database utilizzando Sequelize.
+ *
+ * @requires sequelize - Modulo `Sequelize` per la gestione delle connessioni al database.
+ * @requires dotenv - Carica le variabili d'ambiente dal file `.env`.
+ *
+ * @class Database
+ * @classdesc Gestisce la connessione al database e garantisce un'unica istanza della connessione (Singleton).
+ *
+ * @constructor
+ * Crea una nuova istanza di `Database` se non esiste già e inizializza la connessione con le variabili d'ambiente:
+ *   - `DB_NAME` - Nome del database.
+ *   - `DB_USER` - Nome utente del database.
+ *   - `DB_PASSWORD` - Password del database.
+ *   - `DB_HOST` - Host del database.
+ *   - `DB_DIALECT` - Dialetto del database, ad esempio 'postgres', 'mysql'.
+ *   - `DB_PORT` - Porta di connessione al database.
+ *
+ * @method getInstance
+ * Metodo statico per ottenere l'istanza unica della classe `Database`.
+ *   - Crea l'istanza se non esiste e la congela per evitare modifiche.
+ *
+ * @method getSequelize
+ * Restituisce l'oggetto `Sequelize` per eseguire operazioni sul database.
+ *
+ * @example
+ * // Ottenere l'istanza e accedere a Sequelize
+ * const db = Database.getInstance();
+ * const sequelize = db.getSequelize();
+ *
+ * @property _sequelize - L'oggetto `Sequelize` che gestisce la connessione al database.
+ * @property instance - La singola istanza della classe `Database`.
+ */
+
 'use strict';
 
 const { Sequelize } = require('sequelize');
 const dotenv = require('dotenv');
 
 dotenv.config(); // Carica le variabili d'ambiente dal file .env
-
-/**
- * Classe singleton per la gestione della connessione al database utilizzando Sequelize.
- *
- * La classe `Database` fornisce una singola istanza della connessione a un database
- * utilizzando il modello singleton. Carica le variabili di configurazione dal file `.env`
- * e utilizza Sequelize per connettersi al database. La connessione viene configurata con
- * le credenziali e le impostazioni specificate nelle variabili d'ambiente.
- *
- * Le variabili d'ambiente utilizzate sono:
- * - `DB_NAME`: Nome del database.
- * - `DB_USER`: Nome utente per la connessione al database.
- * - `DB_PASSWORD`: Password per la connessione al database.
- * - `DB_HOST`: Host del database.
- * - `DB_DIALECT`: Dialetto del database (ad esempio, `postgres`, `mysql`).
- * - `DB_PORT`: Porta del database.
- *
- * La connessione è configurata per non mostrare i log delle query impostando `logging: false`.
- */
 
 class Database {
     constructor() {
@@ -35,23 +50,13 @@ class Database {
                     host: process.env.DB_HOST,
                     dialect: process.env.DB_DIALECT,
                     port: process.env.DB_PORT,
-                    logging: false, // Imposta su true per visualizzare i log delle query
+                    logging: false,
                 }
             );
             Database.instance = this; // Salva l'istanza
         }
         return Database.instance;
     }
-
-    /**
-     * Ottiene l'istanza singleton della classe `Database`.
-     *
-     * Questo metodo statico fornisce l'accesso all'unica istanza della classe `Database`.
-     * Se l'istanza non è già stata creata, viene creata e poi congelata per evitare modifiche
-     * future. Questo garantisce che ci sia solo una connessione attiva al database.
-     *
-     * @returns {Database} L'istanza singleton della classe `Database`.
-     */
 
     // Metodo statico per ottenere l'istanza
     static getInstance() {
@@ -62,16 +67,6 @@ class Database {
         }
         return Database.instance;
     }
-
-    /**
-     * Ottiene l'oggetto Sequelize per la connessione al database.
-     *
-     * Questo metodo fornisce l'accesso diretto all'istanza Sequelize utilizzata per
-     * la connessione al database, permettendo di eseguire operazioni con l'ORM.
-     *
-     * @returns {Sequelize} L'istanza Sequelize configurata.
-     */
-
     getSequelize() {
         return this._sequelize;
     }

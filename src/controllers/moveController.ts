@@ -8,21 +8,47 @@ import GameFactory, {gameErrorType} from "../factories/gameFactory";
 class MoveController {
 
     /**
-     * Esegue una mossa in una partita, validando i parametri e l'autenticazione dell'utente.
+     * Esegue una mossa in una partita specifica, utilizzando le coordinate di partenza e di destinazione fornite.
      *
-     * Questo metodo gestisce la richiesta di eseguire una mossa in un gioco specificato. Verifica che
-     * l'utente sia autenticato e che tutti i parametri richiesti siano presenti. In caso di successo,
-     * invia i dati al servizio per eseguire la mossa e restituisce il risultato. In caso di errore,
-     * passa l'errore al middleware di gestione degli errori.
+     * @param req - L'oggetto `Request` di Express contenente:
+     *   - `gameId` (number) - L'ID della partita in cui eseguire la mossa, fornito nel corpo della richiesta.
+     *   - `from` (string) - La posizione di partenza della mossa, fornita nel corpo della richiesta.
+     *   - `to` (string) - La posizione di destinazione della mossa, fornita nel corpo della richiesta.
+     *   - `req.user.player_id` (number) - L'ID del giocatore che esegue la mossa, estratto dall'utente autenticato.
+     * @param res - L'oggetto `Response` di Express utilizzato per inviare la risposta al client.
+     *   - Risponde con il risultato della mossa eseguita in caso di successo.
+     * @param next - La funzione `NextFunction` di Express utilizzata per gestire eventuali errori.
      *
-     * @param req - L'oggetto della richiesta Express che contiene `gameId`, `from`, e `to` nel corpo della richiesta.
-     * @param res - L'oggetto della risposta Express utilizzato per inviare il risultato della mossa al client.
-     * @param next - La funzione di callback `NextFunction` per passare il controllo al middleware successivo in caso di errore.
+     * @returns `Promise<void>` - Non restituisce un valore diretto, ma invia una risposta JSON contenente il risultato della mossa o passa l'errore al middleware di gestione degli errori.
      *
-     * @throws {AuthFactory.createError} - Lancia un errore se l'utente non è autenticato.
-     * @throws {MoveFactory.createError} - Lancia un errore se mancano parametri richiesti.
+     * @throws {AuthError} - Genera un errore se:
+     *   - `playerId` non è presente (es. l'utente non è autenticato).
+     * @throws {MoveError} - Genera un errore se:
+     *   - Uno o più parametri richiesti (`gameId`, `from`, `to`) sono assenti.
      *
-     * @returns Una risposta JSON contenente il risultato dell'esecuzione della mossa se l'operazione ha successo.
+     * Esempio di corpo della richiesta:
+     * ```json
+     * {
+     *   "gameId": 1,
+     *   "from": "D3",
+     *   "to": "D4"
+     * }
+     * ```
+     *
+     * Esempio di risposta in caso di successo:
+     * ```json
+     * {
+     *   "status": "success",
+     *   "game_id": 1,
+     *   "move": {
+     *     "from": "D3",
+     *     "to": "D4"
+     *   },
+     *   "board": [
+     *     // ...array della configurazione della board aggiornata
+     *   ]
+     * }
+     * ```
      */
 
     public static async executeMove(req: Request, res: Response, next: NextFunction) {
@@ -46,17 +72,49 @@ class MoveController {
     }
 
     /**
-     * Restituisce lo storico delle mosse di una data partita in formato JSON o PDF.
+     * Recupera la cronologia delle mosse di una partita specifica in formato JSON o PDF.
      *
-     * @param req - L'oggetto della richiesta Express contenente l'ID della partita e il formato desiderato (json o pdf).
-     * @param res - L'oggetto della risposta Express utilizzato per inviare il risultato al client.
-     * @param next - La funzione di callback `NextFunction` per passare il controllo al middleware successivo in caso di errore.
+     * @param req - L'oggetto `Request` di Express contenente:
+     *   - `gameId` (string) - L'ID della partita per la quale ottenere la cronologia delle mosse, passato come parametro URL.
+     *   - `format` (string | opzionale) - Il formato della cronologia delle mosse, specificato nella query (può essere "json" o "pdf"). Il formato predefinito è "json".
+     * @param res - L'oggetto `Response` di Express utilizzato per inviare la risposta al client.
+     *   - Risponde con la cronologia delle mosse in formato JSON o come file PDF scaricabile.
+     * @param next - La funzione `NextFunction` di Express utilizzata per gestire eventuali errori.
+     *
+     * @returns `Promise<void>` - Non restituisce un valore diretto, ma invia una risposta JSON o PDF con la cronologia delle mosse o passa l'errore al middleware di gestione degli errori.
+     *
+     * @throws {GameError} - Genera un errore se:
+     *   - `gameId` non è valido o non corrisponde a nessuna partita (GAME_NOT_FOUND).
+     *
+     * Esempio di URL per la richiesta in formato JSON:
+     * ```
+     * GET /game/4/moves?format=json
+     * ```
+     *
+     * Esempio di URL per la richiesta in formato PDF:
+     * ```
+     * GET /game/4/moves?format=pdf
+     * ```
+     *
+     * Esempio di risposta in caso di successo (formato JSON):
+     * ```json
+     * {
+     *   "game_id": 4,
+     *   "moves": [
+     *     { "move_number": 1, "from": "D3", "to": "D4" },
+     *     { "move_number": 2, "from": "E6", "to": "E5" },
+     *     ...
+     *   ]
+     * }
+     * ```
+     *
+     * Esempio di risposta in caso di successo (formato PDF):
+     * - La risposta sarà un file PDF scaricabile con la cronologia delle mosse.
      */
 
     public static async getMoveHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
         const gameId = parseInt(req.params.gameId, 10);
         const format = req.query.format as string || 'json'; // Formato di default è JSON
-
         try {
             // Controllo sull'esistenza del gioco
             const gameExists = await Game.findByPk(gameId);
@@ -64,7 +122,6 @@ class MoveController {
                 throw GameFactory.createError(gameErrorType.GAME_NOT_FOUND);
             }
             const result = await moveService.exportMoveHistory(gameId, format);
-
             if (format === 'pdf') {
                 res.setHeader('Content-Type', 'application/pdf');
                 res.setHeader('Content-Disposition', `attachment; filename=game_${gameId}_moves.pdf`);
@@ -76,7 +133,6 @@ class MoveController {
             next(error);
         }
     }
-
 }
 
 export default MoveController;

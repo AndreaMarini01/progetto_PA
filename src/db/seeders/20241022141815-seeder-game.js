@@ -1,9 +1,34 @@
+/**
+ * Migrazione per l'inserimento di partite di esempio nella tabella `Game`.
+ *
+ * @param queryInterface - L'interfaccia utilizzata per eseguire le query nel database.
+ * @param Sequelize - L'istanza di Sequelize che fornisce i tipi di dati per i campi della tabella.
+ *
+ * @function up
+ * Inserisce un insieme di partite di esempio nella tabella `Game` con i seguenti campi:
+ *   - `player_id` (INTEGER) - ID del giocatore che ha iniziato la partita.
+ *   - `opponent_id` (INTEGER | opzionale) - ID dell'avversario, se presente; `null` per una partita contro l'IA.
+ *   - `status` (ENUM) - Stato della partita: 'Ongoing', 'Timed Out', ecc.
+ *   - `created_at` (DATE) - Data di creazione casuale generata dalla funzione `getRandomDate`.
+ *   - `ended_at` (DATE | opzionale) - Data di fine della partita, può essere `null`.
+ *   - `type` (ENUM) - Tipo di partita: 'PvP' (Player vs Player) o 'PvE' (Player vs Environment).
+ *   - `ai_difficulty` (ENUM | opzionale) - Difficoltà dell'IA per partite PvE, come 'Absent' o 'Hard'.
+ *   - `winner_id` (INTEGER | opzionale) - ID del vincitore, `null` se la partita è ancora in corso.
+ *   - `board` (JSON) - Configurazione della board 8x8 serializzata in JSON.
+ *   - `total_moves` (INTEGER) - Numero totale di mosse inizialmente impostato a `0`.
+ *
+ * La funzione `generateBoardConfig` genera una configurazione predefinita della board 8x8. Il campo `board` viene serializzato per essere inserito come JSON nel database.
+ *
+ * @function down
+ * Elimina tutti i record dalla tabella `Game`.
+ */
+
 'use strict';
 
 /**
- * Genera una data casuale tra l'epoca Unix e il momento attuale.
+ * Funzione di utilità per generare una data casuale tra l'epoca Unix e il momento attuale.
  *
- * @returns {Date} Un oggetto `Date` casuale.
+ * @returns Un oggetto `Date` con un timestamp casuale.
  */
 
 function getRandomDate() {
@@ -13,12 +38,9 @@ function getRandomDate() {
 }
 
 /**
- * Genera una configurazione casuale della tavola di gioco per Draughts.
+ * Funzione di utilità per generare la configurazione iniziale della board 8x8.
  *
- * La configurazione include pezzi per due giocatori, con 12 pezzi iniziali
- * per ciascun giocatore posizionati su un tavolo di 32 caselle.
- *
- * @returns {{board: any[]}} La configurazione iniziale della tavola di gioco in formato JSON.
+ * @returns Un oggetto contenente la configurazione della board.
  */
 
 function generateBoardConfig() {
@@ -37,44 +59,11 @@ function generateBoardConfig() {
   return { board }; // Restituisce un oggetto JSON nativo
 }
 
-
-/**
- * Seeder per l'inserimento di dati iniziali nella tabella 'Game'.
- *
- * Questo seeder inserisce una serie di partite nella tabella 'Game', con diverse configurazioni
- * di stato, tipo di gioco e difficoltà dell'IA. Utilizza funzioni per generare date casuali e
- * configurazioni iniziali della tavola di gioco.
- *
- * @param {import('sequelize').QueryInterface} queryInterface - L'interfaccia per eseguire comandi di modifica del database.
- * @param {import('sequelize')} Sequelize - L'oggetto Sequelize che fornisce i tipi di dati.
- */
-
 module.exports = {
 
-  /**
-   * Inserisce dati iniziali nella tabella 'Game', creando diverse partite con configurazioni
-   * casuali per stato, tipo e difficoltà dell'IA.
-   *
-   * - `player_id`: ID del giocatore principale coinvolto nella partita.
-   * - `opponent_id`: ID dell'avversario, se presente (null per PvE).
-   * - `status`: Stato della partita (In corso, Completata, Scaduta).
-   * - `created_at`: Data e ora di creazione della partita.
-   * - `ended_at`: Data e ora di conclusione della partita, se applicabile.
-   * - `type`: Tipo di partita (PvP o PvE).
-   * - `ai_difficulty`: Difficoltà dell'IA (Assente, Facile, Difficile).
-   * - `updatedAt`: Data e ora dell'ultimo aggiornamento della partita.
-   * - `date`: Data casuale associata alla partita.
-   * - `board`: Configurazione iniziale della tavola di gioco in formato JSON.
-   * - `total_moves`: Numero totale di mosse effettuate nella partita.
-   *
-   * @param {import('sequelize').QueryInterface} queryInterface - L'interfaccia per eseguire comandi di modifica del database.
-   * @param {import('sequelize')} Sequelize - L'oggetto Sequelize che fornisce i tipi di dati.
-   * @returns {Promise<void>} Una promessa che rappresenta il completamento dell'operazione di inserimento.
-   */
-
   async up(queryInterface, Sequelize) {
-    const boardConfig = generateBoardConfig(); // Questo restituisce { board: [...] }
-    const serializedBoard = JSON.stringify(boardConfig.board); // Serializza la board
+    const boardConfig = generateBoardConfig();
+    const serializedBoard = JSON.stringify(boardConfig.board);
 
     const games = [
       {
@@ -85,9 +74,7 @@ module.exports = {
         ended_at: null,
         type: 'PvP',
         ai_difficulty: 'Absent',
-        //updatedAt: new Date(),
         winner_id: null,
-        //date: getRandomDate(),
         board: Sequelize.literal(`'${serializedBoard}'::json`),
         total_moves:0
       },
@@ -99,9 +86,7 @@ module.exports = {
         ended_at: new Date(),
         type: 'PvE',
         ai_difficulty: 'Hard',
-        //updatedAt: new Date(),
         winner_id: null,
-        //date: getRandomDate(),
         board: Sequelize.literal(`'${serializedBoard}'::json`),
         total_moves:0
       },
@@ -114,22 +99,12 @@ module.exports = {
         type: 'PvE',
         ai_difficulty: 'Hard',
         winner_id: 2,
-        //updatedAt: new Date(),
-        //date: getRandomDate(),
         board: Sequelize.literal(`'${serializedBoard}'::json`),
         total_moves:0
       }
     ];
     await queryInterface.bulkInsert('Game', games, {});
   },
-
-  /**
-   * Rimuove tutti i dati dalla tabella 'Game'.
-   *
-   * @param {import('sequelize').QueryInterface} queryInterface - L'interfaccia per eseguire comandi di modifica del database.
-   * @param {import('sequelize')} Sequelize - L'oggetto Sequelize che fornisce i tipi di dati.
-   * @returns {Promise<void>} Una promessa che rappresenta il completamento dell'operazione di eliminazione.
-   */
 
   async down(queryInterface, Sequelize) {
     await queryInterface.bulkDelete('Game', null, {});

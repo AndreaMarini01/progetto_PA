@@ -1,36 +1,29 @@
-'use strict';
-
 /**
- * Seeder per l'inserimento di mosse iniziali nella tabella 'Move'.
+ * Migrazione per l'inserimento di mosse di esempio nella tabella `Move`.
  *
- * Questo seeder inserisce una serie di mosse nella tabella 'Move', con dettagli sulla partita,
- * il giocatore, la posizione di partenza e di destinazione, il tipo di pezzo mosso, e la
- * configurazione della tavola al momento della mossa. Utilizza serializzazioni JSON per i dettagli
- * e la configurazione della tavola.
+ * @param queryInterface - L'interfaccia utilizzata per eseguire le query nel database.
+ * @param Sequelize - L'istanza di Sequelize che fornisce i tipi di dati per i campi della tabella.
  *
- * @param {import('sequelize').QueryInterface} queryInterface - L'interfaccia per eseguire comandi di modifica del database.
- * @param {import('sequelize')} Sequelize - L'oggetto Sequelize che fornisce i tipi di dati.
+ * @function up
+ * Inserisce un insieme di mosse di esempio nella tabella `Move` con i seguenti campi:
+ *   - `game_id` (INTEGER) - ID della partita a cui appartiene la mossa.
+ *   - `user_id` (INTEGER) - ID dell'utente che ha effettuato la mossa.
+ *   - `createdAt` (DATE) - Timestamp della mossa, impostato a `new Date()` per l'attuale data e ora.
+ *   - `move_number` (INTEGER) - Numero progressivo della mossa all'interno della partita.
+ *   - `from_position` (STRING) - Posizione di partenza della mossa (es: 'E2').
+ *   - `to_position` (STRING) - Posizione di destinazione della mossa (es: 'E4').
+ *   - `piece_type` (STRING) - Tipo di pezzo mosso (es: 'single').
+ *   - `board` (JSON) - Configurazione della board al momento della mossa, serializzata in JSON.
+ *
+ * Ogni mossa utilizza una configurazione predefinita della board 8x8.
+ *
+ * @function down
+ * Elimina tutti i record dalla tabella `Move`.
  */
 
-module.exports = {
+'use strict';
 
-  /**
-   * Inserisce dati iniziali nella tabella 'Move', creando diverse mosse per vari giochi.
-   *
-   * - `game_id`: ID della partita a cui appartiene la mossa.
-   * - `user_id`: ID del giocatore che ha effettuato la mossa.
-   * - `details`: Dettagli della mossa in formato JSON, inclusi `from` e `to`.
-   * - `createdAt` e `updatedAt`: Timestamp di creazione e aggiornamento della mossa.
-   * - `move_number`: Numero della mossa nella sequenza della partita.
-   * - `from_position`: Posizione di partenza della mossa.
-   * - `to_position`: Posizione di destinazione della mossa.
-   * - `piece_type`: Tipo di pezzo mosso (ad esempio "single" o "king").
-   * - `board`: Configurazione della tavola al momento della mossa, serializzata come JSON.
-   *
-   * @param {import('sequelize').QueryInterface} queryInterface - L'interfaccia per eseguire comandi di modifica del database.
-   * @param {import('sequelize')} Sequelize - L'oggetto Sequelize che fornisce i tipi di dati.
-   * @returns {Promise<void>} Una promessa che rappresenta il completamento dell'operazione di inserimento.
-   */
+module.exports = {
 
   async up(queryInterface, Sequelize) {
     const board = [
@@ -47,9 +40,7 @@ module.exports = {
       {
         game_id: 1,
         user_id: 1,
-        //details: JSON.stringify({ from: 'E2', to: 'E4' }), // Serializza l'oggetto JSON
         createdAt: new Date(),
-        //updatedAt: new Date(),
         move_number: 1,
         from_position: 'E2',
         to_position: 'E4',
@@ -59,9 +50,7 @@ module.exports = {
       {
         game_id: 1,
         user_id: 2,
-        //details: JSON.stringify({ from: 'D7', to: 'D5' }), // Serializza l'oggetto JSON
         createdAt: new Date(),
-        //updatedAt: new Date(),
         move_number: 2,
         from_position: 'E2',
         to_position: 'E4',
@@ -71,9 +60,7 @@ module.exports = {
       {
         game_id: 2,
         user_id: 1,
-        //details: JSON.stringify({ from: 'C3', to: 'C5', capture: 'D4' }), // Serializza l'oggetto JSON
         createdAt: new Date(),
-        //updatedAt: new Date(),
         move_number: 1,
         from_position: 'E2',
         to_position: 'E4',
@@ -83,14 +70,6 @@ module.exports = {
     ];
     await queryInterface.bulkInsert('Move', moves, {});
   },
-
-  /**
-   * Rimuove tutti i dati dalla tabella 'Move'.
-   *
-   * @param {import('sequelize').QueryInterface} queryInterface - L'interfaccia per eseguire comandi di modifica del database.
-   * @param {import('sequelize')} Sequelize - L'oggetto Sequelize che fornisce i tipi di dati.
-   * @returns {Promise<void>} Una promessa che rappresenta il completamento dell'operazione di eliminazione.
-   */
 
   async down(queryInterface, Sequelize) {
     await queryInterface.bulkDelete('Move', null, {});

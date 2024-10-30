@@ -1,25 +1,20 @@
+/**
+ * Configurazione del database per gli ambienti di sviluppo.
+ *
+ * @requires dotenv - Carica le variabili d'ambiente dal file `.env`.
+ *
+ * @property development - Configurazione per l'ambiente di sviluppo.
+ *   - `username` (string | undefined) - Nome utente per la connessione al database, ottenuto da `process.env.DB_USER`.
+ *   - `password` (string | undefined) - Password per la connessione al database, ottenuta da `process.env.DB_PASSWORD`.
+ *   - `database` (string | undefined) - Nome del database, ottenuto da `process.env.DB_NAME`.
+ *   - `host` (string | undefined) - Host del database, ottenuto da `process.env.DB_HOST`.
+ *   - `port` (number | undefined) - Porta per la connessione al database, ottenuta da `process.env.DB_PORT`.
+ *   - `dialect` (string | undefined) - Dialetto del database (es. 'postgres', 'mysql'), ottenuto da `process.env.DB_DIALECT`.
+ */
+
 const dotenv = require('dotenv'); // Carica le variabili d'ambiente dal file .env
 
 dotenv.config();
-
-/**
- * Configurazione del database per l'ambiente di sviluppo.
- *
- * Questo file di configurazione carica le variabili d'ambiente dal file `.env` utilizzando
- * la libreria `dotenv` e definisce i parametri per la connessione al database in ambiente
- * di sviluppo. I parametri includono il nome utente, la password, il nome del database,
- * l'host, la porta e il dialetto del database.
- *
- * Le variabili d'ambiente utilizzate sono:
- * - `DB_USER`: Nome utente per la connessione al database.
- * - `DB_PASSWORD`: Password per la connessione al database.
- * - `DB_NAME`: Nome del database.
- * - `DB_HOST`: Host del database.
- * - `DB_PORT`: Porta del database.
- * - `DB_DIALECT`: Dialetto del database (ad esempio, `postgres`, `mysql`).
- *
- * @type {Object} Configurazione per Sequelize.
- */
 
 module.exports = {
     development: {

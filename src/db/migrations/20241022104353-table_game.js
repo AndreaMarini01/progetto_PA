@@ -1,47 +1,39 @@
 'use strict';
 
+/**
+ * Migrazione per la creazione della tabella `Game`.
+ *
+ * @param queryInterface - L'interfaccia utilizzata per eseguire le query nel database.
+ * @param Sequelize - L'istanza di Sequelize che fornisce i tipi di dati per i campi della tabella.
+ *
+ * @function up
+ * Crea la tabella `Game` con i seguenti campi:
+ *   - `game_id` (INTEGER) - Chiave primaria autoincrementante, non nulla.
+ *   - `player_id` (INTEGER) - ID del giocatore, non nullo.
+ *   - `opponent_id` (INTEGER) - ID dell'avversario, può essere nullo (es. partita contro IA).
+ *   - `winner_id` (INTEGER) - ID del vincitore, può essere nullo.
+ *   - `status` (ENUM) - Stato della partita: 'Ongoing', 'Completed', 'Abandoned', 'Timed Out', non nullo.
+ *   - `created_at` (DATE) - Data di creazione, non nulla, con valore predefinito `Sequelize.NOW`.
+ *   - `ended_at` (DATE) - Data di fine partita, può essere nullo.
+ *   - `type` (ENUM) - Tipo di partita: 'PvP' (Player vs Player) o 'PvE' (Player vs Environment), non nullo.
+ *   - `ai_difficulty` (ENUM) - Difficoltà dell'IA per partite PvE: 'Absent', 'Easy', 'Hard', può essere nullo.
+ *   - `board` (JSON) - Stato della board, non nullo, con valore predefinito caricato da `initialBoard.json`.
+ *   - `total_moves` (INTEGER) - Numero totale di mosse, non nullo, con valore predefinito `0`.
+ *
+ * Il campo `board` viene inizializzato utilizzando il file `initialBoard.json` situato in `src/initialBoard.json`.
+ *
+ * @function down
+ * Elimina la tabella `Game`.
+ */
+
 const { readFileSync } = require('fs');
 const path = require('path');
 
-/**
- * Migrazione per creare la tabella 'Game'.
- *
- * Questa migrazione crea la tabella 'Game' con le colonne specificate, tra cui ID del gioco, ID del giocatore,
- * ID dell'avversario, stato della partita, date di creazione e fine, tipo di gioco, difficoltà dell'IA,
- * data di aggiornamento, scacchiera, e numero totale di mosse. Include anche un metodo di rollback per
- * rimuovere la tabella in caso di necessità.
- *
- * @param {import('sequelize').QueryInterface} queryInterface - L'interfaccia per eseguire comandi di modifica del database.
- * @param {import('sequelize')} Sequelize - L'oggetto Sequelize che fornisce i tipi di dati.
- */
-
 module.exports = {
-
-  /**
-   * Esegue la migrazione per creare la tabella 'Game' con le colonne specificate.
-   *
-   * - `game_id`: Chiave primaria incrementale per identificare il gioco.
-   * - `player_id`: ID del giocatore principale coinvolto nella partita.
-   * - `opponent_id`: ID dell'avversario, se presente (null per PvE).
-   * - `status`: Stato attuale della partita (In corso, Completata, Abbandonata, Scaduta).
-   * - `created_at`: Data e ora di creazione della partita, impostata di default al momento attuale.
-   * - `ended_at`: Data e ora di conclusione della partita, se applicabile.
-   * - `type`: Tipo di partita (PvP o PvE).
-   * - `ai_difficulty`: Livello di difficoltà dell'IA, se applicabile (Assente, Facile, Difficile).
-   * - `updatedAt`: Data e ora dell'ultimo aggiornamento del record, impostata di default al momento attuale.
-   * - `date`: Data e ora di riferimento per la partita, impostata di default al momento attuale.
-   * - `board`: Configurazione della scacchiera, salvata in formato JSON, con valore predefinito dal file `initialBoard.json`.
-   * - `total_moves`: Numero totale di mosse eseguite nella partita, inizialmente pari a zero.
-   *
-   * @param {import('sequelize').QueryInterface} queryInterface - L'interfaccia per eseguire comandi di modifica del database.
-   * @param {import('sequelize')} Sequelize - L'oggetto Sequelize che fornisce i tipi di dati.
-   * @returns {Promise<void>} Una promessa che rappresenta il completamento della migrazione.
-   */
 
   up: async (queryInterface, Sequelize) => {
     const initialBoardPath = 'src/initialBoard.json';
     const initialBoard = JSON.parse(readFileSync(initialBoardPath, 'utf8'));
-
     await queryInterface.createTable('Game', {
       game_id: {
         type: Sequelize.INTEGER,
@@ -82,18 +74,6 @@ module.exports = {
         type: Sequelize.ENUM('Absent','Easy', 'Hard'),
         allowNull: true
       },
-      /*
-      updatedAt: {
-        type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.NOW
-      },
-      /*
-      date: {
-        type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.NOW
-      },*/
       board: {
         type: Sequelize.JSON,
         allowNull: false,
@@ -106,14 +86,6 @@ module.exports = {
       },
     });
   },
-
-  /**
-   * Esegue il rollback della migrazione eliminando la tabella 'Game'.
-   *
-   * @param {import('sequelize').QueryInterface} queryInterface - L'interfaccia per eseguire comandi di modifica del database.
-   * @param {import('sequelize')} Sequelize - L'oggetto Sequelize che fornisce i tipi di dati.
-   * @returns {Promise<void>} Una promessa che rappresenta il completamento dell'operazione di rollback.
-   */
 
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('Game');
