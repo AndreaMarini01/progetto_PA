@@ -215,7 +215,39 @@ sequenceDiagram
     Server-->>Client: 201 Created (game)
 ```
 #### POST '/test-move'
+Il diagramma delle sequenze per il modulo di gestione delle mosse nel gioco illustra il flusso delle interazioni tra l'utente, il middleware di autenticazione, il controller delle mosse e il servizio di movimento. Inizia con l'utente che invia una richiesta per eseguire una mossa, passando attraverso il controllo dell'autenticazione JWT. Se autenticato, il controller gestisce la richiesta e delega la logica di esecuzione della mossa al servizio di movimento. Questo diagramma è essenziale per comprendere le dinamiche di interazione e il processo di gestione delle mosse nel sistema di gioco.
 
+```mermaid
+sequenceDiagram
+    participant User
+    participant AuthMiddleware
+    participant MoveController
+    participant MoveService
+    participant Game
+    participant Player
+    participant Move as MoveModel
+
+    User->>MoveController: POST /new-move (gameId, from, to)
+    MoveController->>AuthMiddleware: Authenticate JWT
+    AuthMiddleware-->>User: Validate token
+    User->>MoveController: Proceed if authenticated
+    MoveController->>MoveService: executeMove(gameId, from, to, playerId)
+    
+    MoveService->>Player: Find player by ID
+    Player-->>MoveService: Return player
+    MoveService->>Game: Find game by ID
+    Game-->>MoveService: Return game
+    MoveService->>MoveService: Validate game status and player
+    MoveService->>Player: Update tokens
+    Player-->>MoveService: Save updated player
+
+    MoveService->>MoveModel: Create move record
+    MoveModel-->>MoveService: Move created
+    MoveService->>MoveService: Check for game over condition
+
+    MoveService-->>MoveController: Return move result
+    MoveController-->>User: Respond with move status
+```
 
 
 # Diagramma ER
@@ -223,53 +255,48 @@ Il diagramma ER (Entity-Relationship) offre una rappresentazione visiva delle en
 
 ```mermaid
 erDiagram
-    PLAYER {
-        INTEGER id_player PK "ID del giocatore"
-        STRING username "Nome utente"
-        STRING email "Email"
-        STRING password_hash "Hash della password"
-        STRING salt "Salt per la password"
-        FLOAT tokens "Numero di token"
-        ENUM role "Ruolo del giocatore"
-        FLOAT score "Punteggio del giocatore"
-        TIMESTAMP createdAt "Data di creazione"
-        TIMESTAMP updatedAt "Data di aggiornamento"
+    Player {
+        integer player_id PK "Primary Key"
+        string username "User's username"
+        string email "User's email"
+        string password_hash "Hashed password"
+        string salt "Salt for password"
+        float tokens "Player's tokens balance"
+        string role "Player role (user/admin)"
+        float score "Player's score"
     }
 
-    GAME {
-        INTEGER id_game PK "ID della partita"
-        INTEGER player_id FK "ID del giocatore"
-        INTEGER opponent_id FK "ID dell'avversario"
-        ENUM status "Stato della partita"
-        TIMESTAMP created_at "Data di creazione"
-        TIMESTAMP ended_at "Data di fine"
-        ENUM type "Tipo di partita"
-        ENUM ai_difficulty "Difficoltà IA"
-        TIMESTAMP date "Data della partita"
-        JSON board "Configurazione della tavola"
-        INTEGER total_moves "Numero totale di mosse"
-        INTEGER winner_id "ID del vincitore"
+    Game {
+        integer game_id PK "Primary Key"
+        integer player_id FK "Foreign Key from Player"
+        integer opponent_id FK "Foreign Key from Player (optional)"
+        string status "Current game status"
+        date created_at "Game creation date"
+        date ended_at "Game end date (if applicable)"
+        string type "Game type (PvP or PvE)"
+        string ai_difficulty "AI difficulty level (if applicable)"
+        json board "Game board configuration"
+        integer total_moves "Total moves made in the game"
+        integer winner_id "ID of the winner (if any)"
     }
 
-    MOVE {
-        INTEGER id_move PK "ID della mossa"
-        INTEGER game_id FK "ID della partita"
-        INTEGER user_id FK "ID del giocatore"
-        JSON details "Dettagli della mossa"
-        INTEGER moveNumber "Numero della mossa"
-        JSON board "Configurazione della tavola"
-        STRING fromPosition "Posizione di partenza"
-        STRING toPosition "Posizione di destinazione"
-        STRING pieceType "Tipo di pezzo"
-        TIMESTAMP createdAt "Data di creazione"
-        TIMESTAMP updatedAt "Data di aggiornamento"
+    Move {
+        integer move_id PK "Primary Key"
+        integer game_id FK "Foreign Key from Game"
+        integer user_id FK "Foreign Key from Player (optional)"
+        date createdAt "Move creation date"
+        integer move_number "Move number in the game"
+        json board "Board configuration after the move"
+        string from_position "Starting position of the move"
+        string to_position "Ending position of the move"
+        string piece_type "Type of piece moved"
     }
 
-    PLAYER ||--o{ GAME : "gioca"
-    PLAYER ||--o{ MOVE : "effettua"
-    GAME ||--o{ MOVE : "contiene"
-    GAME }o--|| PLAYER : "giocatore"
-    GAME }o--|| PLAYER : "avversario"
+    Player ||--o{ Game : "has"
+    Player ||--o{ Move : "makes"
+    Game ||--o{ Move : "contains"
+    Game ||--|| Player : "plays against"
+
 ```
 
 # Pattern Utilizzati
