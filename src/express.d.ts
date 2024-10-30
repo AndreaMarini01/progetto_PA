@@ -19,7 +19,7 @@ declare global {
              * e il middleware di autenticazione ha decodificato con successo il token JWT.
              */
 
-            user?: JwtPayload & { id_player: number; email:string; role: string };
+            user?: JwtPayload & { player_id: number; email:string; role: string };
         }
     }
 }

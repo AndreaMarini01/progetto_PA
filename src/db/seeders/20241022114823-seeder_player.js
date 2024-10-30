@@ -43,8 +43,8 @@ module.exports = {
         tokens: 0.3,
         role: 'user',
         score: 10,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        //createdAt: new Date(),
+        //updatedAt: new Date()
       },
       {
         username: 'Alessio Capriotti',
@@ -53,8 +53,8 @@ module.exports = {
         tokens: 3,
         role: 'user',
         score: 7,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        //createdAt: new Date(),
+        //updatedAt: new Date()
       },
       {
         username: 'Admin Admin',
@@ -63,8 +63,8 @@ module.exports = {
         tokens: 200,
         role: 'admin',
         score: 2,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        //createdAt: new Date(),
+        //updatedAt: new Date()
       }, {
         username: 'Prova Prova',
         email: 'prova@gmail.com',
@@ -72,8 +72,8 @@ module.exports = {
         tokens: 3,
         role: 'user',
         score: 7,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        //createdAt: new Date(),
+        //updatedAt: new Date()
       }
     ];
     // Inserimento dei dati nella tabella Player

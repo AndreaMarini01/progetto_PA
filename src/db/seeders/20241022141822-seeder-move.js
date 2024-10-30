@@ -21,10 +21,10 @@ module.exports = {
    * - `user_id`: ID del giocatore che ha effettuato la mossa.
    * - `details`: Dettagli della mossa in formato JSON, inclusi `from` e `to`.
    * - `createdAt` e `updatedAt`: Timestamp di creazione e aggiornamento della mossa.
-   * - `moveNumber`: Numero della mossa nella sequenza della partita.
-   * - `fromPosition`: Posizione di partenza della mossa.
-   * - `toPosition`: Posizione di destinazione della mossa.
-   * - `pieceType`: Tipo di pezzo mosso (ad esempio "single" o "king").
+   * - `move_number`: Numero della mossa nella sequenza della partita.
+   * - `from_position`: Posizione di partenza della mossa.
+   * - `to_position`: Posizione di destinazione della mossa.
+   * - `piece_type`: Tipo di pezzo mosso (ad esempio "single" o "king").
    * - `board`: Configurazione della tavola al momento della mossa, serializzata come JSON.
    *
    * @param {import('sequelize').QueryInterface} queryInterface - L'interfaccia per eseguire comandi di modifica del database.
@@ -47,37 +47,37 @@ module.exports = {
       {
         game_id: 1,
         user_id: 1,
-        details: JSON.stringify({ from: 'E2', to: 'E4' }), // Serializza l'oggetto JSON
+        //details: JSON.stringify({ from: 'E2', to: 'E4' }), // Serializza l'oggetto JSON
         createdAt: new Date(),
-        updatedAt: new Date(),
-        moveNumber: 1,
-        fromPosition: 'E2',
-        toPosition: 'E4',
-        pieceType: 'single',
+        //updatedAt: new Date(),
+        move_number: 1,
+        from_position: 'E2',
+        to_position: 'E4',
+        piece_type: 'single',
         board: JSON.stringify({ initialBoard: board })
       },
       {
         game_id: 1,
         user_id: 2,
-        details: JSON.stringify({ from: 'D7', to: 'D5' }), // Serializza l'oggetto JSON
+        //details: JSON.stringify({ from: 'D7', to: 'D5' }), // Serializza l'oggetto JSON
         createdAt: new Date(),
-        updatedAt: new Date(),
-        moveNumber: 2,
-        fromPosition: 'E2',
-        toPosition: 'E4',
-        pieceType: 'single',
+        //updatedAt: new Date(),
+        move_number: 2,
+        from_position: 'E2',
+        to_position: 'E4',
+        piece_type: 'single',
         board: JSON.stringify({ initialBoard: board })
       },
       {
         game_id: 2,
         user_id: 1,
-        details: JSON.stringify({ from: 'C3', to: 'C5', capture: 'D4' }), // Serializza l'oggetto JSON
+        //details: JSON.stringify({ from: 'C3', to: 'C5', capture: 'D4' }), // Serializza l'oggetto JSON
         createdAt: new Date(),
-        updatedAt: new Date(),
-        moveNumber: 1,
-        fromPosition: 'E2',
-        toPosition: 'E4',
-        pieceType: 'single',
+        //updatedAt: new Date(),
+        move_number: 1,
+        from_position: 'E2',
+        to_position: 'E4',
+        piece_type: 'single',
         board: JSON.stringify({ initialBoard: board })
       }
     ];

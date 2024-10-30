@@ -17,7 +17,7 @@ module.exports = {
   /**
    * Esegue la migrazione per creare la tabella 'Player' con le colonne specificate.
    *
-   * - `id_player`: Chiave primaria incrementale per identificare il giocatore.
+   * - `player_id`: Chiave primaria incrementale per identificare il giocatore.
    * - `username`: Nome utente unico del giocatore.
    * - `email`: Email unica del giocatore.
    * - `password_hash`: Hash della password per l'autenticazione sicura.
@@ -35,7 +35,7 @@ module.exports = {
 
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Player', {
-      id_player: {
+      player_id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
@@ -73,16 +73,17 @@ module.exports = {
         type: Sequelize.FLOAT,
         allowNull: false
       },
+      /*
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.NOW
-      },
+      },/*
       updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.NOW
-      }
+      }*/
     });
   },
 

@@ -20,7 +20,7 @@ module.exports = {
   /**
    * Esegue la migrazione per creare la tabella 'Game' con le colonne specificate.
    *
-   * - `id_game`: Chiave primaria incrementale per identificare il gioco.
+   * - `game_id`: Chiave primaria incrementale per identificare il gioco.
    * - `player_id`: ID del giocatore principale coinvolto nella partita.
    * - `opponent_id`: ID dell'avversario, se presente (null per PvE).
    * - `status`: Stato attuale della partita (In corso, Completata, Abbandonata, Scaduta).
@@ -43,7 +43,7 @@ module.exports = {
     const initialBoard = JSON.parse(readFileSync(initialBoardPath, 'utf8'));
 
     await queryInterface.createTable('Game', {
-      id_game: {
+      game_id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
@@ -59,11 +59,6 @@ module.exports = {
       },
       winner_id: {
         type: Sequelize.INTEGER,
-        /*
-        references: {
-          model: 'Player',
-          key: 'id_player',
-        },*/
         allowNull: true,
       },
       status: {
@@ -87,20 +82,22 @@ module.exports = {
         type: Sequelize.ENUM('Absent','Easy', 'Hard'),
         allowNull: true
       },
+      /*
       updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.NOW
       },
+      /*
       date: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.NOW
-      },
+      },*/
       board: {
-        type: Sequelize.JSON, // Aggiungi questa riga per il campo JSON
+        type: Sequelize.JSON,
         allowNull: false,
-        defaultValue: initialBoard
+        defaultValue: initialBoard.board
       },
       total_moves:{
         type: Sequelize.INTEGER,

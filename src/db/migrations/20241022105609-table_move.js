@@ -17,18 +17,19 @@ module.exports = {
   /**
    * Esegue la migrazione per creare la tabella 'Move' con le colonne specificate.
    *
-   * - `id_move`: Chiave primaria incrementale per identificare la mossa.
+   * - `move_id`: Chiave primaria incrementale per identificare la mossa.
    * - `game_id`: ID della partita a cui appartiene la mossa, con riferimento alla tabella 'Game'.
    * - `user_id`: ID del giocatore che ha effettuato la mossa, con riferimento alla tabella 'Player' (può essere null).
    * - `details`: Dettagli aggiuntivi della mossa, salvati in formato JSON.
    * - `createdAt`: Data e ora di creazione della mossa, impostata di default al momento attuale.
    * - `updatedAt`: Data e ora dell'ultimo aggiornamento della mossa, impostata di default al momento attuale.
-   * - `moveNumber`: Numero progressivo della mossa nella partita.
+   * - `move_number`: Numero progressivo della mossa nella partita.
    * - `board`: Configurazione della scacchiera al momento della mossa, salvata in formato JSON.
-   * - `pieceType`: Tipo del pezzo mosso (ad esempio "king" o "single").
-   * - `fromPosition`: Posizione di partenza della mossa (ad esempio "A7").
-   * - `toPosition`: Posizione di destinazione della mossa (ad esempio "E7").
+   * - `piece_type`: Tipo del pezzo mosso (ad esempio "king" o "single").
+   * - `from_position`: Posizione di partenza della mossa (ad esempio "A7").
+   * - `to_position`: Posizione di destinazione della mossa (ad esempio "E7").
    *
+   * @param {import('sequelize').QueryInterface} queryInterface - L'interfaccia per eseguire comandi di modifica del database.
    * @param {import('sequelize').QueryInterface} queryInterface - L'interfaccia per eseguire comandi di modifica del database.
    * @param {import('sequelize')} Sequelize - L'oggetto Sequelize che fornisce i tipi di dati.
    * @returns {Promise<void>} Una promessa che rappresenta il completamento della migrazione.
@@ -36,7 +37,7 @@ module.exports = {
 
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('Move', {
-      id_move: {
+      move_id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
@@ -46,7 +47,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         references: {
           model: 'Game',
-          key: 'id_game'
+          key: 'game_id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
@@ -56,27 +57,29 @@ module.exports = {
         type: Sequelize.INTEGER,
         references: {
           model: 'Player',
-          key: 'id_player'
+          key: 'player_id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
         allowNull: true
       },
+      /*
       details: {
         type: Sequelize.JSON,
         allowNull: false
-      },
+      },*/
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.NOW
       },
+      /*
       updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.NOW
-      },
-      moveNumber:{
+      },*/
+      move_number:{
         type: Sequelize.INTEGER,
         allowNull: false,
       },
@@ -84,15 +87,15 @@ module.exports = {
         type: Sequelize.JSON, // Campo per memorizzare la configurazione del tabellone
         allowNull: true
       },
-      pieceType: {
+      piece_type: {
         type: Sequelize.STRING, // Tipo del pezzo mosso (es. "king" o "single")
         allowNull: true
       },
-      fromPosition: {
+      from_position: {
         type: Sequelize.STRING, // Posizione di partenza (es. "A7")
         allowNull: false
       },
-      toPosition: {
+      to_position: {
         type: Sequelize.STRING, // Posizione di destinazione (es. "E7")
         allowNull: false
       }

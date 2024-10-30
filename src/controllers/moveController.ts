@@ -28,7 +28,7 @@ class MoveController {
     public static async executeMove(req: Request, res: Response, next: NextFunction) {
         const { gameId, from, to } = req.body;
         // Ottieni il playerId dall'utente autenticato
-        const playerId = req.user?.id_player;
+        const playerId = req.user?.player_id;
         try {
         if (!playerId) {
             throw AuthFactory.createError(authErrorType.NEED_AUTHORIZATION);

@@ -28,7 +28,7 @@ export const authenticationWithJWT = (req: Request, res: Response, next: NextFun
             // Verifica che decoded sia di tipo JwtPayload
             if (typeof decoded === 'object' && decoded !== null) {
                 req.user = decoded as JwtPayload & {
-                    id_player: number;
+                    player_id: number;
                     email: string;
                     role: string;
                 };

@@ -211,15 +211,16 @@ class moveService {
             }
         }
 
-        if (lastMove && lastMove.fromPosition === from && lastMove.toPosition === to) {
+        if (lastMove && lastMove.from_position === from && lastMove.to_position === to) {
             throw MoveFactory.createError(moveErrorType.NOT_VALID_MOVE);
         }
 
         // Esegui la mossa del giocatore
         draughts.move(moveToMake);
 
+        console.log("Board prima di salvare:", game.board);
         // Aggiorna la board e salva la mossa del giocatore
-        game.board = JSON.stringify({board: draughts.board});
+        game.board = { board: draughts.board };
         game.total_moves = (game.total_moves || 0) + 1;
         await game.save();
 
@@ -227,14 +228,14 @@ class moveService {
 
         // Salva la mossa nel database
         await Move.create({
-            moveNumber: moveNumber,
+            move_number: moveNumber,
             board: {board: draughts.board},
-            fromPosition: from,
-            toPosition: to,
-            pieceType: savedBoard[origin]?.piece?.king ? 'king' : 'single',
+            from_position: from,
+            to_position: to,
+            piece_type: savedBoard[origin]?.piece?.king ? 'king' : 'single',
             game_id: gameId,
             user_id: playerId,
-            details: {},
+            //details: {},
         });
 
         // Verifica se la mossa del giocatore ha concluso il gioco
@@ -263,9 +264,9 @@ class moveService {
             let aiMove = await moveService.chooseAIMove(draughts, game.ai_difficulty);
 
             if (lastAIMove && aiMove &&
-                lastAIMove.fromPosition && lastAIMove.toPosition &&
-                aiMove.origin === moveService.convertPosition(lastAIMove.fromPosition) &&
-                aiMove.destination === moveService.convertPosition(lastAIMove.toPosition)) {
+                lastAIMove.from_position && lastAIMove.to_position &&
+                aiMove.origin === moveService.convertPosition(lastAIMove.from_position) &&
+                aiMove.destination === moveService.convertPosition(lastAIMove.to_position)) {
 
                 // Filtra l'ultima mossa dell'IA dalle mosse valide
                 const validMoves = draughts.moves.filter(move =>
@@ -278,7 +279,7 @@ class moveService {
 
             if (aiMove) {
                 draughts.move(aiMove);
-                game.board = JSON.stringify({board: draughts.board});
+                game.board = { board: draughts.board };
                 game.total_moves += 1;
                 await game.save();
 
@@ -291,14 +292,14 @@ class moveService {
                 const toPositionAI = moveService.convertPositionBack(aiMove.destination);
 
                 await Move.create({
-                    moveNumber: moveNumber + 1,
+                    move_number: moveNumber + 1,
                     board: {board: draughts.board},
-                    fromPosition: fromPositionAI,
-                    toPosition: toPositionAI,
-                    pieceType: savedBoard[aiMove.origin]?.piece?.king ? 'king' : 'single',
+                    from_position: fromPositionAI,
+                    to_position: toPositionAI,
+                    piece_type: savedBoard[aiMove.origin]?.piece?.king ? 'king' : 'single',
                     game_id: gameId,
                     user_id: null, // Indica che la mossa è dell'IA
-                    details: {},
+                    //details: {},
                 });
 
                 // Verifica se la mossa dell'IA ha concluso il gioco
@@ -351,7 +352,7 @@ class moveService {
         } else if (draughts.status === DraughtsStatus.DARK_WON) {
             if (game.type === GameType.PVE) {
                 // Se è una partita PvE, l'IA ha vinto
-                winnerId = null; // Usa `null` per rappresentare la vittoria dell'IA
+                winnerId = -1; // Usa `null` per rappresentare la vittoria dell'IA
                 result = 'The AI has won!';
             } else {
                 // Se è una partita PvP, l'avversario ha vinto
@@ -383,74 +384,6 @@ class moveService {
         };
     }
 
-    /**
-     * Recupera lo storico delle mosse per una specifica partita ed esporta nel formato richiesto (JSON o PDF).
-     *
-     * Questo metodo recupera tutte le mosse associate all'ID della partita specificato, ordinandole in ordine cronologico.
-     * L'output può essere restituito in formato JSON o PDF, a seconda del valore del parametro `format`.
-     *
-     * @param {number} gameId - L'ID della partita di cui recuperare lo storico delle mosse.
-     * @param {string} format - Il formato di esportazione desiderato ("json" o "pdf").
-     * @returns {Promise<Buffer | object>} Una promessa che risolve con lo storico delle mosse nel formato richiesto:
-     *                                     un array di oggetti nel caso di JSON, oppure un buffer nel caso di PDF.
-     * @throws {Error} - Lancia un errore se non vengono trovate mosse per la partita specificata o se il formato è non supportato.
-     */
-
-    /*
-    public static async exportMoveHistory(gameId: number, format: string): Promise<Buffer | object> {
-        // Recupera tutte le mose di una partita sepcifica
-        const moves = await Move.findAll({
-            where: { game_id: gameId },
-            order: [['createdAt', 'ASC']],
-        });
-
-        if (!moves.length) {
-            throw new Error('No moves found for the specified game.');
-        }
-
-        // Scelta del formato
-        if (format === 'json') {
-            return moves.map(move => ({
-                moveNumber: move.moveNumber,
-                fromPosition: move.fromPosition,
-                toPosition: move.toPosition,
-                pieceType: move.pieceType,
-                timestamp: dateFormat(new Date(move.createdAt), 'dd/MM/yyyy HH:mm:ss'),
-            }));
-        } else if (format === 'pdf') {
-            // Crea il documento pdf
-            const doc = new PDFDocument();
-            let buffer: Buffer;
-            const buffers: Uint8Array[] = [];
-
-            doc.on('data', (chunk) => buffers.push(chunk));
-            doc.on('end', () => {
-                buffer = Buffer.concat(buffers);
-            });
-
-            doc.fontSize(16).text(`Move History for Game ID: ${gameId}`, { align: 'center' });
-            doc.moveDown();
-
-            moves.forEach(move => {
-                // Formattazione della data
-                const formattedDate = dateFormat(new Date(move.createdAt), 'dd/MM/yyyy HH:mm:ss');
-                doc.fontSize(12).text(`Move #${move.moveNumber}`);
-                doc.text(`From: ${move.fromPosition}`);
-                doc.text(`To: ${move.toPosition}`);
-                doc.text(`Piece: ${move.pieceType}`);
-                doc.text(`Timestamp: ${formattedDate}`);
-                doc.moveDown();
-            });
-
-            doc.end();
-
-            return new Promise<Buffer>((resolve) => {
-                doc.on('end', () => resolve(buffer!));
-            });
-        } else {
-            throw new Error('Unsupported format. Please choose "json" or "pdf".');
-        }
-    }*/
 
     public static async exportMoveHistory(gameId: number, format: string): Promise<Buffer | object> {
         // Recupera tutte le mosse di una partita specifica, senza join
@@ -471,22 +404,22 @@ class moveService {
 
         // Recupera gli username per i `user_id` validi
         const players = await Player.findAll({
-            where: {id_player: validUserIds},
-            attributes: ['id_player', 'username'],
+            where: {player_id: validUserIds},
+            attributes: ['player_id', 'username'],
         });
 
         // Crea una mappa `user_id -> username` per accesso rapido
         const userMap = players.reduce((map, player) => {
-            map[player.id_player] = player.username;
+            map[player.player_id] = player.username;
             return map;
         }, {} as Record<number, string>);
 
         // Mappa le mosse con l'username del giocatore, o "IA" se `user_id` è null
         const movesWithUsernames = moves.map(move => ({
-            moveNumber: move.moveNumber,
-            fromPosition: move.fromPosition,
-            toPosition: move.toPosition,
-            pieceType: move.pieceType,
+            moveNumber: move.move_number,
+            fromPosition: move.from_position,
+            toPosition: move.to_position,
+            pieceType: move.piece_type,
             timestamp: dateFormat(new Date(move.createdAt), 'dd/MM/yyyy HH:mm:ss'),
             username: move.user_id === null ? 'Artificial Intelligence' : userMap[move.user_id!] || 'Unknown Player',
         }));
@@ -531,7 +464,7 @@ class moveService {
                 }
             });
 
-// Fine della sezione
+            // Fine della sezione
             doc.moveDown();
             doc.fontSize(14).fillColor('#4B0082').text('End of Move History', { align: 'center' });
 

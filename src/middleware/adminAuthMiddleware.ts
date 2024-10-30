@@ -24,7 +24,7 @@ export const adminAuthMiddleware = async (req: Request, res: Response, next: Nex
             throw AuthFactory.createError(authErrorType.INVALID_CREDENTIALS);
         }
         // Trova il giocatore nel database utilizzando l'ID presente nel token JWT
-        const player = await Player.findOne({ where: { id_player: req.user.id_player } });
+        const player = await Player.findOne({ where: { player_id: req.user.player_id } });
         if (!player) {
             throw AuthFactory.createError(authErrorType.INVALID_CREDENTIALS);
         }

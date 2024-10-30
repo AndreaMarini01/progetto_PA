@@ -18,20 +18,25 @@ function getRandomDate() {
  * La configurazione include pezzi per due giocatori, con 12 pezzi iniziali
  * per ciascun giocatore posizionati su un tavolo di 32 caselle.
  *
- * @returns {string} La configurazione iniziale della tavola di gioco in formato JSON.
+ * @returns {{board: any[]}} La configurazione iniziale della tavola di gioco in formato JSON.
  */
 
 function generateBoardConfig() {
-  const board = Array(32).fill(null); // Crea una tavola 32-caselle per i pezzi scuri (configurazione Draughts)
-  // Popola la tavola con i pezzi iniziali per Giocatore 1 e Giocatore 2
-  for (let i = 0; i < 12; i++) {
-    board[i] = { dark: true, position: i, piece: { player: 'dark', king: false } }; // Giocatore 1
-  }
-  for (let i = 20; i < 32; i++) {
-    board[i] = { dark: true, position: i, piece: { player: 'light', king: false } }; // Giocatore 2
-  }
-  return JSON.stringify({ board: board });
+  // Configurazione della board 8x8, utilizzando un array di array
+  const board = [
+    [null, "B", null, "B", null, "B", null, "B"],
+    ["B", null, "B", null, "B", null, "B", null],
+    [null, "B", null, "B", null, "B", null, "B"],
+    [null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null],
+    ["W", null, "W", null, "W", null, "W", null],
+    [null, "W", null, "W", null, "W", null, "W", null],
+    ["W", null, "W", null, "W", null, "W", null]
+  ];
+
+  return { board }; // Restituisce un oggetto JSON nativo
 }
+
 
 /**
  * Seeder per l'inserimento di dati iniziali nella tabella 'Game'.
@@ -68,47 +73,50 @@ module.exports = {
    */
 
   async up(queryInterface, Sequelize) {
+    const boardConfig = generateBoardConfig(); // Questo restituisce { board: [...] }
+    const serializedBoard = JSON.stringify(boardConfig.board); // Serializza la board
+
     const games = [
       {
         player_id: 1,
         opponent_id: 2,
         status: 'Ongoing',
-        created_at: new Date(),
+        created_at: getRandomDate(),
         ended_at: null,
         type: 'PvP',
         ai_difficulty: 'Absent',
-        updatedAt: new Date(),
+        //updatedAt: new Date(),
         winner_id: null,
-        date: getRandomDate(),
-        board: generateBoardConfig(),
+        //date: getRandomDate(),
+        board: Sequelize.literal(`'${serializedBoard}'::json`),
         total_moves:0
       },
       {
         status: 'Ongoing',
         player_id: 1,
         opponent_id: null,
-        created_at: new Date(Date.now() - 3600 * 1000),
+        created_at: getRandomDate(),
         ended_at: new Date(),
         type: 'PvE',
         ai_difficulty: 'Hard',
-        updatedAt: new Date(),
+        //updatedAt: new Date(),
         winner_id: null,
-        date: getRandomDate(),
-        board: generateBoardConfig(),
+        //date: getRandomDate(),
+        board: Sequelize.literal(`'${serializedBoard}'::json`),
         total_moves:0
       },
       {
         player_id: 2,
         opponent_id: null,
         status: 'Timed Out',
-        created_at: new Date(Date.now() - 7200 * 1000),
+        created_at: getRandomDate(),
         ended_at: new Date(),
         type: 'PvE',
         ai_difficulty: 'Hard',
         winner_id: 2,
-        updatedAt: new Date(),
-        date: getRandomDate(),
-        board: generateBoardConfig(),
+        //updatedAt: new Date(),
+        //date: getRandomDate(),
+        board: Sequelize.literal(`'${serializedBoard}'::json`),
         total_moves:0
       }
     ];

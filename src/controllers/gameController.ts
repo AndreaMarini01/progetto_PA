@@ -25,7 +25,7 @@ class gameController {
      */
     public async createGame(req: Request, res: Response, next: NextFunction): Promise<void> {
         const {opponent_email, ai_difficulty} = req.body;
-        const playerId = req.user?.id_player;
+        const playerId = req.user?.player_id;
         try {
             if (!playerId) {
                 throw GameFactory.createError(gameErrorType.MISSING_PLAYER_ID);
@@ -36,7 +36,7 @@ class gameController {
                 if (!opponent) {
                     throw GameFactory.createError(gameErrorType.OPPONENT_NOT_FOUND);
                 }
-                opponentId = opponent.id_player;
+                opponentId = opponent.player_id;
             }
             const existingGame = await gameService.findActiveGameForPlayer(playerId, opponentId);
             if (existingGame && existingGame.status === GameStatus.ONGOING) {
@@ -58,6 +58,9 @@ class gameController {
                 type = GameType.PVP;
             } else if (ai_difficulty) {
                 type = GameType.PVE;
+                if (ai_difficulty === AIDifficulty.ABSENT) {
+                    throw GameFactory.createError(gameErrorType.INVALID_DIFFICULTY);
+                }
                 if (!Object.values(AIDifficulty).includes(ai_difficulty)) {
                     throw GameFactory.createError(gameErrorType.INVALID_DIFFICULTY);
                 }
@@ -97,7 +100,7 @@ class gameController {
      */
     public async abandonGame(req: Request, res: Response, next: NextFunction): Promise<void> {
         const gameId = parseInt(req.params.gameId, 10);
-        const playerId = req.user?.id_player;
+        const playerId = req.user?.player_id;
         try {
             const game = await gameService.abandonGame(gameId, playerId!);
             res.status(200).json({
@@ -132,7 +135,7 @@ class gameController {
             const game = await Game.findByPk(gameId);
 
             if (!game) {
-                throw GameFactory.createError(gameErrorType.INVALID_GAME_PARAMETERS);
+                throw GameFactory.createError(gameErrorType.GAME_NOT_FOUND);
             }
 
             // Restituisce lo stato della partita e la configurazione della board
@@ -147,7 +150,7 @@ class gameController {
     }
 
     public async getCompletedGames(req: Request, res: Response, next: NextFunction): Promise<void> {
-        const playerId = req.user?.id_player;
+        const playerId = req.user?.player_id;
         const {startDate, endDate} = req.query;
 
         try {
@@ -199,7 +202,7 @@ class gameController {
      */
     public async getVictoryCertificate(req: Request, res: Response, next: NextFunction): Promise<void> {
         const gameId = parseInt(req.params.gameId, 10);
-        const playerId = req.user?.id_player;
+        const playerId = req.user?.player_id;
 
         try {
             // Richiama il servizio per generare il certificato

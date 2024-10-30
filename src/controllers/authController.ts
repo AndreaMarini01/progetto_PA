@@ -3,6 +3,8 @@ import jwt from 'jsonwebtoken';
 import Player from '../models/Player';
 import { verifyPassword } from '../utils/cryptoUtils'; // Importa la funzione per la verifica della password
 import AuthFactory, { authErrorType } from '../factories/authFactory';
+import validator from 'validator';
+
 
 /**
  * Classe `AuthController` per gestire le operazioni di autenticazione.
@@ -33,6 +35,11 @@ class authController {
             if (!email || !password) {
                 throw AuthFactory.createError(authErrorType.INVALID_CREDENTIALS);
             }
+
+            if (!validator.isEmail(email)) {
+                throw AuthFactory.createError(authErrorType.INVALID_CREDENTIALS);
+            }
+
             // Cerca l'utente nel database utilizzando l'email
             const user = await Player.findOne({ where: { email } });
             if (!user) {
@@ -45,7 +52,7 @@ class authController {
             }
             // Genera un token JWT per l'utente autenticato
             const token = jwt.sign(
-                { id_player: user.id_player, email: user.email, role: user.role },
+                { player_id: user.player_id, email: user.email, role: user.role },
                 process.env.JWT_SECRET as string,
                 { expiresIn: '1h' }
             );

@@ -17,7 +17,7 @@ export enum PlayerRole {
  */
 
 interface PlayerAttributes {
-    id_player: number;
+    player_id: number;
     username: string;
     email: string;
     password_hash: string;
@@ -25,8 +25,8 @@ interface PlayerAttributes {
     tokens: number;
     role: PlayerRole;
     score: number;
-    createdAt?: Date;
-    updatedAt?: Date;
+    //createdAt?: Date;
+    //updatedAt?: Date;
 }
 
 /**
@@ -34,7 +34,7 @@ interface PlayerAttributes {
  * Rende opzionali alcuni campi durante la creazione del record.
  */
 
-interface PlayerCreationAttributes extends Optional<PlayerAttributes, 'id_player'> {}
+interface PlayerCreationAttributes extends Optional<PlayerAttributes, 'player_id'> {}
 
 /**
  * Classe che rappresenta il modello `Player`.
@@ -46,7 +46,7 @@ interface PlayerCreationAttributes extends Optional<PlayerAttributes, 'id_player
  */
 
 class Player extends Model<PlayerAttributes, PlayerCreationAttributes> implements PlayerAttributes {
-    public id_player!: number;
+    public player_id!: number;
     public username!: string;
     public email!: string;
     public password_hash!: string;
@@ -54,8 +54,8 @@ class Player extends Model<PlayerAttributes, PlayerCreationAttributes> implement
     public tokens!: number;
     public role!: PlayerRole;
     public score!: number;
-    public readonly createdAt!: Date;
-    public readonly updatedAt!: Date;
+    //public readonly createdAt!: Date;
+    //public readonly updatedAt!: Date;
 
     /**
      * Inizializza il modello `Player` con Sequelize.
@@ -67,7 +67,7 @@ class Player extends Model<PlayerAttributes, PlayerCreationAttributes> implement
     public static initialize() {
         Player.init(
             {
-                id_player: {
+                player_id: {
                     type: DataTypes.INTEGER,
                     autoIncrement: true,
                     primaryKey: true,
@@ -109,7 +109,7 @@ class Player extends Model<PlayerAttributes, PlayerCreationAttributes> implement
             {
                 sequelize: Database.getSequelize(),
                 tableName: 'Player',
-                timestamps: true
+                timestamps: false
             }
         );
     }

@@ -51,6 +51,15 @@ app.use('/', adminRoutes); // Rotte amministrative
 app.use('/', moveRoute) // Rotte per la gestione delle mosse
 
 /**
+ * Middleware per le rotte non trovate.
+ * Viene attivato quando nessuna delle rotte precedenti corrisponde alla richiesta.
+ */
+app.use((req: Request, res: Response) => {
+    res.status(404).json({ message: 'The route does not exist!' });
+});
+
+
+/**
  * Middleware per la gestione degli errori.
  *
  * Viene utilizzato per catturare e gestire gli errori generati durante le richieste.

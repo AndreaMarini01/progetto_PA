@@ -38,7 +38,7 @@ export enum AIDifficulty {
  */
 
 interface GameAttributes {
-    id_game: number;
+    game_id: number;
     player_id: number;
     opponent_id?: number | null;
     status: GameStatus;
@@ -46,8 +46,8 @@ interface GameAttributes {
     ended_at?: Date;
     type: GameType;
     ai_difficulty: AIDifficulty;
-    updatedAt?: Date;
-    date: Date;
+    //updatedAt?: Date;
+    //date: Date;
     board: any;
     total_moves: number;
     winner_id: number | null;
@@ -58,7 +58,7 @@ interface GameAttributes {
  * Rende opzionali alcuni campi durante la creazione del record.
  */
 
-interface GameCreationAttributes extends Optional<GameAttributes, 'id_game' | 'ended_at' | 'ai_difficulty'> {}
+interface GameCreationAttributes extends Optional<GameAttributes, 'game_id' | 'ended_at' | 'ai_difficulty'> {}
 
 /**
  * Classe che rappresenta il modello `Game`.
@@ -71,7 +71,7 @@ interface GameCreationAttributes extends Optional<GameAttributes, 'id_game' | 'e
  */
 
 class Game extends Model<GameAttributes, GameCreationAttributes> implements GameAttributes {
-    public id_game!: number;
+    public game_id!: number;
     public player_id!: number;
     public opponent_id?: number | null;
     public status!: GameStatus;
@@ -79,8 +79,8 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
     public ended_at?: Date;
     public type!: GameType;
     public ai_difficulty!: AIDifficulty;
-    public readonly updatedAt!: Date;
-    public date!: Date;
+    //public readonly updatedAt!: Date;
+    //public date!: Date;
     public board!: any;
     public total_moves!: number;
     public winner_id!: number | null;
@@ -95,7 +95,7 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
     public static initialize() {
         Game.init(
             {
-                id_game: {
+                game_id: {
                     type: DataTypes.INTEGER,
                     autoIncrement: true,
                     primaryKey: true,
@@ -106,7 +106,7 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
                     allowNull: false,
                     references: {
                         model: Player,
-                        key: 'id_player',
+                        key: 'player_id',
                     },
                 },
                 opponent_id: {
@@ -114,7 +114,7 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
                     allowNull: true,
                     references: {
                         model: Player,
-                        key: 'id_player',
+                        key: 'player_id',
                     },
                 },
                 status: {
@@ -139,6 +139,7 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
                     allowNull: false,
                     defaultValue: AIDifficulty.ABSENT
                 },
+                /*
                 updatedAt: {
                     type: DataTypes.DATE,
                     allowNull: false,
@@ -148,7 +149,7 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
                     type: DataTypes.DATE,
                     allowNull: false,
                     defaultValue: DataTypes.NOW,
-                },
+                },*/
                 board: {
                     type: DataTypes.JSON,
                     allowNull: false,
@@ -167,9 +168,9 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
             {
                 sequelize: Database.getSequelize(),
                 tableName: 'Game',
-                timestamps: true,
+                timestamps: false,
                 createdAt: 'created_at',
-                updatedAt: 'updatedAt',
+                //updatedAt: 'updatedAt',
             }
         );
     }

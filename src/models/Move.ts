@@ -8,17 +8,17 @@ import Player from './Player';
  */
 
 interface MoveAttributes {
-    id_move: number;
+    move_id: number;
     game_id: number;
     user_id?: number | null;
-    details: object;
+    //details: object;
     createdAt?: Date;
     updatedAt?: Date;
-    moveNumber?: number;
+    move_number?: number;
     board?: object;
-    fromPosition?: string;
-    toPosition?: string;
-    pieceType?: string;
+    from_position?: string;
+    to_position?: string;
+    piece_type?: string;
 }
 
 /**
@@ -26,7 +26,7 @@ interface MoveAttributes {
  * Rende opzionali alcuni campi durante la creazione del record.
  */
 
-interface MoveCreationAttributes extends Optional<MoveAttributes, 'id_move'> {}
+interface MoveCreationAttributes extends Optional<MoveAttributes, 'move_id'> {}
 
 /**
  * Classe che rappresenta il modello `Move`.
@@ -39,17 +39,17 @@ interface MoveCreationAttributes extends Optional<MoveAttributes, 'id_move'> {}
  */
 
 class Move extends Model<MoveAttributes, MoveCreationAttributes> implements MoveAttributes {
-    public id_move!: number;
+    public move_id!: number;
     public game_id!: number;
     public user_id?: number;
-    public details!: object;
+    //public details!: object;
     public readonly createdAt!: Date;
-    public readonly updatedAt!: Date;
-    public moveNumber?: number;
+    //public readonly updatedAt!: Date;
+    public move_number?: number;
     public board?: object;
-    public fromPosition?: string;
-    public toPosition?: string;
-    public pieceType?: string;
+    public from_position?: string;
+    public to_position?: string;
+    public piece_type?: string;
 
 
     /**
@@ -62,7 +62,7 @@ class Move extends Model<MoveAttributes, MoveCreationAttributes> implements Move
     public static initialize() {
         Move.init(
             {
-                id_move: {
+                move_id: {
                     type: DataTypes.INTEGER,
                     autoIncrement: true,
                     primaryKey: true,
@@ -73,7 +73,7 @@ class Move extends Model<MoveAttributes, MoveCreationAttributes> implements Move
                     allowNull: false,
                     references: {
                         model: 'Game',
-                        key: 'id_game',
+                        key: 'game_id',
                     },
                     onUpdate: 'CASCADE',
                     onDelete: 'CASCADE',
@@ -83,16 +83,17 @@ class Move extends Model<MoveAttributes, MoveCreationAttributes> implements Move
                     allowNull: true,
                     references: {
                         model: 'Player',
-                        key: 'id_player',
+                        key: 'player_id',
                     },
                     onUpdate: 'CASCADE',
                     onDelete: 'CASCADE',
                 },
+                /*
                 details: {
                     type: DataTypes.JSON,
                     allowNull: false,
-                },
-                moveNumber: {
+                },*/
+                move_number: {
                     type: DataTypes.INTEGER,
                     allowNull: false,
                 },
@@ -100,15 +101,15 @@ class Move extends Model<MoveAttributes, MoveCreationAttributes> implements Move
                     type: DataTypes.JSON,
                     allowNull: true,
                 },
-                fromPosition: {
+                from_position: {
                     type: DataTypes.STRING,
                     allowNull: false,
                 },
-                toPosition: {
+                to_position: {
                     type: DataTypes.STRING,
                     allowNull: false,
                 },
-                pieceType: {
+                piece_type: {
                     type: DataTypes.STRING,
                     allowNull: true,
                 },
@@ -116,17 +117,17 @@ class Move extends Model<MoveAttributes, MoveCreationAttributes> implements Move
                     type: DataTypes.DATE,
                     allowNull: false,
                     defaultValue: DataTypes.NOW,
-                },
+                },/*
                 updatedAt: {
                     type: DataTypes.DATE,
                     allowNull: false,
                     defaultValue: DataTypes.NOW,
-                },
+                },*/
             },
             {
                 sequelize: Database.getSequelize(),
                 tableName: 'Move',
-                timestamps: true,
+                timestamps: false,
             }
         );
     }
