@@ -99,10 +99,178 @@ Di seguito vengono descritti i principali diagrammi e pattern utilizzati, spiega
 ## Diagrammi UML
 
 ### Diagramma dei Casi d'Uso
+Il diagramma dei casi d'uso è uno strumento essenziale per illustrare le interazioni tra gli attori, ovvero gli utenti, e il sistema stesso. In questo progetto, i casi d'uso delineano le principali funzionalità che il sistema mette a disposizione degli utenti, mettendo in evidenza le azioni che possono essere eseguite all'interno del sistema di gestione delle partite di dama.
+
+Grazie al diagramma dei casi d'uso, è possibile ottenere una panoramica generale delle operazioni disponibili per gli utenti. Sono identificati quattro attori: Utente Pubblico, Giocatore, Amministratore e AI, ognuno dei quali interagisce con il sistema attraverso funzioni specifiche. Di seguito verrà presentato il diagramma dei casi d'uso:
+
+```mermaid
+graph TD
+    PublicUser["Public User"] --> playersRanking["playersRanking"]
+    PublicUser --> login["login"]
+
+    Player["Player"] --> createGame["createGame"]
+    Player --> executeMove["executeMove"]
+    Player --> getMoveHistory["getMoveHistory"]
+    Player --> abandonGame["abandonGame"]
+    Player --> evaluateGame["evaluateGame"]
+    Player --> getGameDetails["getGameDetails"]
+    Player --> exportToPDF["exportToPDF"]
+    Player --> getVictoryCertify["getVictoryCertify"]
+    Player --> getMatchList["getMatchList"]
+
+    Admin["Admin"] --> createGame["createGame"]
+    Admin --> executeMove["executeMove"]
+    Admin --> getMoveHistory["getMoveHistory"]
+    Admin --> abandonGame["abandonGame"]
+    Admin --> evaluateGame["evaluateGame"]
+    Admin --> getGameDetails["getGameDetails"]
+    Admin --> exportToPDF["exportToPDF"]
+    Admin --> getVictoryCertify["getVictoryCertify"]
+    Admin --> getMatchList["getMatchList"]
+    Admin --> RechargeUserTokens["Recharge User Tokens"]
+
+    AI["AI"] --> executeAiMove["executeAiMove"]
+
+    System["System"] --> GenerateJSONFile["Generate JSON File"]
+    System --> GeneratePDF["exportToPDF"]
+    System --> CheckForGameEnd["Check For Game End"]
+    System --> VerifyMoveValidity["Verify Move Validity"]
+    System --> UpdateGameStatus["Update Game Status"]
+    System --> UpdatePlayerPoints["Update Player Points"]
+    System --> removeCredits["removeCredits"]
+
+    createGame --> authenticateJWT["authenticateJWT"]
+    executeMove --> authenticateJWT["authenticateJWT"]
+    getMoveHistory --> authenticateJWT["authenticateJWT"]
+    abandonGame --> authenticateJWT["authenticateJWT"]
+    evaluateGame --> authenticateJWT["authenticateJWT"]
+    getGameDetails --> authenticateJWT["authenticateJWT"]
+    exportToPDF --> authenticateJWT["authenticateJWT"]
+    getVictoryCertify --> authenticateJWT["authenticateJWT"]
+    getMatchList --> authenticateJWT["authenticateJWT"]
+    RechargeUserTokens --> authenticateJWT["authenticateJWT"]
+
+    playersRanking --> SortPlayerRankings["Sort Player Rankings"]
+    exportToPDF --> FilterGamesByDate["Filter Games By Date"]
+    abandonGame --> UpdatePlayerPoints
+```
+
 
 ### Diagrammi delle Sequenze
+#### POST '/login'
+Il diagramma di sequenza per la rotta di login descrive il flusso di interazione tra un utente e il sistema durante il processo di autenticazione. Quando l'utente invia le proprie credenziali, il sistema verifica l'email e la password. Se le informazioni sono corrette, viene generato un token JWT, che consente all'utente di accedere alle funzionalità protette. In caso contrario, il sistema restituisce un messaggio di errore, garantendo così la sicurezza dell'applicazione. Questo diagramma evidenzia i passaggi chiave e le decisioni critiche nella gestione dell'autenticazione.
+
+```mermaid
+sequenceDiagram
+    participant Client as Client
+    participant AuthRoute as Auth Route
+    participant AuthController as Auth Controller
+    participant Player as Player Model
+    participant JWT as JWT Library
+    participant ErrorHandler as Error Handler
+
+    Client->>AuthRoute: POST /login (email, password)
+    AuthRoute->>AuthController: login(email, password)
+    AuthController->>Player: Trova utente per email
+    Player-->>AuthController: Utente trovato
+    AuthController->>AuthController: Verifica password
+    alt Password valida
+        AuthController->>JWT: Genera token JWT
+        JWT-->>AuthController: Token generato
+        AuthController-->>AuthRoute: { token }
+        AuthRoute-->>Client: { token }
+    else Password non valida
+        AuthController->>ErrorHandler: Errore di credenziali non valide
+        ErrorHandler-->>AuthRoute: Errore
+        AuthRoute-->>Client: Errore di autenticazione
+    end
+```
+#### POST '/create/new-game'
+Il diagramma di sequenza per la rotta di create game rappresenta il flusso di interazioni durante il processo di creazione di una nuova partita nel sistema di gestione delle partite. Illustra come l'utente interagisce con il middleware di autenticazione, il controller delle partite e il servizio di gioco per finalizzare la richiesta. Questo diagramma è utile per comprendere i passaggi chiave e le responsabilità di ciascun componente.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+    participant AuthMiddleware
+    participant GameController
+    participant GameService
+    participant Player
+
+    Client->>Server: POST /create/new-game (opponent_email, ai_difficulty)
+    Server->>AuthMiddleware: Validate JWT
+    AuthMiddleware-->>Server: JWT Valid
+    Server->>GameController: createGame()
+    GameController->>Player: findByPk(playerId)
+    Player-->>GameController: Player Data
+    GameController->>GameService: findActiveGameForPlayer(playerId, opponentId)
+    GameService-->>GameController: Active Game Data
+    GameController->>GameService: createGame(playerId, opponentEmail, type, aiDifficulty, board, total_moves)
+    GameService->>Player: findByPk(playerId)
+    Player-->>GameService: Player Data
+    GameService->>Game: createNewGame()
+    Game-->>GameService: New Game Created
+    GameService-->>GameController: New Game Details
+    GameController-->>Server: 201 Created (game)
+    Server-->>Client: 201 Created (game)
+```
+#### POST '/test-move'
+
+
 
 # Diagramma ER
+Il diagramma ER (Entity-Relationship) offre una rappresentazione visiva delle entità coinvolte nel sistema e delle loro relazioni. In questo progetto, il diagramma illustra come i modelli Player, Game e Move interagiscono tra loro. Le entità rappresentano le diverse componenti del sistema, come i giocatori e le partite, mentre le relazioni mostrano come queste entità si collegano, ad esempio, attraverso le mosse effettuate dai giocatori in una partita. Questo diagramma è utile per comprendere la struttura dei dati e la logica sottostante dell'applicazione.
+
+```mermaid
+erDiagram
+    PLAYER {
+        INTEGER id_player PK "ID del giocatore"
+        STRING username "Nome utente"
+        STRING email "Email"
+        STRING password_hash "Hash della password"
+        STRING salt "Salt per la password"
+        FLOAT tokens "Numero di token"
+        ENUM role "Ruolo del giocatore"
+        FLOAT score "Punteggio del giocatore"
+        TIMESTAMP createdAt "Data di creazione"
+        TIMESTAMP updatedAt "Data di aggiornamento"
+    }
+
+    GAME {
+        INTEGER id_game PK "ID della partita"
+        INTEGER player_id FK "ID del giocatore"
+        INTEGER opponent_id FK "ID dell'avversario"
+        ENUM status "Stato della partita"
+        TIMESTAMP created_at "Data di creazione"
+        TIMESTAMP ended_at "Data di fine"
+        ENUM type "Tipo di partita"
+        ENUM ai_difficulty "Difficoltà IA"
+        TIMESTAMP date "Data della partita"
+        JSON board "Configurazione della tavola"
+        INTEGER total_moves "Numero totale di mosse"
+        INTEGER winner_id "ID del vincitore"
+    }
+
+    MOVE {
+        INTEGER id_move PK "ID della mossa"
+        INTEGER game_id FK "ID della partita"
+        INTEGER user_id FK "ID del giocatore"
+        JSON details "Dettagli della mossa"
+        INTEGER moveNumber "Numero della mossa"
+        JSON board "Configurazione della tavola"
+        STRING fromPosition "Posizione di partenza"
+        STRING toPosition "Posizione di destinazione"
+        STRING pieceType "Tipo di pezzo"
+        TIMESTAMP createdAt "Data di creazione"
+        TIMESTAMP updatedAt "Data di aggiornamento"
+    }
+
+    PLAYER ||--o{ GAME : "gioca"
+    PLAYER ||--o{ MOVE : "effettua"
+    GAME ||--o{ MOVE : "contiene"
+    GAME }o--|| PLAYER : "giocatore"
+    GAME }o--|| PLAYER : "avversario"
+```
 
 # Pattern Utilizzati
 Per strutturare e organizzare il progetto, sono stati adottati diversi design pattern, ciascuno con uno scopo specifico che aiuta a risolvere le sfide principali dell'applicazione, come la separazione delle responsabilità, la gestione dei dati e la modularità del codice. Di seguito sono descritti i principali pattern utilizzati:
