@@ -25,8 +25,6 @@ interface PlayerAttributes {
     tokens: number;
     role: PlayerRole;
     score: number;
-    //createdAt?: Date;
-    //updatedAt?: Date;
 }
 
 /**
@@ -37,12 +35,41 @@ interface PlayerAttributes {
 interface PlayerCreationAttributes extends Optional<PlayerAttributes, 'player_id'> {}
 
 /**
- * Classe che rappresenta il modello `Player`.
+ * Classe `Player` che rappresenta un giocatore.
+ * Estende `Model` di Sequelize e implementa `PlayerAttributes` per assicurare i tipi di attributi.
  *
- * Questa classe estende il modello di Sequelize per rappresentare un giocatore,
- * con attributi come ID, nome utente, email, hash della password, token, ruolo,
- * e punteggio. Fornisce metodi statici per l'inizializzazione e la configurazione
- * delle associazioni con altri modelli, come `Move` e `Game`.
+ * @extends Model
+ *
+ * @property {number} player_id - ID univoco del giocatore.
+ * @property {string} username - Nome utente del giocatore, unico.
+ * @property {string} email - Email del giocatore, unica.
+ * @property {string} password_hash - Hash della password del giocatore.
+ * @property {string} salt - Salt utilizzato per il hashing della password.
+ * @property {number} tokens - Numero di token posseduti dal giocatore.
+ * @property {PlayerRole} role - Ruolo del giocatore, può essere `USER` o `ADMIN`.
+ * @property {number} score - Punteggio del giocatore.
+ *
+ * @method initialize
+ * Inizializza il modello `Player` e definisce la struttura della tabella nel database.
+ * Configura le proprietà della tabella, tra cui:
+ *   - `player_id` - Chiave primaria autoincrementante.
+ *   - `username` - Nome utente unico, obbligatorio.
+ *   - `email` - Indirizzo email unico, obbligatorio.
+ *   - `password_hash` - Hash della password, obbligatorio.
+ *   - `salt` - Salt per la password, obbligatorio.
+ *   - `tokens` - Numero di token del giocatore, con valore predefinito `0`.
+ *   - `role` - Ruolo del giocatore, `USER` o `ADMIN`, con valore predefinito `user`.
+ *   - `score` - Punteggio del giocatore.
+ *
+ * @method associate
+ * Configura le associazioni di `Player` con altri modelli:
+ *   - `hasMany` con `Move` - Un giocatore può effettuare molte mosse. Utilizza `user_id` come chiave esterna in `Move`.
+ *   - `hasMany` con `Game` - Un giocatore può partecipare a molte partite. Utilizza `player_id` come chiave esterna in `Game`.
+ *
+ * @static
+ * @param {Sequelize} sequelize - Oggetto Sequelize per inizializzare il modello.
+ * @param {string} tableName - Nome della tabella nel database (`Player`).
+ * @param {boolean} timestamps - Se impostato su `false`, disabilita i timestamp automatici.
  */
 
 class Player extends Model<PlayerAttributes, PlayerCreationAttributes> implements PlayerAttributes {
@@ -54,15 +81,6 @@ class Player extends Model<PlayerAttributes, PlayerCreationAttributes> implement
     public tokens!: number;
     public role!: PlayerRole;
     public score!: number;
-    //public readonly createdAt!: Date;
-    //public readonly updatedAt!: Date;
-
-    /**
-     * Inizializza il modello `Player` con Sequelize.
-     *
-     * Configura gli attributi del modello e le impostazioni del database, come il nome
-     * della tabella e l'utilizzo di timestamp.
-     */
 
     public static initialize() {
         Player.init(
@@ -114,17 +132,10 @@ class Player extends Model<PlayerAttributes, PlayerCreationAttributes> implement
         );
     }
 
-    /**
-     * Configura le associazioni del modello `Player` con altri modelli.
-     *
-     * Associa il modello `Player` con il modello `Move` tramite una relazione "hasMany",
-     * e con il modello `Game` tramite una relazione "hasMany".
-     */
-
     public static associate() {
         Player.hasMany(Move, { foreignKey: 'user_id', as: 'moves' });
         Player.hasMany(Game, { foreignKey: 'player_id', as: 'games' });
     }
-    }
+}
 
-    export default Player;
+export default Player;

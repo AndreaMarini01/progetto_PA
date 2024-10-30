@@ -28,6 +28,7 @@ Move.associate();
  *
  * Risponde con un messaggio di benvenuto.
  */
+
 app.get('/', (req: Request, res: Response) => {
     res.send('Benvenuto nella tua applicazione Express TypeScript!');
 });
@@ -54,10 +55,10 @@ app.use('/', moveRoute) // Rotte per la gestione delle mosse
  * Middleware per le rotte non trovate.
  * Viene attivato quando nessuna delle rotte precedenti corrisponde alla richiesta.
  */
+
 app.use((req: Request, res: Response) => {
     res.status(404).json({ message: 'The route does not exist!' });
 });
-
 
 /**
  * Middleware per la gestione degli errori.

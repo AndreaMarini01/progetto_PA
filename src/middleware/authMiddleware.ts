@@ -3,18 +3,19 @@ import jwt, {JwtPayload} from 'jsonwebtoken';
 import AuthFactory, {authErrorType} from "../factories/authFactory";
 
 /**
- * Middleware per l'autenticazione con JSON Web Token (JWT).
+ * Middleware `authenticationWithJWT` per autenticare gli utenti utilizzando un token JWT.
  *
- * Questo middleware verifica se l'utente è autenticato tramite un token JWT fornito
- * nell'intestazione della richiesta. Se il token è valido, i dati decodificati vengono
- * aggiunti all'oggetto `req.user`. Se il token è mancante, non valido o scaduto, viene
- * generato un errore appropriato.
+ * Questo middleware verifica la presenza di un token JWT nell'intestazione di autorizzazione (`Authorization`),
+ * controlla la validità del token, e aggiunge i dettagli dell'utente (`player_id`, `email`, `role`) a `req.user`
+ * se il token è valido. Se il token è scaduto, non valido o mancante, genera un errore appropriato.
  *
- * @param req - L'oggetto della richiesta Express contenente l'intestazione `Authorization` con il token JWT.
- * @param res - L'oggetto della risposta Express.
- * @param next - La funzione `NextFunction` per passare il controllo al middleware successivo in caso di autenticazione riuscita.
+ * @param req - L'oggetto `Request` di Express contenente l'intestazione di autorizzazione con il token JWT.
+ * @param res - L'oggetto `Response` di Express utilizzato per inviare la risposta al client in caso di errore.
+ * @param next - La funzione `NextFunction` di Express per passare il controllo al middleware successivo.
  *
- * @throws {AuthError} - Lancia un errore se il token è mancante, non valido o scaduto, oppure se i dati del token non sono corretti.
+ * @throws {AuthError} - Se il token JWT è mancante (errore `NEED_AUTHORIZATION`).
+ * @throws {AuthError} - Se il token JWT è scaduto (errore `TOKEN_EXPIRED`).
+ * @throws {AuthError} - Se il token JWT non è valido (errore `NOT_VALID_TOKEN`).
  */
 
 export const authenticationWithJWT = (req: Request, res: Response, next: NextFunction) => {

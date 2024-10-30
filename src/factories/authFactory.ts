@@ -1,8 +1,12 @@
 /**
- * Enumerazione che definisce i tipi di errore di autenticazione.
+ * Enumerazione `authErrorType` che rappresenta i diversi tipi di errori di autenticazione.
  *
- * I valori rappresentano vari scenari di errore che possono verificarsi durante
- * l'autenticazione, come credenziali non valide, token scaduto o mancanza di autorizzazione.
+ * @enum {string}
+ * @property INVALID_CREDENTIALS - Credenziali non valide fornite.
+ * @property TOKEN_EXPIRED - Il token di autenticazione è scaduto.
+ * @property UNAUTHORIZED - Azione non autorizzata.
+ * @property NOT_VALID_TOKEN - Il token fornito non è valido.
+ * @property NEED_AUTHORIZATION - È necessaria l'autenticazione.
  */
 
 export enum authErrorType {
@@ -14,22 +18,20 @@ export enum authErrorType {
 }
 
 /**
- * Classe di errore personalizzata per gli errori di autenticazione.
+ * Classe `AuthError` per gestire gli errori di autenticazione personalizzati.
+ * Estende la classe `Error` e include un tipo di errore di autenticazione (`authErrorType`).
  *
- * Estende la classe `Error` di JavaScript per rappresentare errori specifici
- * relativi all'autenticazione. Include un tipo di errore che indica il tipo
- * di problema verificatosi.
+ * @extends Error
+ *
+ * @property {authErrorType} type - Tipo di errore di autenticazione.
+ *
+ * @constructor
+ * @param {authErrorType} type - Tipo di errore di autenticazione.
+ * @param {string} message - Messaggio dettagliato dell'errore.
  */
 
 class AuthError extends Error {
     type: authErrorType;
-
-    /**
-     * Costruisce un nuovo oggetto `AuthError`.
-     *
-     * @param {authErrorType} type - Il tipo di errore di autenticazione.
-     * @param {string} message - Il messaggio di errore descrittivo.
-     */
 
     constructor(type: authErrorType, message: string) {
         super(message);
@@ -39,20 +41,18 @@ class AuthError extends Error {
 }
 
 /**
- * Classe per creare e gestire errori di autenticazione.
+ * Classe `AuthFactory` per la creazione di errori di autenticazione (`AuthError`) in base al tipo di errore.
  *
- * `AuthFactory` fornisce metodi statici per ottenere messaggi di errore
- * e creare oggetti `AuthError` in base al tipo di errore di autenticazione.
+ * @method getErrorMessage - Ritorna un messaggio di errore specifico in base al tipo di errore di autenticazione.
+ * @param {authErrorType} errorType - Tipo di errore di autenticazione.
+ * @returns {string} - Messaggio di errore corrispondente.
+ *
+ * @method createError - Crea un'istanza di `AuthError` in base al tipo di errore specificato.
+ * @param {authErrorType} errorType - Tipo di errore di autenticazione.
+ * @returns {AuthError} - Istanza di `AuthError` con tipo e messaggio specifici.
  */
 
 class AuthFactory {
-
-    /**
-     * Restituisce un messaggio di errore in base al tipo di errore di autenticazione.
-     *
-     * @param {authErrorType} errorType - Il tipo di errore di autenticazione.
-     * @returns {string} Il messaggio di errore corrispondente.
-     */
 
     static getErrorMessage(errorType: authErrorType): string {
         switch (errorType) {
@@ -71,12 +71,7 @@ class AuthFactory {
         }
     }
 
-    /**
-     * Crea un'istanza di `AuthError` con il tipo e il messaggio appropriato.
-     *
-     * @param {authErrorType} errorType - Il tipo di errore di autenticazione.
-     * @returns {AuthError} Un oggetto `AuthError` con il tipo di errore e il messaggio corrispondente.
-     */
+
 
     static createError(errorType: authErrorType): AuthError {
         const message = this.getErrorMessage(errorType);

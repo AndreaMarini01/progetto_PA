@@ -1,9 +1,23 @@
 /**
- * Enumerazione che definisce i tipi di errore di gioco.
+ * Enumerazione `gameErrorType` che rappresenta i diversi tipi di errori relativi al gioco.
  *
- * I valori rappresentano vari scenari di errore che possono verificarsi durante
- * la creazione o la gestione di una partita, come l'assenza di ID del giocatore,
- * difficoltà non valida, parametri mancanti o avversario non trovato.
+ * @enum {string}
+ * @property MISSING_PLAYER_ID - L'ID del giocatore è mancante.
+ * @property INVALID_DIFFICULTY - Difficoltà selezionata non valida.
+ * @property INVALID_GAME_PARAMETERS - Parametri del gioco non validi, non si possono specificare sia l'avversario che la difficoltà dell'IA.
+ * @property MISSING_GAME_PARAMETERS - Parametri di gioco mancanti.
+ * @property INSUFFICIENT_CREDIT - Credito insufficiente per creare una partita.
+ * @property OPPONENT_NOT_FOUND - Avversario non trovato.
+ * @property PLAYER_ALREADY_IN_GAME - Il giocatore è già in una partita attiva.
+ * @property OPPONENT_ALREADY_IN_GAME - L'avversario è già in una partita attiva.
+ * @property SELF_CHALLENGE_NOT_ALLOWED - Il giocatore non può sfidare se stesso.
+ * @property GAME_NOT_IN_PROGRESS - La partita non è più disponibile.
+ * @property INVALID_DATE - Data non valida.
+ * @property MISSING_DATE - Data di inizio o fine mancante.
+ * @property INVALID_DATE_RANGE - La data di inizio deve essere precedente alla data di fine.
+ * @property GAME_NOT_FOUND - Partita non trovata.
+ * @property ONLY_WINNER - Solo il vincitore della partita può ottenere il certificato.
+ * @property GAME_IN_PROGRESS - La partita è ancora in corso.
  */
 
 export enum gameErrorType {
@@ -26,22 +40,20 @@ export enum gameErrorType {
 }
 
 /**
- * Classe di errore personalizzata per gli errori di gioco.
+ * Classe `GameError` per gestire gli errori relativi al gioco personalizzati.
+ * Estende la classe `Error` e include un tipo di errore di gioco (`gameErrorType`).
  *
- * Estende la classe `Error` di JavaScript per rappresentare errori specifici
- * relativi alla creazione o gestione delle partite. Include un tipo di errore
- * che indica il tipo di problema verificatosi.
+ * @extends Error
+ *
+ * @property {gameErrorType} type - Tipo di errore di gioco.
+ *
+ * @constructor
+ * @param {gameErrorType} type - Tipo di errore di gioco.
+ * @param {string} message - Messaggio dettagliato dell'errore.
  */
 
 class GameError extends Error {
     type: gameErrorType;
-
-    /**
-     * Costruisce un nuovo oggetto `GameError`.
-     *
-     * @param {gameErrorType} type - Il tipo di errore di gioco.
-     * @param {string} message - Il messaggio di errore descrittivo.
-     */
 
     constructor(type: gameErrorType, message: string) {
         super(message);
@@ -51,20 +63,18 @@ class GameError extends Error {
 }
 
 /**
- * Classe per creare e gestire errori di gioco.
+ * Classe `GameFactory` per la creazione di errori di gioco (`GameError`) in base al tipo di errore.
  *
- * `GameFactory` fornisce metodi statici per ottenere messaggi di errore
- * e creare oggetti `GameError` in base al tipo di errore di gioco.
+ * @method getErrorMessage - Ritorna un messaggio di errore specifico in base al tipo di errore di gioco.
+ * @param {gameErrorType} errorType - Tipo di errore di gioco.
+ * @returns {string} - Messaggio di errore corrispondente.
+ *
+ * @method createError - Crea un'istanza di `GameError` in base al tipo di errore specificato.
+ * @param {gameErrorType} errorType - Tipo di errore di gioco.
+ * @returns {GameError} - Istanza di `GameError` con tipo e messaggio specifici.
  */
 
 class GameFactory {
-
-    /**
-     * Restituisce un messaggio di errore in base al tipo di errore di gioco.
-     *
-     * @param {gameErrorType} errorType - Il tipo di errore di gioco.
-     * @returns {string} Il messaggio di errore corrispondente.
-     */
 
     static getErrorMessage(errorType: gameErrorType): string {
         switch (errorType) {
@@ -104,13 +114,6 @@ class GameFactory {
                 return 'An unknown error occurred.';
         }
     }
-
-    /**
-     * Crea un'istanza di `GameError` con il tipo e il messaggio appropriato.
-     *
-     * @param {gameErrorType} errorType - Il tipo di errore di gioco.
-     * @returns {GameError} Un oggetto `GameError` con il tipo di errore e il messaggio corrispondente.
-     */
 
     static createError(errorType: gameErrorType): GameError {
         const message = this.getErrorMessage(errorType);

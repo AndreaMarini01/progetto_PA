@@ -1,25 +1,23 @@
-import express from 'express';
-import AuthController from '../controllers/authController';
-import authController from "../controllers/authController";
-
 /**
- * Router per le rotte di autenticazione.
+ * Modulo di routing `authRoute` per le operazioni di autenticazione.
  *
- * Questo router gestisce le operazioni relative all'autenticazione, come il login
- * degli utenti. Fornisce un endpoint per l'autenticazione che accetta le credenziali
- * dell'utente e restituisce un token JWT in caso di successo.
- */
-
-const router = express.Router();
-
-/**
+ * Questo modulo definisce le rotte di autenticazione per il login degli utenti.
+ * Utilizza `authController` per gestire la logica di autenticazione.
+ *
+ * @requires express - Modulo Express per la gestione delle rotte.
+ * @requires authController - Controller per gestire le azioni di autenticazione.
+ *
  * @route POST /login
- * @description Esegue il login dell'utente.
+ * @description Autentica un utente e restituisce un token JWT se le credenziali sono valide.
  * @access Pubblico
  *
- * Controller:
- * - `login`: Gestisce l'autenticazione dell'utente e restituisce un token JWT.
+ * @returns {JSON} - Token JWT per l'accesso autenticato o un errore se le credenziali non sono valide.
  */
+
+import express from 'express';
+import authController from "../controllers/authController";
+
+const router = express.Router();
 
 router.post('/login', authController.login);
 

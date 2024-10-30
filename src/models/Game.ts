@@ -61,13 +61,48 @@ interface GameAttributes {
 interface GameCreationAttributes extends Optional<GameAttributes, 'game_id' | 'ended_at' | 'ai_difficulty'> {}
 
 /**
- * Classe che rappresenta il modello `Game`.
+ * Classe `Game` che rappresenta una partita di gioco.
+ * Estende `Model` di Sequelize e implementa `GameAttributes` per assicurare i tipi di attributi.
  *
- * Questa classe estende il modello di Sequelize per rappresentare una partita, con
- * attributi come ID del giocatore, ID dell'avversario, stato, tipo, difficoltà
- * dell'IA, configurazione della tavola e numero totale di mosse. Fornisce metodi
- * statici per l'inizializzazione e la configurazione delle associazioni con altri
- * modelli, come `Player` e `Move`.
+ * @extends Model
+ *
+ * @property {number} game_id - ID univoco della partita.
+ * @property {number} player_id - ID del giocatore che ha avviato la partita.
+ * @property {number | null} opponent_id - ID dell'avversario, può essere `null` se si tratta di una partita contro l'IA.
+ * @property {GameStatus} status - Stato attuale della partita, ad esempio `ONGOING`, `COMPLETED`, `ABANDONED`, `TIMED_OUT`.
+ * @property {Date} created_at - Data e ora di creazione della partita.
+ * @property {Date | null} ended_at - Data e ora di fine partita, può essere `null` se la partita è in corso.
+ * @property {GameType} type - Tipo di partita, può essere `PVP` (Player vs Player) o `PVE` (Player vs Environment).
+ * @property {AIDifficulty} ai_difficulty - Difficoltà dell'IA per le partite PvE, ad esempio `ABSENT`, `EASY`, `HARD`.
+ * @property {any} board - Stato attuale della board di gioco, rappresentato in formato JSON.
+ * @property {number} total_moves - Numero totale di mosse effettuate nella partita, con valore predefinito `0`.
+ * @property {number | null} winner_id - ID del vincitore della partita, o `null` se non è stata ancora vinta.
+ *
+ * @method initialize
+ * Inizializza il modello `Game` e definisce la struttura della tabella nel database.
+ * Configura le associazioni con altri modelli e imposta le proprietà della tabella, tra cui:
+ *   - `game_id` - Chiave primaria, intero autoincrementante.
+ *   - `player_id` - Riferimento alla tabella `Player`.
+ *   - `opponent_id` - Riferimento alla tabella `Player`, può essere `null`.
+ *   - `status` - Enumerazione che definisce lo stato della partita.
+ *   - `created_at` - Data di creazione della partita.
+ *   - `ended_at` - Data di fine partita, facoltativa.
+ *   - `type` - Tipo di partita, PvP o PvE.
+ *   - `ai_difficulty` - Difficoltà dell'IA per le partite PvE.
+ *   - `board` - JSON che rappresenta la configurazione della board.
+ *   - `total_moves` - Numero di mosse effettuate.
+ *   - `winner_id` - ID del vincitore, può essere `null`.
+ *
+ * @method associate
+ * Configura le associazioni di `Game` con altri modelli:
+ *  - `hasMany` con `Move` - Una partita può avere molte mosse. Utilizza `game_id` come chiave esterna in `Move`.
+ *  - `belongsTo` con `Player` (come `player`) - Ogni partita appartiene a un giocatore che la inizia, utilizzando `player_id` come chiave esterna.
+ *  - `belongsTo` con `Player` (come `opponent`) - Ogni partita può avere un avversario (un altro giocatore) identificato da `opponent_id`.
+ *
+ * @static
+ * @param {Sequelize} sequelize - Oggetto Sequelize per inizializzare il modello.
+ * @param {string} tableName - Nome della tabella nel database (`Game`).
+ * @param {boolean} timestamps - Se impostato su `false`, disabilita i timestamp automatici.
  */
 
 class Game extends Model<GameAttributes, GameCreationAttributes> implements GameAttributes {
@@ -79,18 +114,9 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
     public ended_at?: Date;
     public type!: GameType;
     public ai_difficulty!: AIDifficulty;
-    //public readonly updatedAt!: Date;
-    //public date!: Date;
     public board!: any;
     public total_moves!: number;
     public winner_id!: number | null;
-
-    /**
-     * Inizializza il modello `Game` con Sequelize.
-     *
-     * Configura gli attributi del modello e le impostazioni del database, come il nome
-     * della tabella e l'utilizzo di timestamp personalizzati.
-     */
 
     public static initialize() {
         Game.init(
@@ -139,17 +165,6 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
                     allowNull: false,
                     defaultValue: AIDifficulty.ABSENT
                 },
-                /*
-                updatedAt: {
-                    type: DataTypes.DATE,
-                    allowNull: false,
-                    defaultValue: DataTypes.NOW,
-                },
-                date: {
-                    type: DataTypes.DATE,
-                    allowNull: false,
-                    defaultValue: DataTypes.NOW,
-                },*/
                 board: {
                     type: DataTypes.JSON,
                     allowNull: false,
@@ -170,20 +185,11 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
                 tableName: 'Game',
                 timestamps: false,
                 createdAt: 'created_at',
-                //updatedAt: 'updatedAt',
             }
         );
     }
 
-    /**
-     * Configura le associazioni del modello `Game` con altri modelli.
-     *
-     * Associa il modello `Game` con il modello `Move` tramite una relazione "hasMany",
-     * e con il modello `Player` tramite relazioni "belongsTo" per i campi `player_id` e `opponent_id`.
-     */
-
     public static associate() {
-        // Associazioni con altri modelli
         Game.hasMany(Move, { foreignKey: 'game_id', as: 'moves' });
         Game.belongsTo(Player, { foreignKey: 'player_id', as: 'player' });
         Game.belongsTo(Player, { foreignKey: 'opponent_id', as: 'opponent' });

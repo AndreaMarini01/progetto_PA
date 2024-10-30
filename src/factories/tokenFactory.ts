@@ -1,9 +1,11 @@
 /**
- * Enumerazione che definisce i tipi di errore relativi ai token.
+ * Enumerazione `tokenErrorType` che rappresenta i diversi tipi di errori relativi alla gestione dei token.
  *
- * I valori rappresentano vari scenari di errore che possono verificarsi durante
- * la gestione dei token, come parametri mancanti, utente non trovato o autorizzazione
- * richiesta per un'operazione amministrativa.
+ * @enum {string}
+ * @property MISSING_PARAMETERS - Parametri mancanti nella richiesta (es. email e token).
+ * @property USER_NOT_FOUND - Utente non trovato nel database.
+ * @property ADMIN_AUTHORIZATION - Autorizzazione amministrativa necessaria per eseguire l'operazione.
+ * @property POSITIVE_TOKEN - Solo token positivi possono essere aggiunti.
  */
 
 export enum tokenErrorType {
@@ -14,22 +16,20 @@ export enum tokenErrorType {
 }
 
 /**
- * Classe di errore personalizzata per gli errori relativi ai token.
+ * Classe `TokenError` per gestire gli errori relativi ai token.
+ * Estende la classe `Error` e include un tipo di errore di token (`tokenErrorType`).
  *
- * Estende la classe `Error` di JavaScript per rappresentare errori specifici
- * relativi alla gestione dei token. Include un tipo di errore che indica
- * il tipo di problema verificatosi.
+ * @extends Error
+ *
+ * @property {tokenErrorType} type - Tipo di errore di token.
+ *
+ * @constructor
+ * @param {tokenErrorType} type - Tipo di errore di token.
+ * @param {string} message - Messaggio dettagliato dell'errore.
  */
 
 class TokenError extends Error {
     type: tokenErrorType;
-
-    /**
-     * Costruisce un nuovo oggetto `TokenError`.
-     *
-     * @param {tokenErrorType} type - Il tipo di errore relativo ai token.
-     * @param {string} message - Il messaggio di errore descrittivo.
-     */
 
     constructor(type: tokenErrorType, message: string) {
         super(message);
@@ -39,20 +39,18 @@ class TokenError extends Error {
 }
 
 /**
- * Classe di fabbrica per creare e gestire errori relativi ai token.
+ * Classe `TokenFactory` per la creazione di errori di token (`TokenError`) in base al tipo di errore.
  *
- * `TokenFactory` fornisce metodi statici per ottenere messaggi di errore
- * e creare oggetti `TokenError` in base al tipo di errore relativo ai token.
+ * @method getErrorMessage - Ritorna un messaggio di errore specifico in base al tipo di errore di token.
+ * @param {tokenErrorType} errorType - Tipo di errore di token.
+ * @returns {string} - Messaggio di errore corrispondente.
+ *
+ * @method createError - Crea un'istanza di `TokenError` in base al tipo di errore specificato.
+ * @param {tokenErrorType} errorType - Tipo di errore di token.
+ * @returns {TokenError} - Istanza di `TokenError` con tipo e messaggio specifici.
  */
 
 class TokenFactory {
-
-    /**
-     * Restituisce un messaggio di errore in base al tipo di errore relativo ai token.
-     *
-     * @param {tokenErrorType} errorType - Il tipo di errore relativo ai token.
-     * @returns {string} Il messaggio di errore corrispondente.
-     */
 
     static getErrorMessage(errorType: tokenErrorType): string {
         switch (errorType) {
@@ -68,13 +66,6 @@ class TokenFactory {
                 return "Unknown error.";
         }
     }
-
-    /**
-     * Crea un'istanza di `TokenError` con il tipo e il messaggio appropriato.
-     *
-     * @param {tokenErrorType} errorType - Il tipo di errore relativo ai token.
-     * @returns {TokenError} Un oggetto `TokenError` con il tipo di errore e il messaggio corrispondente.
-     */
 
     static createError(errorType: tokenErrorType): TokenError {
         const message = this.getErrorMessage(errorType);

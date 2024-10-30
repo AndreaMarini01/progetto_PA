@@ -1,3 +1,50 @@
+/**
+ * Servizio `moveService` per gestire le operazioni di mossa all'interno delle partite,
+ * inclusa la gestione delle mosse dei giocatori e dell'IA, timeout, e generazione di report.
+ *
+ * @constant {number} TIMEOUT_MINUTES - Timeout di inattività per una mossa, dopo il quale la partita è persa.
+ * @constant {number} MOVE_COST - Costo in token per ogni mossa.
+ *
+ * @method chooseAIMove
+ * Genera una mossa per l'IA in base alla difficoltà selezionata (EASY o HARD).
+ * @param {any} draughts - Istanza del gioco di dama.
+ * @param {AIDifficulty} difficulty - Difficoltà dell'IA (`EASY`, `HARD`, `ABSENT`).
+ * @returns {Promise<DraughtsMove1D | null>} - La mossa scelta dall'IA o `null`.
+ *
+ * @method convertPosition
+ * Converte una posizione in notazione scacchistica (es. "E2") in un indice numerico.
+ * @param {string} position - Posizione in notazione scacchistica.
+ * @returns {number} - Indice numerico corrispondente.
+ *
+ * @method convertPositionBack
+ * Converte un indice numerico in una posizione in notazione scacchistica (es. 25 -> "E4").
+ * @param {number} index - Indice numerico.
+ * @returns {string} - Posizione in notazione scacchistica.
+ *
+ * @method executeMove
+ * Esegue la mossa di un giocatore, aggiornando lo stato del gioco e la board.
+ * Controlla se la mossa è valida e gestisce le risposte PvP e PvE.
+ * @param {number} gameId - ID della partita.
+ * @param {string} from - Posizione di partenza in notazione scacchistica.
+ * @param {string} to - Posizione di destinazione.
+ * @param {number} playerId - ID del giocatore.
+ * @throws {MoveError} - Errori legati alle mosse, inclusi timeout e invalidità.
+ * @returns {Promise<object>} - Dettagli della mossa e stato della partita.
+ *
+ * @method handleGameOver
+ * Aggiorna lo stato del gioco e assegna punteggio al vincitore.
+ * @param {any} draughts - Istanza del gioco.
+ * @param {any} game - Partita in corso.
+ * @returns {Promise<object>} - Messaggio di risultato e board finale.
+ *
+ * @method exportMoveHistory
+ * Esporta la cronologia delle mosse in formato JSON o PDF.
+ * @param {number} gameId - ID della partita.
+ * @param {string} format - Formato di esportazione: `json` o `pdf`.
+ * @throws {MoveError} - Errore se non ci sono mosse disponibili o il formato è errato.
+ * @returns {Promise<Buffer | object>} - Buffer PDF o JSON con la cronologia delle mosse.
+ */
+
 import Game, {AIDifficulty, GameStatus, GameType} from '../models/Game';
 import Player from '../models/Player';
 import Move from "../models/Move";
@@ -9,32 +56,10 @@ import GameFactory, {gameErrorType} from "../factories/gameFactory";
 import PDFDocument from 'pdfkit';
 import {format as dateFormat} from 'date-fns';
 
-
 const TIMEOUT_MINUTES = 1;
 const MOVE_COST = 0.02;
 
-
-/**
- * Servizio per la gestione delle mosse in una partita.
- *
- * La classe `MoveService` fornisce metodi per l'esecuzione delle mosse,
- * la gestione del gioco dell'IA e la verifica dello stato della partita.
- * Gestisce le regole delle mosse, il salvataggio delle mosse nel database e
- * la verifica delle condizioni di vittoria o pareggio.
- */
-
 class moveService {
-
-    /**
-     * Sceglie una mossa per l'IA in base alla difficoltà specificata.
-     *
-     * Se la difficoltà è EASY, viene utilizzato un algoritmo casuale.
-     * Se la difficoltà è HARD, viene utilizzato l'algoritmo AlphaBeta con profondità massima pari a 5.
-     *
-     * @param draughts - L'istanza di `Draughts` per gestire la logica del gioco.
-     * @param difficulty - Il livello di difficoltà dell'IA.
-     * @returns {Promise<DraughtsMove1D | null>} La mossa scelta dall'IA o `null` se non ci sono mosse disponibili.
-     */
 
     private static async chooseAIMove(draughts: any, difficulty: AIDifficulty): Promise<DraughtsMove1D | null> {
         const validMoves = draughts.moves;
@@ -55,26 +80,11 @@ class moveService {
         }
     }
 
-    /**
-     * Converte una posizione della scacchiera espressa come stringa (ad esempio, "A7")
-     * in un numero intero corrispondente alla posizione unidimensionale.
-     *
-     * @param position - La posizione della scacchiera in formato stringa.
-     * @returns {number} La posizione convertita in formato numerico.
-     */
-
     public static convertPosition(position: string): number {
         const file = position.charCodeAt(0) - 'A'.charCodeAt(0);
         const rank = 8 - parseInt(position[1]);
         return rank * 8 + file;
     }
-
-    /**
-     * Converte una posizione unidimensionale in una rappresentazione della scacchiera (ad esempio, "A7").
-     *
-     * @param index - La posizione numerica unidimensionale.
-     * @returns {string} La posizione convertita in formato stringa.
-     */
 
     public static convertPositionBack(index: number): string {
         const file = String.fromCharCode('A'.charCodeAt(0) + (index % 8));
@@ -82,91 +92,60 @@ class moveService {
         return `${file}${rank}`;
     }
 
-    /**
-     * Esegue una mossa per il giocatore in una partita.
-     *
-     * Questo metodo gestisce la logica per eseguire una mossa, verificare la sua validità,
-     * aggiornare lo stato della partita e, se necessario, eseguire la mossa dell'IA per le partite PvE.
-     *
-     * @param {number} gameId - L'ID della partita.
-     * @param {string} from - La posizione iniziale della mossa.
-     * @param {string} to - La posizione finale della mossa.
-     * @param {number} playerId - L'ID del giocatore che esegue la mossa.
-     * @returns {Promise<object>} Un oggetto che rappresenta il risultato della mossa.
-     *
-     * @throws {MoveError} - Lancia un errore se la partita o il giocatore non sono trovati,
-     * se la mossa non è valida o se ci sono errori nel parsing della scacchiera.
-     */
-
     public static async executeMove(gameId: number, from: string, to: string, playerId: number) {
-        console.log('Eseguendo la mossa:', {gameId, from, to, playerId});
-
         const player = await Player.findByPk(playerId);
         if (!player) {
             console.log('Giocatore non trovato:', playerId);
             throw new Error("Player not found.");
         }
-
         const game = await Game.findByPk(gameId);
         if (!game) {
             throw MoveFactory.createError(moveErrorType.GAME_NOT_FOUND);
         }
-
         // Lancia un errore nel caso in cui la partita non sia in corso
         if (game.status !== GameStatus.ONGOING) {
             throw GameFactory.createError(gameErrorType.GAME_NOT_IN_PROGRESS);
         }
-
         // Se il giocatore che esegue la mossa non è uno dei due giocatori coinvolti, restituisce un errore
         if (game.player_id !== playerId && game.opponent_id !== playerId) {
             throw AuthFactory.createError(authErrorType.UNAUTHORIZED);
         }
-
         player.tokens -= MOVE_COST;
         await player.save();
-
         // Carica la board salvata nel database
         let savedData: { board: DraughtsSquare1D[] } | null = null;
-
         // Converte la board in JSON
         try {
-            console.log('Parsing board:', game.board);
             savedData = typeof game.board === 'string' ? JSON.parse(game.board) : game.board;
         } catch (error) {
             throw MoveFactory.createError(moveErrorType.FAILED_PARSING);
         }
-
         // Verifica che la board esista e che sia di tipo JSON
         const savedBoard = savedData?.board;
         if (!savedBoard || !Array.isArray(savedBoard)) {
             throw MoveFactory.createError(moveErrorType.NOT_VALID_ARRAY);
         }
-
         const flattenedBoard = savedBoard.flat();
-
         // Inizializza il gioco utilizzando la board salvata in precedenza
         const draughts = Draughts.setup();
         flattenedBoard.forEach((square, index) => {
             draughts.board[index] = square;
         });
-
+        // Stampa le mosse possibili
         console.log("Mosse possibili dalla configurazione data:");
         draughts.moves.forEach(move => {
             const moveFrom = moveService.convertPositionBack(move.origin);
             const moveTo = moveService.convertPositionBack(move.destination);
             console.log(`Mossa: da ${moveFrom} a ${moveTo}`);
         });
-
         const origin = moveService.convertPosition(from);
         const destination = moveService.convertPosition(to);
-
         // Verifica che una mossa sia valida
         const validMoves = draughts.moves;
         const moveToMake = validMoves.find(move => move.origin === origin && move.destination === destination);
         if (!moveToMake) {
             throw MoveFactory.createError(moveErrorType.NOT_VALID_MOVE);
         }
-
         // Controlla se la mossa corrente è uguale all'ultima mossa effettuata
         const lastMove = await Move.findOne({
             where: {
@@ -175,17 +154,14 @@ class moveService {
             },
             order: [['createdAt', 'DESC']]
         });
-
         if (lastMove) {
             const lastMoveTime = new Date(lastMove.createdAt);
             const currentTime = new Date();
             const timeDifference = (currentTime.getTime() - lastMoveTime.getTime()) / (1000 * 60); // Differenza in minuti
-
             if (timeDifference > TIMEOUT_MINUTES) {
                 // Imposta lo stato della partita come persa per "timeout"
                 game.status = GameStatus.TIMED_OUT;
                 game.ended_at = currentTime;
-
                 if (game.opponent_id === null) {
                     // La partita è contro l'IA, quindi l'IA vince
                     game.winner_id = -1; // Usa `null` per indicare la vittoria dell'IA
@@ -193,16 +169,13 @@ class moveService {
                     // La partita è PvP, quindi l'altro giocatore vince
                     game.winner_id = (game.player_id === playerId) ? game.opponent_id ?? null : game.player_id ?? null;
                 }
-
                 await game.save();
-
                 // Decrementa il punteggio del giocatore di 0.5 punti
                 const player = await Player.findByPk(playerId);
                 if (player) {
                     player.score -= 0.5;
                     await player.save();
                 }
-
                 return {
                     message: `The game has ended due to a timeout after ${TIMEOUT_MINUTES} minutes.`,
                     game_id: gameId,
@@ -210,15 +183,11 @@ class moveService {
                 };
             }
         }
-
         if (lastMove && lastMove.from_position === from && lastMove.to_position === to) {
             throw MoveFactory.createError(moveErrorType.NOT_VALID_MOVE);
         }
-
         // Esegui la mossa del giocatore
         draughts.move(moveToMake);
-
-        console.log("Board prima di salvare:", game.board);
         // Aggiorna la board e salva la mossa del giocatore
         game.board = { board: draughts.board };
         game.total_moves = (game.total_moves || 0) + 1;
@@ -235,9 +204,7 @@ class moveService {
             piece_type: savedBoard[origin]?.piece?.king ? 'king' : 'single',
             game_id: gameId,
             user_id: playerId,
-            //details: {},
         });
-
         // Verifica se la mossa del giocatore ha concluso il gioco
         if ([DraughtsStatus.LIGHT_WON, DraughtsStatus.DARK_WON, DraughtsStatus.DRAW].includes(draughts.status as DraughtsStatus)) {
             const gameOverResult = await moveService.handleGameOver(draughts, game);
@@ -299,7 +266,6 @@ class moveService {
                     piece_type: savedBoard[aiMove.origin]?.piece?.king ? 'king' : 'single',
                     game_id: gameId,
                     user_id: null, // Indica che la mossa è dell'IA
-                    //details: {},
                 });
 
                 // Verifica se la mossa dell'IA ha concluso il gioco
@@ -319,7 +285,6 @@ class moveService {
                     game_id: gameId,
                     moveDescription: `You moved a ${savedBoard[origin]?.piece?.king ? 'king' : 'single'} from ${from} to ${to}. ` +
                         `AI moved a ${savedBoard[aiMove.origin]?.piece?.king ? 'king' : 'single'} from ${fromPositionAI} to ${toPositionAI}.`,
-                    // board: draughts.board
                 };
             }
         }
@@ -329,19 +294,8 @@ class moveService {
             message: "Move successfully executed",
             game_id: gameId,
             moveDescription: `You moved a ${savedBoard[origin]?.piece?.king ? 'king' : 'single'} from ${from} to ${to}.`,
-            // board: draughts.board
         };
     }
-
-    /**
-     * Gestisce la fine del gioco.
-     *
-     * Verifica lo stato del gioco per determinare il vincitore o se il gioco è finito in pareggio.
-     *
-     * @param draughts - L'istanza di `Draughts` che contiene lo stato della partita.
-     * @param game - L'istanza del modello `Game` che rappresenta la partita nel database.
-     * @returns {object} Un oggetto che descrive il risultato della partita e lo stato finale della scacchiera.
-     */
 
     private static async handleGameOver(draughts: any, game: any) {
         let result;
@@ -377,13 +331,11 @@ class moveService {
                 await winner.save();
             }
         }
-
         return {
             message: result,
             board: draughts.board,
         };
     }
-
 
     public static async exportMoveHistory(gameId: number, format: string): Promise<Buffer | object> {
         // Recupera tutte le mosse di una partita specifica, senza join
@@ -391,29 +343,23 @@ class moveService {
             where: {game_id: gameId},
             order: [['createdAt', 'ASC']],
         });
-
         if (!moves.length) {
             throw MoveFactory.createError(moveErrorType.NO_MOVES)
         }
-
         // Estrai i `user_id` unici, escludendo `null`
         const userIds = [...new Set(moves.map(move => move.user_id).filter(id => id !== null))];
-
         // Filtra undefined da userIds, mantenendo solo i valori definiti (numeri)
         const validUserIds = userIds.filter((id): id is number => id !== undefined);
-
         // Recupera gli username per i `user_id` validi
         const players = await Player.findAll({
             where: {player_id: validUserIds},
             attributes: ['player_id', 'username'],
         });
-
         // Crea una mappa `user_id -> username` per accesso rapido
         const userMap = players.reduce((map, player) => {
             map[player.player_id] = player.username;
             return map;
         }, {} as Record<number, string>);
-
         // Mappa le mosse con l'username del giocatore, o "IA" se `user_id` è null
         const movesWithUsernames = moves.map(move => ({
             moveNumber: move.move_number,
@@ -423,7 +369,6 @@ class moveService {
             timestamp: dateFormat(new Date(move.createdAt), 'dd/MM/yyyy HH:mm:ss'),
             username: move.user_id === null ? 'Artificial Intelligence' : userMap[move.user_id!] || 'Unknown Player',
         }));
-
         // Ritorna in formato JSON o PDF
         if (format === 'json') {
             return movesWithUsernames;
@@ -474,10 +419,8 @@ class moveService {
                 doc.on('end', () => resolve(buffer!));
             });
         } else {
-            throw new Error('Unsupported format. Please choose "json" or "pdf".');
+            throw MoveFactory.createError(moveErrorType.INVALID_FORMAT);
         }
-
-
     }
 }
 

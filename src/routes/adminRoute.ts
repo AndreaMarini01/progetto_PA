@@ -1,30 +1,29 @@
+/**
+ * Modulo di routing `adminRoute` per le operazioni di amministrazione.
+ *
+ * Questo modulo definisce le rotte di amministrazione che richiedono autenticazione e permessi di amministratore.
+ * Utilizza il middleware `authenticationWithJWT` per autenticare l'utente e `adminAuthMiddleware` per verificare
+ * che l'utente abbia i permessi di amministratore.
+ *
+ * @requires express - Modulo Express per la gestione delle rotte.
+ * @requires authenticationWithJWT - Middleware per autenticare l'utente tramite JWT.
+ * @requires adminAuthMiddleware - Middleware per verificare i permessi di amministratore.
+ * @requires adminController - Controller per gestire le azioni amministrative.
+ *
+ * @route PUT /chargeTokens
+ * @description Ricarica i token per un utente specificato.
+ *   Richiede che l'utente sia autenticato come amministratore.
+ * @access Admin
+ *
+ * @returns {JSON} - Un messaggio di conferma o un errore se i permessi non sono soddisfatti.
+ */
+
 import express from 'express';
 import { authenticationWithJWT } from '../middleware/authMiddleware';
 import { adminAuthMiddleware } from '../middleware/adminAuthMiddleware';
 import adminController from '../controllers/adminController';
 
-/**
- * Router per le rotte amministrative.
- *
- * Questo router gestisce le operazioni riservate agli amministratori, come l'aggiornamento
- * dei token per i giocatori. Le rotte sono protette tramite middleware di autenticazione
- * e autorizzazione per garantire che solo gli amministratori autenticati possano accedervi.
- */
-
 const router = express.Router();
-
-/**
- * @route PUT /chargeTokens
- * @description Aggiorna i token di un giocatore.
- * @access Riservato agli amministratori autenticati.
- *
- * Middleware utilizzati:
- * - `authenticationWithJWT`: Verifica la presenza e la validità di un token JWT.
- * - `adminAuthMiddleware`: Verifica che l'utente autenticato abbia il ruolo di amministratore.
- *
- * Controller:
- * - `chargeTokens`: Gestisce l'aggiornamento dei token per il giocatore specificato.
- */
 
 router.put('/chargeTokens', authenticationWithJWT, adminAuthMiddleware, adminController.chargeTokens);
 

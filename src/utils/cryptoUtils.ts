@@ -1,15 +1,13 @@
 import crypto from 'crypto';
 
 /**
- * Verifica se una password fornita corrisponde all'hash memorizzato, utilizzando il salt specificato.
+ * Verifica la corrispondenza tra una password e il suo hash utilizzando un algoritmo di derivazione.
+ * La funzione genera un hash dalla password e salt forniti, confrontandolo con l'hash originale.
  *
- * La funzione utilizza l'algoritmo PBKDF2 con SHA-256 per generare un hash della password fornita,
- * confrontandolo con l'hash memorizzato per verificare la corrispondenza.
- *
- * @param {string} password - La password in chiaro fornita dall'utente.
+ * @param {string} password - La password in chiaro da verificare.
  * @param {string} hash - L'hash memorizzato della password.
- * @param {string} salt - Il salt utilizzato durante l'hashing della password.
- * @returns {boolean} Restituisce `true` se la password fornita corrisponde all'hash, altrimenti `false`.
+ * @param {string} salt - Il salt utilizzato per generare l'hash.
+ * @returns {boolean} - `true` se la password corrisponde all'hash, altrimenti `false`.
  */
 
 export const verifyPassword = (password: string, hash: string, salt: string) => {

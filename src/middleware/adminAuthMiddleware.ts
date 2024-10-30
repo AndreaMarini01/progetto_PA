@@ -4,18 +4,17 @@ import TokenFactory, {tokenErrorType} from "../factories/tokenFactory";
 import AuthFactory, {authErrorType} from "../factories/authFactory";
 
 /**
- * Middleware per l'autenticazione degli amministratori.
+ * Middleware `adminAuthMiddleware` per verificare i permessi di amministratore dell'utente autenticato.
  *
- * Questo middleware verifica se l'utente autenticato ha il ruolo di amministratore.
- * Se l'utente non è autenticato o non è un amministratore, viene generato un errore
- * appropriato. Altrimenti, il middleware consente il passaggio al middleware successivo.
+ * Questo middleware controlla se l'utente autenticato ha un ruolo di amministratore (`PlayerRole.ADMIN`).
+ * Se l'utente non è autenticato, non esiste nel database o non è un amministratore, genera un errore appropriato.
  *
- * @param req - L'oggetto della richiesta Express contenente l'utente autenticato.
- * @param res - L'oggetto della risposta Express.
- * @param next - La funzione `NextFunction` per passare il controllo al middleware successivo in caso di successo.
+ * @param req - L'oggetto `Request` di Express contenente i dettagli della richiesta e i dati utente.
+ * @param res - L'oggetto `Response` di Express utilizzato per inviare la risposta al client.
+ * @param next - La funzione `NextFunction` di Express utilizzata per passare il controllo al middleware successivo.
  *
- * @throws {AuthError} - Lancia un errore se l'utente non è autenticato o non viene trovato.
- * @throws {TokenError} - Lancia un errore se l'utente autenticato non ha i permessi di amministratore.
+ * @throws {AuthError} - Se `req.user` non è presente o l'utente non esiste nel database (errore `INVALID_CREDENTIALS`).
+ * @throws {TokenError} - Se l'utente non ha ruolo di amministratore (errore `ADMIN_AUTHORIZATION`).
  */
 
 export const adminAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
