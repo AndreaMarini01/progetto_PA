@@ -160,94 +160,11 @@ graph TD
 #### POST '/login'
 Il diagramma di sequenza per la rotta di login descrive il flusso di interazione tra un utente e il sistema durante il processo di autenticazione. Quando l'utente invia le proprie credenziali, il sistema verifica l'email e la password. Se le informazioni sono corrette, viene generato un token JWT, che consente all'utente di accedere alle funzionalità protette. In caso contrario, il sistema restituisce un messaggio di errore, garantendo così la sicurezza dell'applicazione. Questo diagramma evidenzia i passaggi chiave e le decisioni critiche nella gestione dell'autenticazione.
 
-```mermaid
-sequenceDiagram
-    participant Client as Client
-    participant AuthRoute as Auth Route
-    participant AuthController as Auth Controller
-    participant Player as Player Model
-    participant JWT as JWT Library
-    participant ErrorHandler as Error Handler
-
-    Client->>AuthRoute: POST /login (email, password)
-    AuthRoute->>AuthController: login(email, password)
-    AuthController->>Player: Trova utente per email
-    Player-->>AuthController: Utente trovato
-    AuthController->>AuthController: Verifica password
-    alt Password valida
-        AuthController->>JWT: Genera token JWT
-        JWT-->>AuthController: Token generato
-        AuthController-->>AuthRoute: { token }
-        AuthRoute-->>Client: { token }
-    else Password non valida
-        AuthController->>ErrorHandler: Errore di credenziali non valide
-        ErrorHandler-->>AuthRoute: Errore
-        AuthRoute-->>Client: Errore di autenticazione
-    end
-```
 #### POST '/create/new-game'
 Il diagramma di sequenza per la rotta di create game rappresenta il flusso di interazioni durante il processo di creazione di una nuova partita nel sistema di gestione delle partite. Illustra come l'utente interagisce con il middleware di autenticazione, il controller delle partite e il servizio di gioco per finalizzare la richiesta. Questo diagramma è utile per comprendere i passaggi chiave e le responsabilità di ciascun componente.
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Server
-    participant AuthMiddleware
-    participant GameController
-    participant GameService
-    participant Player
-
-    Client->>Server: POST /create/new-game (opponent_email, ai_difficulty)
-    Server->>AuthMiddleware: Validate JWT
-    AuthMiddleware-->>Server: JWT Valid
-    Server->>GameController: createGame()
-    GameController->>Player: findByPk(playerId)
-    Player-->>GameController: Player Data
-    GameController->>GameService: findActiveGameForPlayer(playerId, opponentId)
-    GameService-->>GameController: Active Game Data
-    GameController->>GameService: createGame(playerId, opponentEmail, type, aiDifficulty, board, total_moves)
-    GameService->>Player: findByPk(playerId)
-    Player-->>GameService: Player Data
-    GameService->>Game: createNewGame()
-    Game-->>GameService: New Game Created
-    GameService-->>GameController: New Game Details
-    GameController-->>Server: 201 Created (game)
-    Server-->>Client: 201 Created (game)
-```
-#### POST '/test-move'
+#### POST '/new-move'
 Il diagramma delle sequenze per il modulo di gestione delle mosse nel gioco illustra il flusso delle interazioni tra l'utente, il middleware di autenticazione, il controller delle mosse e il servizio di movimento. Inizia con l'utente che invia una richiesta per eseguire una mossa, passando attraverso il controllo dell'autenticazione JWT. Se autenticato, il controller gestisce la richiesta e delega la logica di esecuzione della mossa al servizio di movimento. Questo diagramma è essenziale per comprendere le dinamiche di interazione e il processo di gestione delle mosse nel sistema di gioco.
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant AuthMiddleware
-    participant MoveController
-    participant MoveService
-    participant Game
-    participant Player
-    participant Move as MoveModel
-
-    User->>MoveController: POST /new-move (gameId, from, to)
-    MoveController->>AuthMiddleware: Authenticate JWT
-    AuthMiddleware-->>User: Validate token
-    User->>MoveController: Proceed if authenticated
-    MoveController->>MoveService: executeMove(gameId, from, to, playerId)
-    
-    MoveService->>Player: Find player by ID
-    Player-->>MoveService: Return player
-    MoveService->>Game: Find game by ID
-    Game-->>MoveService: Return game
-    MoveService->>MoveService: Validate game status and player
-    MoveService->>Player: Update tokens
-    Player-->>MoveService: Save updated player
-
-    MoveService->>MoveModel: Create move record
-    MoveModel-->>MoveService: Move created
-    MoveService->>MoveService: Check for game over condition
-
-    MoveService-->>MoveController: Return move result
-    MoveController-->>User: Respond with move status
-```
 
 
 # Diagramma ER
