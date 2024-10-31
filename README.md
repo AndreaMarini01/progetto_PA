@@ -719,8 +719,8 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
 
 ## Rotta di ottenimento del certificato di vittoria in PDF
 - **GET win-certificate/6**
+L'utente vincitore di una partita può scaricare il certificato di vittoria, non sono richiesti campi nel body. Di seguito viene riportato un esempio di file pdf:
 
-<img src="./images/Storico_mosse.jpg" alt="Risposta rotta '/do/move/1/export?format=pdf'"/>
 
 # Riconoscimenti
 
