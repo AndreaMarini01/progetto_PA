@@ -287,9 +287,11 @@ Importare la collection in Postman e seguire le istruzioni per testare le divers
 
 [Scarica le variabili d'ambiente Postman](./postman/PROGETTO_PA_2024.postman_environment.json)
 
-## Routes
-## Login dell'utente non admin 
+## Rotte
+
+## Rotta di Login come utente non admin 
 - **POST /login**
+  
 Per poter ottenere una risposta dalla seguente rotta è necessario riempire il campo body con i campi richiesti, di seguito viene riportato un esempio:
 
 ```json
@@ -304,6 +306,7 @@ Per poter ottenere una risposta dalla seguente rotta è necessario riempire il c
 "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwbGF5ZXJfaWQiOjIsImVtYWlsIjoiYWxlc3Npb0BnbWFpbC5jb20iLCJyb2xlIjoidXNlciIsImlhdCI6MTczMDM3MjExNiwiZXhwIjoxNzMwMzc1NzE2fQ.jCZQAAK0778mwo_gA7h9h0a4OB_ah1D2LyCYr71x8YE"
   ```
   In caso di utente non presente nel sistema viene generato un errore con relativo status code e messaggio personalizzato:
+  
   ```json
  {
      "email":"mario@gmail.com",
@@ -318,6 +321,37 @@ Per poter ottenere una risposta dalla seguente rotta è necessario riempire il c
      }
   ```
 
+## Rotta di Login come utente admin
+Per poter ottenere una risposta dalla seguente rotta è necessario riempire il campo body con i campi richiesti, di seguito viene riportato un esempio:
+
+```json
+{
+     "email":"admin@gmail.com",
+    "password":"adminpassword"
+ }
+  ```
+Se la richiesta viene effettuata correttamente viene restituito il token generato per l'utente:
+
+   ```json
+"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwbGF5ZXJfaWQiOjMsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzMwMzk5NzIwLCJleHAiOjE3MzA0MDMzMjB9.pafr21-jVwoYg27WrSmPNJbNBtL21NIto5PCZgHd3Nc"
+  ```
+  In caso di credenziali errate viene generato un errore con relativo status code e messaggio personalizzato:
+  
+  ```json
+ {
+     "email":"luca@gmail.com",
+    "password":"adminpassword"
+ }
+  ```
+
+  ```json
+     status: 401 UNAUTHORIZED
+     {
+       "message": "Invalid credentials provided."
+     }
+  ```
+
+
 ## Rotta protetta (decodeJWT)
 Quando un utente non autorizzato o con un token jwt errato tenta di accedere a una rotta protetta viene restituito il seguente messaggio di errore:
 
@@ -328,8 +362,9 @@ Quando un utente non autorizzato o con un token jwt errato tenta di accedere a u
      }
   ```
 
-## Creazione di una partita
+## Rotte di gestione di una partita
 - **POST /new-game**
+
 Per poter ottenere una risposta dalla seguente rotta è necessario riempire il campo body con i campi richiesti. È possibile creare una partita contro un giocatore reale (PVP) o contro l'intelligenza artificiale (PVE), dopo aver verificato che il/i giocatore/i non sono convolto/i in altre partite in corso. Di seguito viene riportato un esempio per entrambe le situazioni:
 
 ```json
@@ -440,23 +475,256 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
     }
 }
 }
+
 ```
-In caso di giocatore già coinvolto in un'altra partita viene generato un errore con relativo status code e messaggio personalizzato:
+
+## Rotta di esecuzione di una mossa
+- **POST /new-move**
+  
+Per poter ottenere una risposta dalla seguente rotta è necessario riempire il campo body con i campi richiesti. È possibile effettuare una mossa tra quelle disponibili. Di seguito viene riportato un esempio:
 ```json
 {
-    "opponent_email": "andrea@gmail.com"
+    "gameId": 6,
+    "from": "A7",
+    "to": "E7"
 }
 ```
 
+Se la richiesta viene effettuata correttamente viene restituito il seguente messaggio:
+
 ```json
-status: 409 Conflict
 {
-   "error": "The requesting player is already in an active game"
+    "message": "Move successfully executed",
+    "game_id": 6,
+    "moveDescription": "You moved a single from A7 to E7."
 }
 ```
-In caso di email non appartenente a un giocatore presente nel sistema viene generato un errore con relativo status code e messaggio personalizzato:
+
+## Rotta di visualizzazione della cronologia delle mosse della partita
+- **GET game/6/moves?format=json**
+
+Un utente può controllare la cronologia delle mosse effettuate in una partita, non sono richiesti campi nel body. Di seguito viene riportato un esempio:
+
+```json
+[
+    {
+        "moveNumber": 1,
+        "fromPosition": "A7",
+        "toPosition": "E7",
+        "pieceType": "single",
+        "timestamp": "31/10/2024 21:50:02",
+        "username": "Alessio Capriotti"
+    }
+]
+```
+
+
+## Rotta di abbandono della partita
+- **POST abandon-game/4**
+  
+Un utente impegnato in una partita può abbandonarla, non sono richiesti campi nel body. Di seguito viene riportato un esempio:
+
+```json
+{
+    "message": "Game with ID 4 has been abandoned.",
+    "game_id": 4,
+    "status": "Abandoned"
+}
+```
+
+
+
+## Rotta di visualizzazione delle partite completate
+- **GET completed-games?startDate=2024-10-26&endDate=2024-10-30**
+  
+È possibile visualizzare i dati relativi alle partite completate. Di seguito viene riportato un esempio:
+
+```json
+ "data": {
+        "games": [
+            {
+                "game_id": 1,
+                "player_id": 1,
+                "opponent_id": 2,
+                "status": "Completed",
+                "created_at": "1993-06-26T01:33:30.286Z",
+                "ended_at": null,
+                "type": "PvP",
+                "ai_difficulty": "Absent",
+                "total_moves": 0,
+                "winner_id": null,
+                "outcome": "Lost"
+            },
+            {
+                "game_id": 3,
+                "player_id": 2,
+                "opponent_id": null,
+                "status": "Completed",
+                "created_at": "2006-09-14T07:37:30.137Z",
+                "ended_at": "2024-10-31T18:31:41.221Z",
+                "type": "PvE",
+                "ai_difficulty": "Hard",
+                "total_moves": 0,
+                "winner_id": 2,
+                "outcome": "Won"
+            }
+        ],
+        "wins": 1,
+        "losses": 1
+    }
+```
+
+## Rotta di ricarica dei token
+- **PUT chargeTokens**
+  
+L'utente autenticato come admin può ricaricare il numero di token di un utente normale. Per poter ottenere una risposta dalla seguente rotta è necessario riempire il campo body con i campi richiesti. Di seguito viene riportato un esempio:
+
+```json
+{
+    "email": "andrea@gmail.com",
+    "tokens": "3"
+}
+```
+Se la richiesta viene effettuata correttamente viene restituito il seguente messaggio:
+
+```json
+{
+    "message": "Tokens have been updated!",
+    "currentTokens": "0.33"
+}
+```
+
+## Rotta di visualizzazione dello stato della partita
+- **GET game-status/4**
+  
+È possibile visualizzare i dati relativi allo stato della partita. Di seguito viene riportato un esempio:
+
+```json
+{
+    "message": "The current status of the game is: Ongoing",
+    "game_id": 4,
+    "board": {
+        "board": [
+            [
+                null,
+                "B",
+                null,
+                "B",
+                null,
+                "B",
+                null,
+                "B"
+            ],
+            [
+                "B",
+                null,
+                "B",
+                null,
+                "B",
+                null,
+                "B",
+                null
+            ],
+            [
+                null,
+                "B",
+                null,
+                "B",
+                null,
+                "B",
+                null,
+                "B"
+            ],
+            [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            ],
+            [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            ],
+            [
+                "W",
+                null,
+                "W",
+                null,
+                "W",
+                null,
+                "W",
+                null
+            ],
+            [
+                null,
+                "W",
+                null,
+                "W",
+                null,
+                "W",
+                null,
+                "W"
+            ],
+            [
+                "W",
+                null,
+                "W",
+                null,
+                "W",
+                null,
+                "W",
+                null
+            ]
+        ]
+    }
+}
+```
+
+## Rotta di visualizzazione della classifica
+- **GET leaderboard?order=desc**
+  
+È possibile visualizzare la classifica degli utenti in ordine crescente e decrescente di punteggio, non è necessaria alcuna autenticazione jwt. Di seguito viene riportato un esempio:
+
+```json
+"message": "Classifica giocatori recuperata con successo.",
+    "data": [
+        {
+            "username": "Andrea Marini",
+            "score": 10
+        },
+        {
+            "username": "Prova Prova",
+            "score": 7
+        },
+        {
+            "username": "Alessio Capriotti",
+            "score": 7
+        },
+        {
+            "username": "Admin Admin",
+            "score": 2
+        }
+    ]
+```
+
+## Rotta di ottenimento del certificato di vittoria in PDF
+- **GET win-certificate/6**
 
 # Riconoscimenti
-Il progetto è stato realizzato da Alessio Capriotti (Matricola: 1118918) e Andrea Marini (Matricola: 1118778), che hanno unito le loro competenze e conoscenze per sviluppare un sistema di gioco innovativo. Attraverso un lavoro di squadra e una stretta collaborazione, hanno affrontato le sfide del progetto, contribuendo a ciascuna fase dello sviluppo con dedizione e attenzione ai dettagli. La sinergia tra i due ha giocato un ruolo fondamentale nel raggiungimento degli obiettivi prefissati.
-    
+
+Andrea Marini (Matricola: 1118778)
+
+Alessio Capriotti (Matricola: 1118918) 
+
+Corso di Programmazione Avanzata A.A. 2023/2024 Università Politecnica delle Marche
    
