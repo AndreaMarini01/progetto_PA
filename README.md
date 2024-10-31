@@ -720,6 +720,8 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
 ## Rotta di ottenimento del certificato di vittoria in PDF
 - **GET win-certificate/6**
 
+<img src="./images/Storico_mosse.jpg" alt="Risposta rotta '/do/move/1/export?format=pdf'"/>
+
 # Riconoscimenti
 
 Andrea Marini (Matricola: 1118778)
