@@ -241,6 +241,18 @@ Ogni Factory fornisce un’interfaccia unificata per la creazione degli errori H
 - **Uniformità nei codici di stato HTTP:** Utilizzando una libreria come http-status-codes, le Factory possono associare facilmente i codici HTTP appropriati agli errori, garantendo una gestione standardizzata delle eccezioni.
 - **Estensibilità:** Le Factory per **auth**, **game**, **move** e **token** rendono il sistema di gestione degli errori flessibile, consentendo di aggiungere nuovi tipi di errori o modificare quelli esistenti senza intervenire in ogni singola area del codice.
 
+# Avvio del Progetto
+## Prerequisiti
+- Docker
+- Docker-compose
+
+## Configurazione
+1. Clonare il repository:
+   
+```
+git clone 
+cd ProgrammazioneAvanzata2024
+```
 
 # Riconoscimenti
 Il progetto è stato realizzato da Alessio Capriotti (Matricola: 1118918) e Andrea Marini (Matricola: 1118778), che hanno unito le loro competenze e conoscenze per sviluppare un sistema di gioco innovativo. Attraverso un lavoro di squadra e una stretta collaborazione, hanno affrontato le sfide del progetto, contribuendo a ciascuna fase dello sviluppo con dedizione e attenzione ai dettagli. La sinergia tra i due ha giocato un ruolo fondamentale nel raggiungimento degli obiettivi prefissati.
