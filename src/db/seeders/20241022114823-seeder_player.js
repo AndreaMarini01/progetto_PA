@@ -60,6 +60,19 @@ module.exports = {
       }
     ];
     await queryInterface.bulkInsert('Player', players, {});
+
+    // Necessario per inserire separatamente un record rappresentante l'IA
+    await queryInterface.bulkInsert('Player', [
+      {
+        player_id: -1,
+        username: 'Artificial Intelligence',
+        email: 'artificialintelligence@gmail.com',
+        ...hashPassword('no_password'),
+        tokens: 0,
+        role: 'user',
+        score: 0,
+      }
+    ], {});
   },
 
   async down(queryInterface, Sequelize) {

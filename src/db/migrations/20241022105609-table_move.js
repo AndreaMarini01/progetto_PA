@@ -9,7 +9,7 @@
  *   - `move_id` (INTEGER) - Chiave primaria autoincrementante, non nulla.
  *   - `game_id` (INTEGER) - Chiave esterna riferita a `Game`, con aggiornamento e cancellazione a cascata, non nulla.
  *   - `user_id` (INTEGER) - Chiave esterna riferita a `Player`, con aggiornamento e cancellazione a cascata, può essere nullo.
- *   - `createdAt` (DATE) - Data di creazione della mossa, non nulla, con valore predefinito `Sequelize.NOW`.
+ *   - `created_at` (DATE) - Data di creazione della mossa, non nulla, con valore predefinito `Sequelize.NOW`.
  *   - `move_number` (INTEGER) - Numero progressivo della mossa all'interno della partita, non nullo.
  *   - `board` (JSON) - Stato della board dopo la mossa, può essere nullo.
  *   - `piece_type` (STRING) - Tipo di pezzo mosso (facoltativo), può essere nullo.
@@ -54,7 +54,7 @@ module.exports = {
         onDelete: 'CASCADE',
         allowNull: true
       },
-      createdAt: {
+      created_at: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.NOW

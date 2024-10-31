@@ -56,22 +56,24 @@ const GAME_CREATION_COST = 0.35;
 
 class gameService {
 
-    public async findActiveGameForPlayer(playerId: number, opponentId: number | null): Promise<Game | null> {
+    public async findActiveGameForPlayer(playerId: number, opponentId: number): Promise<Game | null> {
+        const orConditions = [{ player_id: playerId }, { opponent_id: playerId }];
+
+        if (opponentId !== -1) {
+            orConditions.push({ player_id: opponentId }, { opponent_id: opponentId });
+        }
+
         return Game.findOne({
             where: {
                 status: GameStatus.ONGOING,
-                [Op.or]: [
-                    { player_id: playerId },
-                    { opponent_id: playerId },
-                    ...(opponentId !== null ? [{ player_id: opponentId }, { opponent_id: opponentId }] : [])
-                ]
+                [Op.or]: orConditions
             }
         });
     }
 
     public async createGame(
         playerId: number,
-        opponentEmail: number | null,
+        opponentEmail: number,
         type: GameType,
         aiDifficulty: AIDifficulty = AIDifficulty.ABSENT,
         board: any,
@@ -86,7 +88,7 @@ class gameService {
         }
         player.tokens -= GAME_CREATION_COST;
         await player.save();
-        let opponentId: number | null = null;
+        let opponentId: number = -1;
         if (type === GameType.PVP) {
             if (!opponentEmail) {
                 throw GameFactory.createError(gameErrorType.MISSING_GAME_PARAMETERS);
@@ -99,7 +101,7 @@ class gameService {
         }
         const newGame = await Game.create({
             player_id: playerId,
-            opponent_id: type === GameType.PVP ? opponentId : null,
+            opponent_id: type === GameType.PVP ? opponentId : -1,
             status: GameStatus.ONGOING,
             type,
             ai_difficulty: type === GameType.PVE ? aiDifficulty : AIDifficulty.ABSENT,
@@ -148,11 +150,11 @@ class gameService {
         if ((startDate && !endDate) || (!startDate && endDate)) {
             throw GameFactory.createError(gameErrorType.MISSING_DATE);
         }
-        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-        if (startDate && !dateRegex.test(startDate)) {
+        const isoDateRegex = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(?:\.\d{3})?(Z|[+-]\d{2}:\d{2}))?$/;
+        if (startDate && !isoDateRegex.test(startDate)) {
             throw GameFactory.createError(gameErrorType.INVALID_DATE); // Errore per formato data non valido
         }
-        if (endDate && !dateRegex.test(endDate)) {
+        if (endDate && !isoDateRegex.test(endDate)) {
             throw GameFactory.createError(gameErrorType.INVALID_DATE); // Errore per formato data non valido
         }
         // Validazione delle date
@@ -250,21 +252,46 @@ class gameService {
         const timeTakenMinutes = Math.floor(timeTaken / (1000 * 60)); // Tempo in minuti
         // Conta il numero totale di mosse
         const totalMoves = game.total_moves;
+
+        // Imposta il nome del vincitore come l'utente loggato (playerId) di default
         let winnerName = "Sconosciuto";
-        if (game.winner_id) {
-            const winner = await Player.findOne({ where: { player_id: game.winner_id } });
+        let opponentName = "Sconosciuto";
+
+        // Recupera il nome del vincitore usando `game.winner_id`
+        if (game.winner_id === playerId) {
+            // Il chiamante è il vincitore
+            const winner = await Player.findOne({where: {player_id: game.winner_id}});
             if (winner) {
                 winnerName = winner.username;
             }
-        }
-        // Ottieni il nome dell'avversario
-        let opponentName = "AI";
-        if (game.opponent_id) {
-            const opponent = await Player.findOne({ where: { player_id: game.opponent_id } });
-            if (opponent) {
-                opponentName = opponent.username;
+            // Imposta opponentName in base a opponent_id
+            if (game.opponent_id === -1) {
+                opponentName = "AI";
+            } else if (game.opponent_id !== -1) {
+                const opponent = await Player.findOne({where: {player_id: game.opponent_id}});
+                if (opponent) {
+                    opponentName = opponent.username;
+                }
             }
         }
+
+        if (game.opponent_id === playerId) {
+                const winner = await Player.findOne({where: { player_id: game.opponent_id}});
+            if (winner) {
+                winnerName = winner.username;
+            }
+
+            if (game.player_id === -1) {
+                opponentName = "AI";
+            } else if (game.player_id !== -1) {
+                const opponent= await Player.findOne({where:{ player_id: game.player_id }});
+                if (opponent) {
+                    opponentName = opponent.username
+                }
+            }
+
+        }
+
         const formattedStartDate = game.created_at ? new Date(game.created_at).toDateString() + ' ' + new Date(game.created_at).toTimeString().split(' ')[0] : "Data non disponibile";
         const formattedEndDate = game.ended_at ? new Date(game.ended_at).toDateString() + ' ' + new Date(game.ended_at).toTimeString().split(' ')[0] : "Data non disponibile";
         // Genera il PDF

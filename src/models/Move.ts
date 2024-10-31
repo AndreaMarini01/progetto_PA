@@ -2,6 +2,7 @@ import { DataTypes, Model, Optional } from 'sequelize';
 import Database from '../db/database'; // Importa l'istanza Singleton del Database
 import Game from './Game';
 import Player from './Player';
+import moment from "moment-timezone";
 
 /**
  * Interfaccia che definisce gli attributi del modello `Move`.
@@ -11,7 +12,7 @@ interface MoveAttributes {
     move_id: number;
     game_id: number;
     user_id?: number | null;
-    createdAt?: Date;
+    created_at?: Date;
     move_number?: number;
     board?: object;
     from_position?: string;
@@ -35,7 +36,7 @@ interface MoveCreationAttributes extends Optional<MoveAttributes, 'move_id'> {}
  * @property {number} move_id - ID univoco della mossa.
  * @property {number} game_id - ID della partita a cui appartiene la mossa.
  * @property {number | undefined} user_id - ID dell'utente che ha effettuato la mossa, opzionale.
- * @property {Date} createdAt - Data e ora in cui la mossa è stata effettuata.
+ * @property {Date} created_at - Data e ora in cui la mossa è stata effettuata.
  * @property {number | undefined} move_number - Numero progressivo della mossa nella partita.
  * @property {object | undefined} board - Configurazione della board al momento della mossa, rappresentata in formato JSON.
  * @property {string | undefined} from_position - Posizione di partenza della mossa.
@@ -52,7 +53,7 @@ interface MoveCreationAttributes extends Optional<MoveAttributes, 'move_id'> {}
  *   - `board` - Configurazione della board al momento della mossa in formato JSON.
  *   - `from_position` e `to_position` - Posizioni di partenza e destinazione della mossa.
  *   - `piece_type` - Tipo di pezzo mosso.
- *   - `createdAt` - Timestamp della mossa, impostato alla data e ora correnti.
+ *   - `created_at` - Timestamp della mossa, impostato alla data e ora correnti.
  *
  * @method associate
  * Configura le associazioni di `Move` con altri modelli:
@@ -69,7 +70,7 @@ class Move extends Model<MoveAttributes, MoveCreationAttributes> implements Move
     public move_id!: number;
     public game_id!: number;
     public user_id?: number;
-    public readonly createdAt!: Date;
+    public readonly created_at!: Date;
     public move_number?: number;
     public board?: object;
     public from_position?: string;
@@ -125,10 +126,14 @@ class Move extends Model<MoveAttributes, MoveCreationAttributes> implements Move
                     type: DataTypes.STRING,
                     allowNull: true,
                 },
-                createdAt: {
+                created_at: {
                     type: DataTypes.DATE,
                     allowNull: false,
                     defaultValue: DataTypes.NOW,
+                    get() {
+                        const rawDate = this.getDataValue('created_at');
+                        return rawDate ? moment(rawDate).tz('Europe/Rome').format() : null;
+                    }
                 },
             },
             {

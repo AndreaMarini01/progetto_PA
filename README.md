@@ -201,7 +201,7 @@ erDiagram
         integer move_id PK "Primary Key"
         integer game_id FK "Foreign Key from Game"
         integer user_id FK "Foreign Key from Player (optional)"
-        date createdAt "Move creation date"
+        date created_at "Move creation date"
         integer move_number "Move number in the game"
         json board "Board configuration after the move"
         string from_position "Starting position of the move"

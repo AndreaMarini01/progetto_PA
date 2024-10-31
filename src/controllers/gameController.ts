@@ -89,8 +89,8 @@ class gameController {
             if (!playerId) {
                 throw GameFactory.createError(gameErrorType.MISSING_PLAYER_ID);
             }
-            let opponentId: number | null = null;
-            //let opponentId: number | null = -1
+            //let opponentId: number | null = null;
+            let opponentId: number | null = -1
             if (opponent_email) {
                 const opponent = await Player.findOne({where: {email: opponent_email}});
                 if (!opponent) {
@@ -103,8 +103,8 @@ class gameController {
                 if (existingGame.player_id === playerId || existingGame.opponent_id === playerId) {
                     throw GameFactory.createError(gameErrorType.PLAYER_ALREADY_IN_GAME);
                 }
-                if (opponentId !== null && (existingGame.player_id === opponentId || existingGame.opponent_id === opponentId)) {
-                //if (opponentId !== -1 && (existingGame.player_id === opponentId || existingGame.opponent_id === opponentId)) {
+                //if (opponentId !== null && (existingGame.player_id === opponentId || existingGame.opponent_id === opponentId)) {
+                if (opponentId !== -1 && (existingGame.player_id === opponentId || existingGame.opponent_id === opponentId)) {
                     throw GameFactory.createError(gameErrorType.OPPONENT_ALREADY_IN_GAME);
                 }
             }

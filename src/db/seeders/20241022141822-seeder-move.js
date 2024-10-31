@@ -8,7 +8,7 @@
  * Inserisce un insieme di mosse di esempio nella tabella `Move` con i seguenti campi:
  *   - `game_id` (INTEGER) - ID della partita a cui appartiene la mossa.
  *   - `user_id` (INTEGER) - ID dell'utente che ha effettuato la mossa.
- *   - `createdAt` (DATE) - Timestamp della mossa, impostato a `new Date()` per l'attuale data e ora.
+ *   - `created_at` (DATE) - Timestamp della mossa, impostato a `new Date()` per l'attuale data e ora.
  *   - `move_number` (INTEGER) - Numero progressivo della mossa all'interno della partita.
  *   - `from_position` (STRING) - Posizione di partenza della mossa (es: 'E2').
  *   - `to_position` (STRING) - Posizione di destinazione della mossa (es: 'E4').
@@ -40,7 +40,7 @@ module.exports = {
       {
         game_id: 1,
         user_id: 1,
-        createdAt: new Date(),
+        created_at: new Date(),
         move_number: 1,
         from_position: 'E2',
         to_position: 'E4',
@@ -50,7 +50,7 @@ module.exports = {
       {
         game_id: 1,
         user_id: 2,
-        createdAt: new Date(),
+        created_at: new Date(),
         move_number: 2,
         from_position: 'E2',
         to_position: 'E4',
@@ -60,7 +60,7 @@ module.exports = {
       {
         game_id: 2,
         user_id: 1,
-        createdAt: new Date(),
+        created_at: new Date(),
         move_number: 1,
         from_position: 'E2',
         to_position: 'E4',

@@ -47,7 +47,7 @@ module.exports = {
       },
       opponent_id: {
         type: Sequelize.INTEGER,
-        allowNull: true
+        allowNull: false
       },
       winner_id: {
         type: Sequelize.INTEGER,
@@ -72,7 +72,7 @@ module.exports = {
       },
       ai_difficulty: {
         type: Sequelize.ENUM('absent','easy', 'hard'),
-        allowNull: true
+        allowNull: false
       },
       board: {
         type: Sequelize.JSON,

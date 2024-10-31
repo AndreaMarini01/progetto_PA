@@ -2,6 +2,7 @@ import { DataTypes, Model, Optional } from 'sequelize';
 import Database from '../db/database'; // Importa l'istanza Singleton del Database
 import Player from './Player';
 import Move from './Move';
+import moment from 'moment-timezone';
 
 /**
  * Enumerazione che definisce gli stati possibili per il gioco.
@@ -40,7 +41,7 @@ export enum AIDifficulty {
 interface GameAttributes {
     game_id: number;
     player_id: number;
-    opponent_id?: number | null;
+    opponent_id: number;
     status: GameStatus;
     created_at?: Date;
     ended_at?: Date;
@@ -48,7 +49,7 @@ interface GameAttributes {
     ai_difficulty: AIDifficulty;
     board: any;
     total_moves: number;
-    winner_id: number | null;
+    winner_id?: number | null;
 }
 
 /**
@@ -106,7 +107,7 @@ interface GameCreationAttributes extends Optional<GameAttributes, 'game_id' | 'e
 class Game extends Model<GameAttributes, GameCreationAttributes> implements GameAttributes {
     public game_id!: number;
     public player_id!: number;
-    public opponent_id?: number | null;
+    public opponent_id!: number;
     public status!: GameStatus;
     public created_at!: Date;
     public ended_at?: Date;
@@ -114,7 +115,7 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
     public ai_difficulty!: AIDifficulty;
     public board!: any;
     public total_moves!: number;
-    public winner_id!: number | null;
+    public winner_id?: number | null;
 
     public static initialize() {
         Game.init(
@@ -135,7 +136,7 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
                 },
                 opponent_id: {
                     type: DataTypes.INTEGER,
-                    allowNull: true,
+                    allowNull: false,
                     references: {
                         model: Player,
                         key: 'player_id',
@@ -149,10 +150,18 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
                     type: DataTypes.DATE,
                     allowNull: false,
                     defaultValue: DataTypes.NOW,
+                    get() {
+                        const rawDate = this.getDataValue('created_at');
+                        return rawDate ? moment(rawDate).tz('Europe/Rome').format() : null;
+                    }
                 },
                 ended_at: {
                     type: DataTypes.DATE,
                     allowNull: true,
+                    get() {
+                        const rawDate = this.getDataValue('ended_at');
+                        return rawDate ? moment(rawDate).tz('Europe/Rome').format() : null;
+                    }
                 },
                 type: {
                     type: DataTypes.ENUM(GameType.PVP, GameType.PVE),

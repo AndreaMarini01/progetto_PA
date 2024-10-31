@@ -54,7 +54,7 @@ import MoveFactory, {moveErrorType} from "../factories/moveFactory";
 import AuthFactory, {authErrorType} from "../factories/authFactory";
 import GameFactory, {gameErrorType} from "../factories/gameFactory";
 import PDFDocument from 'pdfkit';
-import {format as dateFormat} from 'date-fns';
+import moment from 'moment';
 
 const TIMEOUT_MINUTES = 1;
 const MOVE_COST = 0.02;
@@ -151,19 +151,19 @@ class moveService {
                 game_id: gameId,
                 user_id: playerId
             },
-            order: [['createdAt', 'DESC']]
+            order: [['created_at', 'DESC']]
         });
         if (lastMove) {
-            const lastMoveTime = new Date(lastMove.createdAt);
+            const lastMoveTime = new Date(lastMove.created_at);
             const currentTime = new Date();
             const timeDifference = (currentTime.getTime() - lastMoveTime.getTime()) / (1000 * 60); // Differenza in minuti
             if (timeDifference > TIMEOUT_MINUTES) {
                 // Imposta lo stato della partita come persa per "timeout"
                 game.status = GameStatus.TIMED_OUT;
                 game.ended_at = currentTime;
-                if (game.opponent_id === null) {
+                if (game.opponent_id === -1) {
                     // La partita è contro l'IA, quindi l'IA vince
-                    game.winner_id = -1; // Usa `null` per indicare la vittoria dell'IA
+                    game.winner_id = -1; // Usa -1 per indicare la vittoria dell'IA
                 } else {
                     // La partita è PvP, quindi l'altro giocatore vince
                     game.winner_id = (game.player_id === playerId) ? game.opponent_id ?? null : game.player_id ?? null;
@@ -222,9 +222,9 @@ class moveService {
             const lastAIMove = await Move.findOne({
                 where: {
                     game_id: gameId,
-                    user_id: null, // Controllo solo per l'IA
+                    user_id: -1, // Controllo solo per l'IA
                 },
-                order: [['createdAt', 'DESC']],
+                order: [['created_at', 'DESC']],
             });
 
             let aiMove = await moveService.chooseAIMove(draughts, game.ai_difficulty);
@@ -264,7 +264,7 @@ class moveService {
                     to_position: toPositionAI,
                     piece_type: savedBoard[aiMove.origin]?.piece?.king ? 'king' : 'single',
                     game_id: gameId,
-                    user_id: null, // Indica che la mossa è dell'IA
+                    user_id: -1, // Indica che la mossa è dell'IA
                 });
 
                 // Verifica se la mossa dell'IA ha concluso il gioco
@@ -298,14 +298,14 @@ class moveService {
 
     private static async handleGameOver(draughts: any, game: any) {
         let result;
-        let winnerId: number | null = null;
+        let winnerId: number = -1;
         if (draughts.status === DraughtsStatus.LIGHT_WON) {
             winnerId = game.player_id;
             result = 'You have won!';
         } else if (draughts.status === DraughtsStatus.DARK_WON) {
             if (game.type === GameType.PVE) {
                 // Se è una partita PvE, l'IA ha vinto
-                winnerId = -1; // Usa `null` per rappresentare la vittoria dell'IA
+                winnerId = -1; // Usa -1 per rappresentare la vittoria dell'IA
                 result = 'The AI has won!';
             } else {
                 // Se è una partita PvP, l'avversario ha vinto
@@ -323,7 +323,7 @@ class moveService {
         await game.save();
 
         //Assegna un punto al vincitore, se esiste
-        if (winnerId !== null) {
+        if (winnerId !== -1) {
             const winner = await Player.findByPk(winnerId);
             if (winner) {
                 winner.score += 1;
@@ -337,36 +337,37 @@ class moveService {
     }
 
     public static async exportMoveHistory(gameId: number, format: string): Promise<Buffer | object> {
-        // Recupera tutte le mosse di una partita specifica, senza join
+        // Recupera tutte le mosse di una partita specifica
         const moves = await Move.findAll({
             where: {game_id: gameId},
-            order: [['createdAt', 'ASC']],
+            order: [['created_at', 'ASC']],
         });
         if (!moves.length) {
             throw MoveFactory.createError(moveErrorType.NO_MOVES)
         }
-        // Estrai i `user_id` unici, escludendo `null`
-        const userIds = [...new Set(moves.map(move => move.user_id).filter(id => id !== null))];
-        // Filtra undefined da userIds, mantenendo solo i valori definiti (numeri)
-        const validUserIds = userIds.filter((id): id is number => id !== undefined);
+        // Estrai gli `user_id` unici e validi
+        const userIds = [...new Set(moves.map(move => move.user_id as number))];
+
         // Recupera gli username per i `user_id` validi
         const players = await Player.findAll({
-            where: {player_id: validUserIds},
+            where: { player_id: userIds },
             attributes: ['player_id', 'username'],
         });
+
         // Crea una mappa `user_id -> username` per accesso rapido
         const userMap = players.reduce((map, player) => {
             map[player.player_id] = player.username;
             return map;
         }, {} as Record<number, string>);
-        // Mappa le mosse con l'username del giocatore, o "IA" se `user_id` è null
+
+        // Mappa le mosse con l'username del giocatore, o "IA" se `user_id` è -1
         const movesWithUsernames = moves.map(move => ({
             move_number: move.move_number,
             from_position: move.from_position,
             to_position: move.to_position,
             piece_type: move.piece_type,
-            created_at: dateFormat(new Date(move.createdAt), 'dd/MM/yyyy HH:mm:ss'),
-            username: move.user_id === null ? 'Artificial Intelligence' : userMap[move.user_id!] || 'Unknown Player',
+            created_at: moment.parseZone(move.created_at).format('DD/MM/YYYY HH:mm:ss'),
+            username: move.user_id === -1 ? 'Artificial Intelligence' : userMap[move.user_id!] || 'Unknown Player',
         }));
         // Ritorna in formato JSON o PDF
         if (format === 'json') {

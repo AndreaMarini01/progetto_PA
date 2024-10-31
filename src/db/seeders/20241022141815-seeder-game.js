@@ -81,7 +81,7 @@ module.exports = {
       {
         status: 'ongoing',
         player_id: 1,
-        opponent_id: null,
+        opponent_id: -1,
         created_at: getRandomDate(),
         ended_at: new Date(),
         type: 'pve',
@@ -91,14 +91,14 @@ module.exports = {
         total_moves:0
       },
       {
-        player_id: 2,
-        opponent_id: null,
+        player_id: 3,
+        opponent_id: -1,
         status: 'timed out',
         created_at: getRandomDate(),
         ended_at: new Date(),
         type: 'pve',
         ai_difficulty: 'hard',
-        winner_id: 2,
+        winner_id: 3,
         board: Sequelize.literal(`'${serializedBoard}'::json`),
         total_moves:0
       }
