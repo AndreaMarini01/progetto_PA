@@ -54,7 +54,7 @@ module.exports = {
         allowNull: true,
       },
       status: {
-        type: Sequelize.ENUM('Ongoing', 'Completed', 'Abandoned', 'Timed Out'),
+        type: Sequelize.ENUM('ongoing', 'completed', 'abandoned', 'timed out'),
         allowNull: false
       },
       created_at: {
@@ -67,11 +67,11 @@ module.exports = {
         allowNull: true
       },
       type: {
-        type: Sequelize.ENUM('PvP', 'PvE'),
+        type: Sequelize.ENUM('pvp', 'pve'),
         allowNull: false
       },
       ai_difficulty: {
-        type: Sequelize.ENUM('Absent','Easy', 'Hard'),
+        type: Sequelize.ENUM('absent','easy', 'hard'),
         allowNull: true
       },
       board: {

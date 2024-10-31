@@ -51,6 +51,10 @@ class Database {
                     dialect: process.env.DB_DIALECT,
                     port: process.env.DB_PORT,
                     logging: false,
+                    timezone: 'Europe/Rome',
+                    dialectOptions: {
+                        timezone: 'Europe/Rome'
+                    }
                 }
             );
             Database.instance = this; // Salva l'istanza

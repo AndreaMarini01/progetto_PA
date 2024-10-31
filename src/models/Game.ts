@@ -8,10 +8,10 @@ import Move from './Move';
  */
 
 export enum GameStatus {
-    ONGOING = 'Ongoing',
-    COMPLETED = 'Completed',
-    ABANDONED = 'Abandoned',
-    TIMED_OUT = 'Timed Out',
+    ONGOING = 'ongoing',
+    COMPLETED = 'completed',
+    ABANDONED = 'abandoned',
+    TIMED_OUT = 'timed out',
 }
 
 /**
@@ -19,8 +19,8 @@ export enum GameStatus {
  */
 
 export enum GameType {
-    PVP = 'PvP',
-    PVE = 'PvE'
+    PVP = 'pvp',
+    PVE = 'pve'
 }
 
 /**
@@ -28,9 +28,9 @@ export enum GameType {
  */
 
 export enum AIDifficulty {
-    ABSENT = 'Absent',
-    EASY = 'Easy',
-    HARD = 'Hard',
+    ABSENT = 'absent',
+    EASY = 'easy',
+    HARD = 'hard',
 }
 
 /**
@@ -46,8 +46,6 @@ interface GameAttributes {
     ended_at?: Date;
     type: GameType;
     ai_difficulty: AIDifficulty;
-    //updatedAt?: Date;
-    //date: Date;
     board: any;
     total_moves: number;
     winner_id: number | null;

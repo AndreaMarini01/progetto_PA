@@ -52,6 +52,13 @@ class MoveController {
      */
 
     public static async executeMove(req: Request, res: Response, next: NextFunction) {
+        // Converte `from` e `to` in maiuscolo
+        if (req.body.from && typeof req.body.from === 'string') {
+            req.body.from = req.body.from.toUpperCase();
+        }
+        if (req.body.to && typeof req.body.to === 'string') {
+            req.body.to = req.body.to.toUpperCase();
+        }
         const { gameId, from, to } = req.body;
         // Ottieni il playerId dall'utente autenticato
         const playerId = req.user?.player_id;
@@ -60,7 +67,6 @@ class MoveController {
             throw AuthFactory.createError(authErrorType.NEED_AUTHORIZATION);
         }
         if (!gameId || !from || !to) {
-            //return res.status(400).json({ message: 'Missing required parameters' });
             throw MoveFactory.createError(moveErrorType.MISSING_PARAMS);
         }
             // Passa i parametri al servizio per eseguire la mossa

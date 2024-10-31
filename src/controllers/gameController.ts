@@ -76,6 +76,13 @@ class gameController {
      */
 
     public async createGame(req: Request, res: Response, next: NextFunction): Promise<void> {
+        // Converte `opponent_email` e `ai_difficulty` in minuscolo, se presenti
+        if (req.body.opponent_email && typeof req.body.opponent_email === 'string') {
+            req.body.opponent_email = req.body.opponent_email.toLowerCase();
+        }
+        if (req.body.ai_difficulty && typeof req.body.ai_difficulty === 'string') {
+            req.body.ai_difficulty = req.body.ai_difficulty.toLowerCase();
+        }
         const {opponent_email, ai_difficulty} = req.body;
         const playerId = req.user?.player_id;
         try {
@@ -83,6 +90,7 @@ class gameController {
                 throw GameFactory.createError(gameErrorType.MISSING_PLAYER_ID);
             }
             let opponentId: number | null = null;
+            //let opponentId: number | null = -1
             if (opponent_email) {
                 const opponent = await Player.findOne({where: {email: opponent_email}});
                 if (!opponent) {
@@ -96,6 +104,7 @@ class gameController {
                     throw GameFactory.createError(gameErrorType.PLAYER_ALREADY_IN_GAME);
                 }
                 if (opponentId !== null && (existingGame.player_id === opponentId || existingGame.opponent_id === opponentId)) {
+                //if (opponentId !== -1 && (existingGame.player_id === opponentId || existingGame.opponent_id === opponentId)) {
                     throw GameFactory.createError(gameErrorType.OPPONENT_ALREADY_IN_GAME);
                 }
             }

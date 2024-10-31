@@ -64,7 +64,6 @@ class moveService {
     private static async chooseAIMove(draughts: any, difficulty: AIDifficulty): Promise<DraughtsMove1D | null> {
         const validMoves = draughts.moves;
         if (validMoves.length === 0) return null;
-
         switch (difficulty) {
             case AIDifficulty.EASY:
                 // Se la difficoltà è EASY, usa il computer casuale
@@ -362,11 +361,11 @@ class moveService {
         }, {} as Record<number, string>);
         // Mappa le mosse con l'username del giocatore, o "IA" se `user_id` è null
         const movesWithUsernames = moves.map(move => ({
-            moveNumber: move.move_number,
-            fromPosition: move.from_position,
-            toPosition: move.to_position,
-            pieceType: move.piece_type,
-            timestamp: dateFormat(new Date(move.createdAt), 'dd/MM/yyyy HH:mm:ss'),
+            move_number: move.move_number,
+            from_position: move.from_position,
+            to_position: move.to_position,
+            piece_type: move.piece_type,
+            created_at: dateFormat(new Date(move.createdAt), 'dd/MM/yyyy HH:mm:ss'),
             username: move.user_id === null ? 'Artificial Intelligence' : userMap[move.user_id!] || 'Unknown Player',
         }));
         // Ritorna in formato JSON o PDF
@@ -392,14 +391,14 @@ class moveService {
 
             movesWithUsernames.forEach((move, index) => {
                 // Titolo della mossa con numero progressivo
-                doc.fontSize(16).fillColor('#333').text(`Move #${move.moveNumber}`, { underline: true });
+                doc.fontSize(16).fillColor('#333').text(`Move #${move.move_number}`, { underline: true });
 
                 // Dettagli della mossa
                 doc.fontSize(12).fillColor('#000').text(`Player: ${move.username}`);
-                doc.fontSize(12).fillColor('#000').text(`From: ${move.fromPosition}`);
-                doc.fontSize(12).fillColor('#000').text(`To: ${move.toPosition}`);
-                doc.fontSize(12).fillColor('#000').text(`Piece: ${move.pieceType}`);
-                doc.fontSize(12).fillColor('#000').text(`At time: ${move.timestamp}`);
+                doc.fontSize(12).fillColor('#000').text(`From: ${move.from_position}`);
+                doc.fontSize(12).fillColor('#000').text(`To: ${move.to_position}`);
+                doc.fontSize(12).fillColor('#000').text(`Piece: ${move.piece_type}`);
+                doc.fontSize(12).fillColor('#000').text(`At time: ${move.created_at}`);
                 doc.moveDown(1);
 
                 // Linea separatrice per ogni mossa

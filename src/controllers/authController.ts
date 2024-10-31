@@ -47,6 +47,10 @@ class authController {
      */
 
     public async login(req: Request, res: Response, next: NextFunction): Promise<void> {
+        // Converte l'email in minuscolo, se presente
+        if (req.body.email && typeof req.body.email === 'string') {
+            req.body.email = req.body.email.toLowerCase();
+        }
         const { email, password } = req.body;
         try {
             if (!email || !password) {
