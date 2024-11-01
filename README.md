@@ -503,7 +503,8 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
 ```
 
 ## Rotta di visualizzazione della cronologia delle mosse della partita
-- **GET game/6/moves?format=json**
+
+- **GET /game/6/moves?format=json**
 
 Un utente può controllare la cronologia delle mosse effettuate in una partita, non sono richiesti campi nel body. Di seguito viene riportato un esempio:
 
@@ -519,9 +520,10 @@ Un utente può controllare la cronologia delle mosse effettuate in una partita, 
     }
 ]
 ```
+- **GET /game/1/moves?format=pdf
 
 Di seguito viene riportato un esempio della cronologia delle mosse eseguite in una partita in formato PDF:
-[Qui un esempio di file .pdf generato](./images/Move History.pdf)
+[Qui un esempio di file .pdf generato](./images/MoveHistory.pdf)
 
 
 ## Rotta di abbandono della partita
@@ -540,7 +542,7 @@ Un utente impegnato in una partita può abbandonarla, non sono richiesti campi n
 
 
 ## Rotta di visualizzazione delle partite completate
-- **GET completed-games?startDate=2024-10-26&endDate=2024-10-30**
+- **GET /completed-games?startDate=2024-10-26&endDate=2024-10-30**
   
 È possibile visualizzare i dati relativi alle partite completate. Di seguito viene riportato un esempio:
 
@@ -580,7 +582,7 @@ Un utente impegnato in una partita può abbandonarla, non sono richiesti campi n
 ```
 
 ## Rotta di ricarica dei token
-- **PUT chargeTokens**
+- **PUT /chargeTokens**
   
 L'utente autenticato come admin può ricaricare il numero di token di un utente normale. Per poter ottenere una risposta dalla seguente rotta è necessario riempire il campo body con i campi richiesti. Di seguito viene riportato un esempio:
 
@@ -600,7 +602,7 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
 ```
 
 ## Rotta di visualizzazione dello stato della partita
-- **GET game-status/4**
+- **GET /game-status/4**
   
 È possibile visualizzare i dati relativi allo stato della partita. Di seguito viene riportato un esempio:
 
@@ -696,7 +698,7 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
 ```
 
 ## Rotta di visualizzazione della classifica
-- **GET leaderboard?order=desc**
+- **GET /leaderboard?order=desc**
   
 È possibile visualizzare la classifica degli utenti in ordine crescente e decrescente di punteggio, non è necessaria alcuna autenticazione jwt. Di seguito viene riportato un esempio:
 
@@ -723,7 +725,7 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
 ```
 
 ## Rotta di ottenimento del certificato di vittoria in PDF
-- **GET win-certificate/6**
+- **GET /win-certificate/6**
 L'utente vincitore di una partita può scaricare il certificato di vittoria, non sono richiesti campi nel body. Di seguito viene riportato un esempio di file pdf:
 
  [Qui un esempio di file .pdf generato](./images/WinnerCertificate.pdf)
