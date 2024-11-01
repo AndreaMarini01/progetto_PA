@@ -163,54 +163,53 @@ Il diagramma di sequenza per la rotta di login descrive il flusso di interazione
 
 ```mermaid
 sequenceDiagram
-    autonumber
     participant Client
-    participant Router as authRoute
-    participant Controller as authController
-    participant DB as Database
-    participant JWT as JWT Library
-    participant ErrorFactory as AuthFactory
+    participant AuthRoute as /login (authRoute)
+    participant AuthController as authController
+    participant PlayerModel as Player Model
+    participant AuthFactory as AuthFactory
+    participant JWT as JWT Service
     participant ErrorHandler as errorHandler
 
-    Client->>Router: POST /login { email, password }
-    Router->>Controller: chiama login(req, res, next)
-    
-    alt Mancano email o password
-        Controller->>ErrorFactory: crea INVALID_CREDENTIALS
-        ErrorFactory-->>Controller: AuthError(INVALID_CREDENTIALS)
-        Controller->>ErrorHandler: passa l'errore
-        ErrorHandler->>Client: 401 Unauthorized {"error": "Invalid credentials provided."}
+    Client->>AuthRoute: POST /login { email, password }
+    AuthRoute->>AuthController: login(req, res, next)
+
+    alt Email o password assenti
+        AuthController->>AuthFactory: createError(INVALID_CREDENTIALS)
+        AuthFactory-->>AuthController: AuthError("Invalid credentials provided.")
+        AuthController->>ErrorHandler: next(AuthError)
+        ErrorHandler-->>Client: 401 Unauthorized { error: "Invalid credentials provided." }
+    else Email non valida
+        AuthController->>AuthFactory: createError(INVALID_CREDENTIALS)
+        AuthFactory-->>AuthController: AuthError("Invalid credentials provided.")
+        AuthController->>ErrorHandler: next(AuthError)
+        ErrorHandler-->>Client: 401 Unauthorized { error: "Invalid credentials provided." }
+    else Utente non trovato
+        AuthController->>PlayerModel: findOne({ where: { email } })
+        PlayerModel-->>AuthController: null
+        AuthController->>AuthFactory: createError(INVALID_CREDENTIALS)
+        AuthFactory-->>AuthController: AuthError("Invalid credentials provided.")
+        AuthController->>ErrorHandler: next(AuthError)
+        ErrorHandler-->>Client: 401 Unauthorized { error: "Invalid credentials provided." }
+    else Password non valida
+        AuthController->>PlayerModel: findOne({ where: { email } })
+        PlayerModel-->>AuthController: user
+        AuthController->>cryptoUtils: verifyPassword(password, user.password_hash, user.salt)
+        cryptoUtils-->>AuthController: false
+        AuthController->>AuthFactory: createError(INVALID_CREDENTIALS)
+        AuthFactory-->>AuthController: AuthError("Invalid credentials provided.")
+        AuthController->>ErrorHandler: next(AuthError)
+        ErrorHandler-->>Client: 401 Unauthorized { error: "Invalid credentials provided." }
+    else Autenticazione riuscita
+        AuthController->>PlayerModel: findOne({ where: { email } })
+        PlayerModel-->>AuthController: user
+        AuthController->>cryptoUtils: verifyPassword(password, user.password_hash, user.salt)
+        cryptoUtils-->>AuthController: true
+        AuthController->>JWT: sign({ player_id, email, role }, JWT_SECRET)
+        JWT-->>AuthController: token
+        AuthController-->>Client: 200 OK { token }
     end
 
-    alt Email non valida
-        Controller->>ErrorFactory: crea INVALID_CREDENTIALS
-        ErrorFactory-->>Controller: AuthError(INVALID_CREDENTIALS)
-        Controller->>ErrorHandler: passa l'errore
-        ErrorHandler->>Client: 401 Unauthorized {"error": "Invalid credentials provided."}
-    end
-
-    Controller->>DB: Cerca utente con l'email
-    alt Utente non trovato
-        Controller->>ErrorFactory: crea INVALID_CREDENTIALS
-        ErrorFactory-->>Controller: AuthError(INVALID_CREDENTIALS)
-        Controller->>ErrorHandler: passa l'errore
-        ErrorHandler->>Client: 401 Unauthorized {"error": "Invalid credentials provided."}
-    end
-
-    DB-->>Controller: Restituisce utente
-    
-    Controller->>Controller: Verifica la password
-    alt Password non valida
-        Controller->>ErrorFactory: crea INVALID_CREDENTIALS
-        ErrorFactory-->>Controller: AuthError(INVALID_CREDENTIALS)
-        Controller->>ErrorHandler: passa l'errore
-        ErrorHandler->>Client: 401 Unauthorized {"error": "Invalid credentials provided."}
-    end
-
-    Controller->>JWT: Genera il token JWT
-    JWT-->>Controller: Restituisce il token JWT
-
-    Controller->>Client: 200 OK {"token": "JWT"}
 ```
 
 
@@ -218,9 +217,167 @@ sequenceDiagram
 
 Il diagramma di sequenza per la rotta di create game rappresenta il flusso di interazioni durante il processo di creazione di una nuova partita nel sistema di gestione delle partite. Illustra come l'utente interagisce con il middleware di autenticazione, il controller delle partite e il servizio di gioco per finalizzare la richiesta. Questo diagramma è utile per comprendere i passaggi chiave e le responsabilità di ciascun componente.
 
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Router as gameRoute
+    participant Controller as gameController
+    participant Service as gameService
+    participant PlayerModel as Player (Model)
+    participant GameModel as Game (Model)
+    participant ErrorHandler as errorHandler
+    participant Factory as GameFactory
+
+    Client->>Router: POST /create/new-game (opponent_email, ai_difficulty)
+    Router->>Controller: createGame(req, res, next)
+
+    Controller->>Controller: Converte email e difficoltà IA in minuscolo
+    Controller->>Controller: Ottiene playerId da req.user
+    alt playerId mancante
+        Controller->>Factory: createError(MISSING_PLAYER_ID)
+        Factory->>Controller: GameError("Missing player ID")
+        Controller->>ErrorHandler: next(GameError)
+        ErrorHandler->>Client: 400 Bad Request ("Missing player ID")
+    end
+
+    Controller->>PlayerModel: Trova avversario tramite opponent_email
+    alt Avversario non trovato
+        Controller->>Factory: createError(OPPONENT_NOT_FOUND)
+        Factory->>Controller: GameError("Opponent not found")
+        Controller->>ErrorHandler: next(GameError)
+        ErrorHandler->>Client: 404 Not Found ("Opponent not found")
+    end
+
+    Controller->>Service: findActiveGameForPlayer(playerId, opponentId)
+    alt Giocatore o avversario già in una partita
+        Service->>Factory: createError(PLAYER_ALREADY_IN_GAME / OPPONENT_ALREADY_IN_GAME)
+        Factory->>Service: GameError("Player or opponent already in an active game")
+        Service->>Controller: GameError
+        Controller->>ErrorHandler: next(GameError)
+        ErrorHandler->>Client: 409 Conflict ("Player or opponent already in an active game")
+    end
+
+    Controller->>Controller: Verifica che opponent_email e ai_difficulty non siano entrambi presenti
+    alt Parametri di gioco non validi
+        Controller->>Factory: createError(INVALID_GAME_PARAMETERS)
+        Factory->>Controller: GameError("Invalid game parameters")
+        Controller->>ErrorHandler: next(GameError)
+        ErrorHandler->>Client: 422 Unprocessable Entity ("Invalid game parameters")
+    end
+
+    Controller->>Controller: Determina il tipo di gioco (PvP o PvE)
+    alt Difficoltà IA non valida in PvE
+        Controller->>Factory: createError(INVALID_DIFFICULTY)
+        Factory->>Controller: GameError("Invalid AI difficulty")
+        Controller->>ErrorHandler: next(GameError)
+        ErrorHandler->>Client: 400 Bad Request ("Invalid AI difficulty")
+    end
+
+    Controller->>Service: createGame(playerId, opponent_email, type, ai_difficulty, initialBoard, total_moves)
+    alt Crediti insufficienti per creare la partita
+        Service->>Factory: createError(INSUFFICIENT_CREDIT)
+        Factory->>Service: GameError("Insufficient credit")
+        Service->>Controller: GameError
+        Controller->>ErrorHandler: next(GameError)
+        ErrorHandler->>Client: 401 Unauthorized ("Insufficient credit")
+    end
+
+    Service->>GameModel: Crea nuova partita con i dettagli forniti
+    GameModel->>Service: Nuova partita creata
+    Service->>Controller: Partita creata con successo
+    Controller->>Client: 201 Created (Dettagli della partita)
+
+```
+
 ### POST '/new-move'
 
 Il diagramma delle sequenze per il modulo di gestione delle mosse nel gioco illustra il flusso delle interazioni tra l'utente, il middleware di autenticazione, il controller delle mosse e il servizio di movimento. Inizia con l'utente che invia una richiesta per eseguire una mossa, passando attraverso il controllo dell'autenticazione JWT. Se autenticato, il controller gestisce la richiesta e delega la logica di esecuzione della mossa al servizio di movimento. Questo diagramma è essenziale per comprendere le dinamiche di interazione e il processo di gestione delle mosse nel sistema di gioco.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant MoveRoute as moveRoutes
+    participant JWTAuth as authenticationWithJWT
+    participant MoveController as MoveController
+    participant MoveService as moveService
+    participant Game as Game (Model)
+    participant Move as Move (Model)
+    participant Player as Player (Model)
+
+    Client->>MoveRoute: POST /new-move
+    MoveRoute->>JWTAuth: authenticationWithJWT
+    JWTAuth-->>MoveRoute: Authorized (if token valid)
+    JWTAuth-->>Client: 401 Unauthorized (if token invalid)
+
+    MoveRoute->>MoveController: executeMove()
+    MoveController->>MoveService: executeMove(gameId, from, to, playerId)
+
+    alt Missing Parameters
+        MoveService->>MoveFactory: createError(MISSING_PARAMS)
+        MoveFactory-->>MoveService: MoveError("You have to specify the game id, from and to!")
+        MoveService-->>MoveController: 400 Bad Request
+        MoveController-->>Client: 400 Bad Request
+    end
+
+    MoveService->>Game: findByPk(gameId)
+    alt Game Not Found
+        MoveService->>MoveFactory: createError(GAME_NOT_FOUND)
+        MoveFactory-->>MoveService: MoveError("The game doesn’t exist!")
+        MoveService-->>MoveController: 404 Not Found
+        MoveController-->>Client: 404 Not Found
+    end
+
+    Game-->>MoveService: Game data
+
+    alt Game Not Ongoing
+        MoveService->>GameFactory: createError(GAME_NOT_IN_PROGRESS)
+        GameFactory-->>MoveService: GameError("The game is not more available.")
+        MoveService-->>MoveController: 409 Conflict
+        MoveController-->>Client: 409 Conflict
+    end
+
+    MoveService->>Player: findByPk(playerId)
+    alt Player Not Authorized
+        MoveService->>AuthFactory: createError(UNAUTHORIZED)
+        AuthFactory-->>MoveService: AuthError("Unauthorized")
+        MoveService-->>MoveController: 403 Forbidden
+        MoveController-->>Client: 403 Forbidden
+    end
+
+    MoveService->>Move: findOne(last move details)
+    alt Timeout or Duplicate Move
+        MoveService->>MoveFactory: createError(NOT_VALID_MOVE)
+        MoveFactory-->>MoveService: MoveError("The move is not valid!")
+        MoveService-->>MoveController: 422 Unprocessable Entity
+        MoveController-->>Client: 422 Unprocessable Entity
+    end
+
+    MoveService->>Game: parse and validate board
+    alt Failed Parsing or Invalid Board
+        MoveService->>MoveFactory: createError(FAILED_PARSING or NOT_VALID_ARRAY)
+        MoveFactory-->>MoveService: MoveError("The parsing of the board has failed" or "The board's conversion is not valid!")
+        MoveService-->>MoveController: 400 Bad Request
+        MoveController-->>Client: 400 Bad Request
+    end
+
+    MoveService->>Draughts: setup board and execute move
+    Draughts-->>MoveService: Updated board and valid moves
+
+    alt No Valid Move
+        MoveService->>MoveFactory: createError(NOT_VALID_MOVE)
+        MoveFactory-->>MoveService: MoveError("The move is not valid!")
+        MoveService-->>MoveController: 422 Unprocessable Entity
+        MoveController-->>Client: 422 Unprocessable Entity
+    end
+
+    MoveService->>Move: create(new move entry)
+    Move-->>MoveService: Move saved
+
+    MoveService->>Game: Update board and total_moves
+    MoveService-->>MoveController: Move execution result
+    MoveController-->>Client: 200 OK, move result
+
+```
 
 ### GET /game/6/moves?format=json(pdf)
 
