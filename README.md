@@ -253,18 +253,7 @@ git clone https://github.com/AndreaMarini01/progetto_pa
 cd progetto_pa
 ```
 2. Configurare le variabili d'ambiente:
-   Creare un file ```.env``` configurandolo con le seguenti variabili d'ambiente:
-   
-```
-APP_PORT=3000
-DB_USER=root
-DB_PASSWORD=progetto_pa
-DB_NAME=prova_pa
-DB_PORT=5432
-DB_HOST=db
-DB_DIALECT=postgres
-JWT_SECRET=my_super_secret_key
- ```
+   Creare un file ```.env``` configurandolo con le corrette variabili d'ambiente
 3. Posizionarsi sulla radice del progetto e lanciare da terminale il seguente comando:
    ```bash
     ./build.sh
