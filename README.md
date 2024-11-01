@@ -11,9 +11,8 @@
 5. [Avvio del Progetto](#avvio-del-progetto)
      - [Prerequisiti](#prerequisiti)
      - [Configurazione](#configurazione)
-6. [Routes](#routes)
-7. [Test del Progetto](#test-del-progetto)
-8. [Riconoscimenti](#riconoscimenti)
+6. [Test del Progetto](#test-del-progetto)
+7. [Riconoscimenti](#riconoscimenti)
 
 
 # Obiettivo di Progetto
@@ -201,7 +200,7 @@ erDiagram
         integer move_id PK "Primary Key"
         integer game_id FK "Foreign Key from Game"
         integer user_id FK "Foreign Key from Player (optional)"
-        date created_at "Move creation date"
+        date createdAt "Move creation date"
         integer move_number "Move number in the game"
         json board "Board configuration after the move"
         string from_position "Starting position of the move"
@@ -250,11 +249,484 @@ Ogni Factory fornisce un’interfaccia unificata per la creazione degli errori H
 1. Clonare il repository:
    
 ```
-git clone 
-cd ProgrammazioneAvanzata2024
+git clone https://github.com/AndreaMarini01/progetto_pa
+cd progetto_pa
+```
+2. Configurare le variabili d'ambiente:
+   Creare un file ```.env``` configurandolo con le seguenti variabili d'ambiente:
+   
+```
+APP_PORT=3000
+DB_USER=root
+DB_PASSWORD=progetto_pa
+DB_NAME=prova_pa
+DB_PORT=5432
+DB_HOST=db
+DB_DIALECT=postgres
+JWT_SECRET=my_super_secret_key
+ ```
+3. Posizionarsi sulla radice del progetto e lanciare da terminale il seguente comando:
+   ```bash
+    ./build.sh
+   ```
+   Il seguente file di configurazione contiene tutti comandi per l'installazione delle dipendenze e per la build (docker compose).
+
+   NOTA: In caso si utilizzi MacOS va utilizzato prima il seguente comando: ``` chmod +x build.sh```
+4. Scaricare la collection e le variabili di environment di Postman per procedere con i test.
+
+# Test del Progetto
+Se le operazioni precedenti sono state eseguite correttamente, i due container (postgres_db e express_app) saranno in esecuzione.
+Nella versione attuale (DEMO version) è possibile testare l'applicativo e le relative rotte.
+
+## Postman
+È possibile testare il progetto utilizzando Postman. Forniamo una collection Postman che contiene tutte le richieste necessarie per testare le API, e le relative variabili d'ambiente. 
+
+Importare la collection in Postman e seguire le istruzioni per testare le diverse rotte.
+
+[Scarica la Collection Postman](./postman/PROGETTO_PA_2024.postman_collection.json)
+
+[Scarica le variabili d'ambiente Postman](./postman/PROGETTO_PA_2024.postman_environment.json)
+
+## Rotte
+
+## Rotta di Login come utente non admin 
+- **POST /login**
+  
+Per poter ottenere una risposta dalla seguente rotta è necessario riempire il campo body con i campi richiesti, di seguito viene riportato un esempio:
+
+```json
+{
+    "email":"alessio@gmail.com",
+    "password":"password2"
+}
+```
+ Se la richiesta viene effettuata correttamente viene restituito il token generato per l'utente:
+
+  ```json
+"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwbGF5ZXJfaWQiOjIsImVtYWlsIjoiYWxlc3Npb0BnbWFpbC5jb20iLCJyb2xlIjoidXNlciIsImlhdCI6MTczMDM3MjExNiwiZXhwIjoxNzMwMzc1NzE2fQ.jCZQAAK0778mwo_gA7h9h0a4OB_ah1D2LyCYr71x8YE"
+  ```
+  In caso di utente non presente nel sistema viene generato un errore con relativo status code e messaggio personalizzato:
+  
+  ```json
+ {
+     "email":"mario@gmail.com",
+     "password":"password5"
+ }
+  ```
+
+  ```json
+     status: 401 UNAUTHORIZED
+     {
+       "message": "Invalid credentials provided."
+     }
+  ```
+
+## Rotta di Login come utente admin
+Per poter ottenere una risposta dalla seguente rotta è necessario riempire il campo body con i campi richiesti, di seguito viene riportato un esempio:
+
+```json
+{
+     "email":"admin@gmail.com",
+    "password":"adminpassword"
+ }
+  ```
+Se la richiesta viene effettuata correttamente viene restituito il token generato per l'utente:
+
+   ```json
+"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwbGF5ZXJfaWQiOjMsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzMwMzk5NzIwLCJleHAiOjE3MzA0MDMzMjB9.pafr21-jVwoYg27WrSmPNJbNBtL21NIto5PCZgHd3Nc"
+  ```
+  In caso di credenziali errate viene generato un errore con relativo status code e messaggio personalizzato:
+  
+  ```json
+ {
+     "email":"luca@gmail.com",
+    "password":"adminpassword"
+ }
+  ```
+
+  ```json
+     status: 401 UNAUTHORIZED
+     {
+       "message": "Invalid credentials provided."
+     }
+  ```
+
+
+## Rotta protetta (decodeJWT)
+Quando un utente non autorizzato o con un token jwt errato tenta di accedere a una rotta protetta viene restituito il seguente messaggio di errore:
+
+ ```json
+     status: 401 UNAUTHORIZED
+     {   
+        "message": "Unauthorized"
+     }
+  ```
+
+## Rotte di gestione di una partita
+- **POST /new-game**
+
+Per poter ottenere una risposta dalla seguente rotta è necessario riempire il campo body con i campi richiesti. È possibile creare una partita contro un giocatore reale (PVP) o contro l'intelligenza artificiale (PVE), dopo aver verificato che il/i giocatore/i non sono convolto/i in altre partite in corso. Di seguito viene riportato un esempio per entrambe le situazioni:
+
+```json
+{
+    "opponent_email":"andrea@gmail.com"
+}
+```
+Se la richiesta viene effettuata correttamente viene restituito il seguente messaggio:
+ 
+```json
+{
+    {
+    "game": {
+        "created_at": "2024-10-31T11:27:39.654Z",
+        "winner_id": null,
+        "game_id": 4,
+        "player_id": 2,
+        "opponent_id": 1,
+        "status": "Ongoing",
+        "type": "PvP",
+        "ai_difficulty": "Absent",
+        "board": {
+            "board": [
+                [
+                    null,
+                    "B",
+                    null,
+                    "B",
+                    null,
+                    "B",
+                    null,
+                    "B"
+                ],
+                [
+                    "B",
+                    null,
+                    "B",
+                    null,
+                    "B",
+                    null,
+                    "B",
+                    null
+                ],
+                [
+                    null,
+                    "B",
+                    null,
+                    "B",
+                    null,
+                    "B",
+                    null,
+                    "B"
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "W",
+                    null,
+                    "W",
+                    null,
+                    "W",
+                    null,
+                    "W",
+                    null
+                ],
+                [
+                    null,
+                    "W",
+                    null,
+                    "W",
+                    null,
+                    "W",
+                    null,
+                    "W"
+                ],
+                [
+                    "W",
+                    null,
+                    "W",
+                    null,
+                    "W",
+                    null,
+                    "W",
+                    null
+                ]
+            ]
+        },
+        "total_moves": 0,
+        "ended_at": null
+    }
+}
+}
+
 ```
 
+## Rotta di esecuzione di una mossa
+- **POST /new-move**
+  
+Per poter ottenere una risposta dalla seguente rotta è necessario riempire il campo body con i campi richiesti. È possibile effettuare una mossa tra quelle disponibili. Di seguito viene riportato un esempio:
+```json
+{
+    "gameId": 6,
+    "from": "A7",
+    "to": "E7"
+}
+```
+
+Se la richiesta viene effettuata correttamente viene restituito il seguente messaggio:
+
+```json
+{
+    "message": "Move successfully executed",
+    "game_id": 6,
+    "moveDescription": "You moved a single from A7 to E7."
+}
+```
+
+## Rotta di visualizzazione della cronologia delle mosse della partita
+- **GET game/6/moves?format=json**
+
+Un utente può controllare la cronologia delle mosse effettuate in una partita, non sono richiesti campi nel body. Di seguito viene riportato un esempio:
+
+```json
+[
+    {
+        "moveNumber": 1,
+        "fromPosition": "A7",
+        "toPosition": "E7",
+        "pieceType": "single",
+        "timestamp": "31/10/2024 21:50:02",
+        "username": "Alessio Capriotti"
+    }
+]
+```
+
+
+## Rotta di abbandono della partita
+- **POST abandon-game/4**
+  
+Un utente impegnato in una partita può abbandonarla, non sono richiesti campi nel body. Di seguito viene riportato un esempio:
+
+```json
+{
+    "message": "Game with ID 4 has been abandoned.",
+    "game_id": 4,
+    "status": "Abandoned"
+}
+```
+
+
+
+## Rotta di visualizzazione delle partite completate
+- **GET completed-games?startDate=2024-10-26&endDate=2024-10-30**
+  
+È possibile visualizzare i dati relativi alle partite completate. Di seguito viene riportato un esempio:
+
+```json
+ "data": {
+        "games": [
+            {
+                "game_id": 1,
+                "player_id": 1,
+                "opponent_id": 2,
+                "status": "Completed",
+                "created_at": "1993-06-26T01:33:30.286Z",
+                "ended_at": null,
+                "type": "PvP",
+                "ai_difficulty": "Absent",
+                "total_moves": 0,
+                "winner_id": null,
+                "outcome": "Lost"
+            },
+            {
+                "game_id": 3,
+                "player_id": 2,
+                "opponent_id": null,
+                "status": "Completed",
+                "created_at": "2006-09-14T07:37:30.137Z",
+                "ended_at": "2024-10-31T18:31:41.221Z",
+                "type": "PvE",
+                "ai_difficulty": "Hard",
+                "total_moves": 0,
+                "winner_id": 2,
+                "outcome": "Won"
+            }
+        ],
+        "wins": 1,
+        "losses": 1
+    }
+```
+
+## Rotta di ricarica dei token
+- **PUT chargeTokens**
+  
+L'utente autenticato come admin può ricaricare il numero di token di un utente normale. Per poter ottenere una risposta dalla seguente rotta è necessario riempire il campo body con i campi richiesti. Di seguito viene riportato un esempio:
+
+```json
+{
+    "email": "andrea@gmail.com",
+    "tokens": "3"
+}
+```
+Se la richiesta viene effettuata correttamente viene restituito il seguente messaggio:
+
+```json
+{
+    "message": "Tokens have been updated!",
+    "currentTokens": "0.33"
+}
+```
+
+## Rotta di visualizzazione dello stato della partita
+- **GET game-status/4**
+  
+È possibile visualizzare i dati relativi allo stato della partita. Di seguito viene riportato un esempio:
+
+```json
+{
+    "message": "The current status of the game is: Ongoing",
+    "game_id": 4,
+    "board": {
+        "board": [
+            [
+                null,
+                "B",
+                null,
+                "B",
+                null,
+                "B",
+                null,
+                "B"
+            ],
+            [
+                "B",
+                null,
+                "B",
+                null,
+                "B",
+                null,
+                "B",
+                null
+            ],
+            [
+                null,
+                "B",
+                null,
+                "B",
+                null,
+                "B",
+                null,
+                "B"
+            ],
+            [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            ],
+            [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            ],
+            [
+                "W",
+                null,
+                "W",
+                null,
+                "W",
+                null,
+                "W",
+                null
+            ],
+            [
+                null,
+                "W",
+                null,
+                "W",
+                null,
+                "W",
+                null,
+                "W"
+            ],
+            [
+                "W",
+                null,
+                "W",
+                null,
+                "W",
+                null,
+                "W",
+                null
+            ]
+        ]
+    }
+}
+```
+
+## Rotta di visualizzazione della classifica
+- **GET leaderboard?order=desc**
+  
+È possibile visualizzare la classifica degli utenti in ordine crescente e decrescente di punteggio, non è necessaria alcuna autenticazione jwt. Di seguito viene riportato un esempio:
+
+```json
+"message": "Classifica giocatori recuperata con successo.",
+    "data": [
+        {
+            "username": "Andrea Marini",
+            "score": 10
+        },
+        {
+            "username": "Prova Prova",
+            "score": 7
+        },
+        {
+            "username": "Alessio Capriotti",
+            "score": 7
+        },
+        {
+            "username": "Admin Admin",
+            "score": 2
+        }
+    ]
+```
+
+## Rotta di ottenimento del certificato di vittoria in PDF
+- **GET win-certificate/6**
+L'utente vincitore di una partita può scaricare il certificato di vittoria, non sono richiesti campi nel body. Di seguito viene riportato un esempio di file pdf:
+
+
 # Riconoscimenti
-Il progetto è stato realizzato da Alessio Capriotti (Matricola: 1118918) e Andrea Marini (Matricola: 1118778), che hanno unito le loro competenze e conoscenze per sviluppare un sistema di gioco innovativo. Attraverso un lavoro di squadra e una stretta collaborazione, hanno affrontato le sfide del progetto, contribuendo a ciascuna fase dello sviluppo con dedizione e attenzione ai dettagli. La sinergia tra i due ha giocato un ruolo fondamentale nel raggiungimento degli obiettivi prefissati.
-    
+
+Andrea Marini (Matricola: 1118778)
+
+Alessio Capriotti (Matricola: 1118918) 
+
+Corso di Programmazione Avanzata A.A. 2023/2024 Università Politecnica delle Marche
    
