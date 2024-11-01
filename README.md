@@ -153,8 +153,6 @@ graph TD
     exportToPDF --> FilterGamesByDate["Filter Games By Date"]
     abandonGame --> UpdatePlayerPoints
 ```
-
-
 ### Diagrammi delle Sequenze
 
 #### POST '/login'
@@ -211,8 +209,6 @@ sequenceDiagram
     end
 
 ```
-
-
 ### POST '/create/new-game'
 
 Il diagramma di sequenza per la rotta di create game rappresenta il flusso di interazioni durante il processo di creazione di una nuova partita nel sistema di gestione delle partite. Illustra come l'utente interagisce con il middleware di autenticazione, il controller delle partite e il servizio di gioco per finalizzare la richiesta. Questo diagramma è utile per comprendere i passaggi chiave e le responsabilità di ciascun componente.
@@ -383,30 +379,338 @@ sequenceDiagram
 
 Il diagramma di sequenze per la rotta MovesHistory mostra il processo di recupero della cronologia delle mosse per una partita specifica. Il client, autenticato tramite token JWT, invia una richiesta GET al server. Il server risponde con l'elenco delle mosse effettuate, permettendo al client di visualizzare la cronologia completa delle mosse per quella partita.
 
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Router
+    participant Controller
+    participant Service
+    participant GameModel
+    participant MoveModel
+    participant PlayerModel
+    participant ErrorHandler
+
+    Client->>Router: GET /game/:gameId/moves
+    Router->>Controller: getMoveHistory(req, res, next)
+    Controller->>GameModel: findByPk(gameId)
+    alt Game Not Found
+        GameModel-->>Controller: null
+        Controller->>ErrorHandler: throw GameFactory.createError(GAME_NOT_FOUND)
+        ErrorHandler-->>Client: 404 Not Found { error: "Game not found." }
+    else Game Exists
+        GameModel-->>Controller: game data
+        Controller->>Service: exportMoveHistory(gameId, format)
+        Service->>MoveModel: findAll({ game_id: gameId })
+        alt No Moves
+            MoveModel-->>Service: []
+            Service->>ErrorHandler: throw MoveFactory.createError(NO_MOVES)
+            ErrorHandler-->>Client: 404 Not Found { error: "No moves for this game." }
+        else Moves Exist
+            MoveModel-->>Service: moves data
+            Service->>PlayerModel: findAll(player_ids)
+            PlayerModel-->>Service: player data
+            alt JSON Format
+                Service-->>Controller: moves in JSON format
+                Controller-->>Client: 200 OK { moves: [...] }
+            else PDF Format
+                Service-->>Controller: moves as PDF Buffer
+                Controller-->>Client: PDF file
+            else Invalid Format
+                Service->>ErrorHandler: throw MoveFactory.createError(INVALID_FORMAT)
+                ErrorHandler-->>Client: 404 Not Found { error: "Invalid format." }
+            end
+        end
+    end
+
+```
+
 ### POST /abandon-game/4
 
 Il diagramma di sequenze per la rotta AbandonGame descrive il processo in cui un giocatore abbandona una partita. Il client, autenticato tramite token JWT, invia una richiesta POST per abbandonare una partita specifica. Il server verifica il token, cambia lo stato della partita per indicare che è stata abbandonata, e invia una conferma al client.
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Giocatore as Giocatore
+    participant Router as gameRoutes (abandon-game)
+    participant Controller as gameController (abandonGame)
+    participant Service as gameService (abandonGame)
+    participant Model as Game
+    participant ErrorHandler as errorHandler
+
+    Giocatore ->> Router: POST /abandon-game/:gameId
+    Router ->> Controller: invoke abandonGame(req, res, next)
+    
+    Controller ->> Service: abandonGame(gameId, playerId)
+    Service ->> Model: Game.findByPk(gameId)
+
+    alt Partita non trovata
+        Model -->> Service: null
+        Service ->> ErrorHandler: GameError(gameErrorType.GAME_NOT_FOUND)
+        ErrorHandler ->> Giocatore: 404 Not Found (Game not found)
+    
+    else Giocatore non autorizzato
+        Model -->> Service: Game instance
+        Service ->> Model: Controlla se il player_id o opponent_id corrisponde al playerId
+        Model -->> Service: player_id ≠ playerId e opponent_id ≠ playerId
+        Service ->> ErrorHandler: AuthError(authErrorType.UNAUTHORIZED)
+        ErrorHandler ->> Giocatore: 403 Forbidden (Unauthorized)
+    
+    else Partita non in corso
+        Model -->> Service: Game instance (status ≠ 'ONGOING')
+        Service ->> ErrorHandler: GameError(gameErrorType.GAME_NOT_IN_PROGRESS)
+        ErrorHandler ->> Giocatore: 409 Conflict (Game not in progress)
+    
+    else Partita abbandonata con successo
+        Model -->> Service: Game instance (status = 'ONGOING')
+        Service ->> Model: Aggiorna status = 'ABANDONED' e winner_id
+        Service ->> Model: Aggiorna ended_at = new Date()
+        Service ->> Model: Salva la partita aggiornata
+
+        Service ->> Model: Cerca e decrementa score per il giocatore
+        Model -->> Service: Successo nella modifica
+
+        Service -->> Controller: Partita aggiornata (status: ABANDONED)
+        Controller -->> Giocatore: 200 OK {"message": "Game abandoned", "game_id": gameId, "status": "ABANDONED"}
+    end
+
+```
 ### GET /completed-games?startDate=2024-10-26&endDate=2024-10-30
 
 Il diagramma di sequenze per la rotta CompletedGames rappresenta il processo per ottenere l'elenco delle partite completate in un determinato intervallo di date. Il client invia una richiesta GET, autenticato tramite token JWT, includendo le date di inizio e di fine. Il server risponde con la lista delle partite completate nel periodo specificato.
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Giocatore as Giocatore
+    participant Router as gameRoutes (completed-games)
+    participant Controller as gameController (getCompletedGames)
+    participant Service as gameService (getCompletedGames)
+    participant Model as Game
+    participant ErrorHandler as errorHandler
+
+    Giocatore ->> Router: GET /completed-games?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+    Router ->> Controller: invoke getCompletedGames(req, res, next)
+
+    Controller ->> Service: getCompletedGames(playerId, startDate, endDate)
+
+    alt playerId non presente (non autenticato)
+        Service ->> ErrorHandler: GameError(gameErrorType.MISSING_PLAYER_ID)
+        ErrorHandler ->> Giocatore: 400 Bad Request (Player's ID is missing)
+    
+    else Data non valida
+        Service ->> Service: Verifica formato startDate e endDate
+        Service -->> ErrorHandler: GameError(gameErrorType.INVALID_DATE)
+        ErrorHandler ->> Giocatore: 400 Bad Request (Invalid date format)
+    
+    else Date mancanti
+        Service ->> Service: Verifica che entrambe le date siano presenti
+        Service -->> ErrorHandler: GameError(gameErrorType.MISSING_DATE)
+        ErrorHandler ->> Giocatore: 400 Bad Request (Missing start or end date)
+    
+    else Intervallo date non valido
+        Service ->> Service: Verifica che startDate <= endDate
+        Service -->> ErrorHandler: GameError(gameErrorType.INVALID_DATE_RANGE)
+        ErrorHandler ->> Giocatore: 400 Bad Request (Start date must be lower than end date)
+    
+    else Nessuna partita trovata
+        Service ->> Model: Query partite completate in intervallo date
+        Model -->> Service: Nessuna partita trovata
+        Service -->> Controller: { message: "No matches found for the specified date range", games: [], wins: 0, losses: 0 }
+        Controller -->> Giocatore: 200 OK (Nessuna partita trovata)
+    
+    else Partite trovate
+        Service ->> Model: Query partite completate in intervallo date
+        Model -->> Service: Lista partite trovate
+        Service -->> Controller: Lista partite con risultati (vittorie, sconfitte)
+        Controller -->> Giocatore: 200 OK (Lista partite completate)
+    end
+
+```
 ### PUT /chargeTokens
 
 Il diagramma di sequenze per la rotta ChargeTokens mostra il processo di ricarica dei token di un utente. Il client, già autenticato con un token JWT, invia una richiesta PUT con l'email dell'utente e il numero di token da aggiungere. Il server verifica il token JWT, aggiorna il credito dell'utente specificato, e restituisce una risposta con i dettagli della ricarica.
 
+```mermaid
+sequenceDiagram
+    participant Admin as Admin
+    participant AdminRoute as adminRoute (/chargeTokens)
+    participant JWTMiddleware as authenticationWithJWT
+    participant AdminAuth as adminAuthMiddleware
+    participant Controller as adminController
+    participant Model as Player
+    participant ErrorHandler as errorHandler
+
+    Admin->>+AdminRoute: PUT /chargeTokens (email, tokens)
+    AdminRoute->>+JWTMiddleware: Verifica autenticazione JWT
+
+    alt Token mancante
+        JWTMiddleware-->>ErrorHandler: AuthError (NEED_AUTHORIZATION)
+        ErrorHandler-->>Admin: 401 Unauthorized
+    end
+
+    alt Token scaduto
+        JWTMiddleware-->>ErrorHandler: AuthError (TOKEN_EXPIRED)
+        ErrorHandler-->>Admin: 401 Unauthorized
+    end
+
+    JWTMiddleware-->>AdminAuth: Token valido, passa i dati dell'utente
+
+    AdminAuth->>+Model: Trova l'utente tramite ID
+    alt Utente non trovato
+        AdminAuth-->>ErrorHandler: AuthError (INVALID_CREDENTIALS)
+        ErrorHandler-->>Admin: 401 Unauthorized
+    end
+
+    alt Ruolo non amministrativo
+        AdminAuth-->>ErrorHandler: TokenError (ADMIN_AUTHORIZATION)
+        ErrorHandler-->>Admin: 403 Forbidden
+    end
+
+    AdminAuth-->>Controller: Utente admin verificato
+
+    Controller->>+Model: Trova il giocatore tramite email
+    alt Parametri mancanti (email o tokens)
+        Controller-->>ErrorHandler: TokenError (MISSING_PARAMETERS)
+        ErrorHandler-->>Admin: 400 Bad Request
+    end
+
+    alt Utente non trovato
+        Controller-->>ErrorHandler: TokenError (USER_NOT_FOUND)
+        ErrorHandler-->>Admin: 404 Not Found
+    end
+
+    alt Token negativo o zero
+        Controller-->>ErrorHandler: TokenError (POSITIVE_TOKEN)
+        ErrorHandler-->>Admin: 422 Unprocessable Entity
+    end
+
+    Model-->>Controller: Giocatore trovato
+    Controller->>Model: Aggiunge tokens esistenti
+
+    Model-->>Controller: Aggiornamento tokens completato
+    Controller-->>Admin: 200 OK, Tokens aggiornati
+
+```
 ### GET /game-status/4
 
 Il diagramma di sequenze per la rotta GameStatus illustra il processo per ottenere lo stato attuale di una partita specifica. Il client invia una richiesta GET, autenticato tramite token JWT, e il server risponde con lo stato della partita. Questa rotta permette al client di aggiornare le informazioni sullo stato della partita in corso.
 
+```mermaid
+sequenceDiagram
+    participant User as Utente
+    participant GameRoute as gameRoute (/game-status/:gameId)
+    participant JWTMiddleware as authenticationWithJWT
+    participant Controller as gameController
+    participant Model as Game
+    participant ErrorHandler as errorHandler
+
+    User->>+GameRoute: GET /game-status/:gameId (gameId)
+    GameRoute->>+JWTMiddleware: Verifica autenticazione JWT
+
+    alt Token mancante
+        JWTMiddleware-->>ErrorHandler: AuthError (NEED_AUTHORIZATION)
+        ErrorHandler-->>User: 401 Unauthorized
+    end
+
+    alt Token scaduto
+        JWTMiddleware-->>ErrorHandler: AuthError (TOKEN_EXPIRED)
+        ErrorHandler-->>User: 401 Unauthorized
+    end
+
+    JWTMiddleware-->>Controller: Token valido, passa i dati dell'utente
+
+    Controller->>+Model: Trova partita con gameId
+    alt Partita non trovata
+        Model-->>Controller: null
+        Controller-->>ErrorHandler: GameError (GAME_NOT_FOUND)
+        ErrorHandler-->>User: 404 Not Found
+    end
+
+    Model-->>Controller: Partita trovata
+    Controller-->>User: 200 OK, Restituisce stato partita e configurazione board
+
+```
 ### GET /leaderboard?order=desc
 
 Il diagramma di sequenze per la rotta Ranking descrive il processo per visualizzare la classifica dei giocatori. Il client invia una richiesta GET senza necessità di autenticazione e specifica l'ordine di ordinamento (ascendente o discendente). Il server risponde con la classifica dei giocatori in base ai loro punteggi.
 
+```mermaid
+sequenceDiagram
+    participant User as Utente
+    participant GameRoute as gameRoute (/leaderboard)
+    participant Controller as gameController
+    participant Service as gameService
+    participant Model as Player
+    participant ErrorHandler as errorHandler
+
+    User->>+GameRoute: GET /leaderboard?order=asc/desc
+    GameRoute->>+Controller: Richiesta classifica con parametro 'order'
+
+    alt Parametro non valido o errore di server
+        Controller-->>ErrorHandler: Generic Error
+        ErrorHandler-->>User: 500 Internal Server Error
+    end
+
+    Controller->>+Service: Ottieni classifica giocatori (order)
+    Service->>+Model: Recupera giocatori ordinati per punteggio
+
+    alt Giocatori trovati
+        Model-->>Service: Restituisce elenco giocatori ordinato
+        Service-->>Controller: Elenco giocatori
+        Controller-->>User: 200 OK, Restituisce classifica
+    else Nessun giocatore trovato
+        Model-->>Service: []
+        Service-->>Controller: Messaggio "No players found"
+        Controller-->>User: 404 Not Found, Nessun giocatore trovato
+    end
+
+```
 ### GET /win-certificate/6
 
 Il diagramma di sequenze per la rotta WinnerCertificate rappresenta il processo di generazione di un certificato di vittoria per una partita specifica. Il client, autenticato tramite token JWT, invia una richiesta GET al server. Il server verifica l'autenticazione, raccoglie i dettagli della vittoria (come durata della partita e nome dell'avversario), e restituisce un certificato di vittoria sotto forma di documento o file PDF.
 
+```mermaid
+sequenceDiagram
+    participant User as Utente
+    participant GameRoute as gameRoute (/win-certificate/:gameId)
+    participant Controller as gameController
+    participant Service as gameService
+    participant Model as Game
+    participant PDFGenerator as PDFKit
+    participant ErrorHandler as errorHandler
+
+    User->>+GameRoute: GET /win-certificate/:gameId
+    GameRoute->>+Controller: Richiesta certificato vittoria per gameId
+
+    alt Utente non autenticato
+        Controller-->>ErrorHandler: AuthError (NEED_AUTHORIZATION)
+        ErrorHandler-->>User: 401 Unauthorized
+    else Partita non trovata
+        Controller->>Service: Verifica esistenza partita con gameId
+        Service->>Model: Trova partita per ID
+        Model-->>Service: null
+        Service-->>Controller: GameError (GAME_NOT_FOUND)
+        ErrorHandler-->>User: 404 Game not found
+    else Solo il vincitore può ottenere il certificato
+        Model-->>Service: Partita trovata
+        Service->>+Controller: Verifica vincitore (confronto winner_id)
+        Controller-->>ErrorHandler: GameError (ONLY_WINNER)
+        ErrorHandler-->>User: 400 Only the winner can obtain the certificate
+    else Partita ancora in corso
+        Model-->>Service: Stato partita
+        Service->>Controller: Controllo stato completato
+        Controller-->>ErrorHandler: GameError (GAME_IN_PROGRESS)
+        ErrorHandler-->>User: 400 The game is still in progress
+    end
+
+    Controller->>+Service: Generazione certificato vittoria (gameId, playerId)
+    Service->>+PDFGenerator: Crea PDF certificato
+    PDFGenerator-->>Service: PDF Buffer
+    Service-->>Controller: Certificato PDF generato
+
+    Controller-->>User: 200 OK, Restituisce certificato PDF
+```
 # Diagramma ER
 Il diagramma ER (Entity-Relationship) offre una rappresentazione visiva delle entità coinvolte nel sistema e delle loro relazioni. In questo progetto, il diagramma illustra come i modelli Player, Game e Move interagiscono tra loro. Le entità rappresentano le diverse componenti del sistema, come i giocatori e le partite, mentre le relazioni mostrano come queste entità si collegano, ad esempio, attraverso le mosse effettuate dai giocatori in una partita. Questo diagramma è utile per comprendere la struttura dei dati e la logica sottostante dell'applicazione.
 
