@@ -159,12 +159,27 @@ graph TD
 #### POST '/login'
 Il diagramma di sequenza per la rotta di login descrive il flusso di interazione tra un utente e il sistema durante il processo di autenticazione. Quando l'utente invia le proprie credenziali, il sistema verifica l'email e la password. Se le informazioni sono corrette, viene generato un token JWT, che consente all'utente di accedere alle funzionalità protette. In caso contrario, il sistema restituisce un messaggio di errore, garantendo così la sicurezza dell'applicazione. Questo diagramma evidenzia i passaggi chiave e le decisioni critiche nella gestione dell'autenticazione.
 
-#### POST '/create/new-game'
+### 
+
+### POST '/create/new-game'
 Il diagramma di sequenza per la rotta di create game rappresenta il flusso di interazioni durante il processo di creazione di una nuova partita nel sistema di gestione delle partite. Illustra come l'utente interagisce con il middleware di autenticazione, il controller delle partite e il servizio di gioco per finalizzare la richiesta. Questo diagramma è utile per comprendere i passaggi chiave e le responsabilità di ciascun componente.
 
-#### POST '/new-move'
+### POST '/new-move'
 Il diagramma delle sequenze per il modulo di gestione delle mosse nel gioco illustra il flusso delle interazioni tra l'utente, il middleware di autenticazione, il controller delle mosse e il servizio di movimento. Inizia con l'utente che invia una richiesta per eseguire una mossa, passando attraverso il controllo dell'autenticazione JWT. Se autenticato, il controller gestisce la richiesta e delega la logica di esecuzione della mossa al servizio di movimento. Questo diagramma è essenziale per comprendere le dinamiche di interazione e il processo di gestione delle mosse nel sistema di gioco.
 
+### GET /game/6/moves?format=json(pdf)
+
+### POST /abandon-game/4
+
+### GET /completed-games?startDate=2024-10-26&endDate=2024-10-30
+
+### PUT /chargeTokens
+
+### GET /game-status/4
+
+### GET /leaderboard?order=desc
+
+### GET /win-certificate/6
 
 # Diagramma ER
 Il diagramma ER (Entity-Relationship) offre una rappresentazione visiva delle entità coinvolte nel sistema e delle loro relazioni. In questo progetto, il diagramma illustra come i modelli Player, Game e Move interagiscono tra loro. Le entità rappresentano le diverse componenti del sistema, come i giocatori e le partite, mentre le relazioni mostrano come queste entità si collegano, ad esempio, attraverso le mosse effettuate dai giocatori in una partita. Questo diagramma è utile per comprendere la struttura dei dati e la logica sottostante dell'applicazione.
@@ -509,14 +524,14 @@ Un utente può controllare la cronologia delle mosse effettuate in una partita, 
     }
 ]
 ```
-- **GET /game/1/moves?format=pdf
+- **GET /game/1/moves?format=pdf**
 
 Di seguito viene riportato un esempio della cronologia delle mosse eseguite in una partita in formato PDF:
 [Qui un esempio di file .pdf generato](./images/MoveHistory.pdf)
 
 
 ## Rotta di abbandono della partita
-- **POST abandon-game/4**
+- **POST /abandon-game/4**
   
 Un utente impegnato in una partita può abbandonarla, non sono richiesti campi nel body. Di seguito viene riportato un esempio:
 
@@ -689,9 +704,10 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
 ## Rotta di visualizzazione della classifica
 - **GET /leaderboard?order=desc**
   
-È possibile visualizzare la classifica degli utenti in ordine crescente e decrescente di punteggio, non è necessaria alcuna autenticazione jwt. Di seguito viene riportato un esempio:
+È possibile visualizzare la classifica degli utenti in ordine crescente e decrescente di punteggio, non è necessaria alcuna autenticazione jwt. Di seguito vengono riportati i due esempi:
 
 ```json
+{
 "message": "Classifica giocatori recuperata con successo.",
     "data": [
         {
@@ -711,6 +727,34 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
             "score": 2
         }
     ]
+}
+```
+```json
+{
+"message": "Classifica giocatori recuperata con successo.",
+    "data": [
+        {
+            "username": "Artificial Intelligence",
+            "score": 0
+        },
+        {
+            "username": "Admin Admin",
+            "score": 2
+        },
+        {
+            "username": "Alessio Capriotti",
+            "score": 7
+        },
+        {
+            "username": "Prova Prova",
+            "score": 7
+        },
+        {
+            "username": "Andrea Marini",
+            "score": 10
+        }
+    ]
+}
 ```
 
 ## Rotta di ottenimento del certificato di vittoria in PDF
