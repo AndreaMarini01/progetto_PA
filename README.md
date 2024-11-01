@@ -721,6 +721,7 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
 - **GET win-certificate/6**
 L'utente vincitore di una partita può scaricare il certificato di vittoria, non sono richiesti campi nel body. Di seguito viene riportato un esempio di file pdf:
 
+ [Qui un esempio di file .pdf generato](./images/WinnerCertificate.pdf)
 
 # Riconoscimenti
 
