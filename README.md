@@ -156,30 +156,99 @@ graph TD
 
 
 ### Diagrammi delle Sequenze
+
 #### POST '/login'
+
 Il diagramma di sequenza per la rotta di login descrive il flusso di interazione tra un utente e il sistema durante il processo di autenticazione. Quando l'utente invia le proprie credenziali, il sistema verifica l'email e la password. Se le informazioni sono corrette, viene generato un token JWT, che consente all'utente di accedere alle funzionalità protette. In caso contrario, il sistema restituisce un messaggio di errore, garantendo così la sicurezza dell'applicazione. Questo diagramma evidenzia i passaggi chiave e le decisioni critiche nella gestione dell'autenticazione.
 
-### 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client
+    participant Router as authRoute
+    participant Controller as authController
+    participant DB as Database
+    participant JWT as JWT Library
+    participant ErrorFactory as AuthFactory
+    participant ErrorHandler as errorHandler
+
+    Client->>Router: POST /login { email, password }
+    Router->>Controller: chiama login(req, res, next)
+    
+    alt Mancano email o password
+        Controller->>ErrorFactory: crea INVALID_CREDENTIALS
+        ErrorFactory-->>Controller: AuthError(INVALID_CREDENTIALS)
+        Controller->>ErrorHandler: passa l'errore
+        ErrorHandler->>Client: 401 Unauthorized {"error": "Invalid credentials provided."}
+    end
+
+    alt Email non valida
+        Controller->>ErrorFactory: crea INVALID_CREDENTIALS
+        ErrorFactory-->>Controller: AuthError(INVALID_CREDENTIALS)
+        Controller->>ErrorHandler: passa l'errore
+        ErrorHandler->>Client: 401 Unauthorized {"error": "Invalid credentials provided."}
+    end
+
+    Controller->>DB: Cerca utente con l'email
+    alt Utente non trovato
+        Controller->>ErrorFactory: crea INVALID_CREDENTIALS
+        ErrorFactory-->>Controller: AuthError(INVALID_CREDENTIALS)
+        Controller->>ErrorHandler: passa l'errore
+        ErrorHandler->>Client: 401 Unauthorized {"error": "Invalid credentials provided."}
+    end
+
+    DB-->>Controller: Restituisce utente
+    
+    Controller->>Controller: Verifica la password
+    alt Password non valida
+        Controller->>ErrorFactory: crea INVALID_CREDENTIALS
+        ErrorFactory-->>Controller: AuthError(INVALID_CREDENTIALS)
+        Controller->>ErrorHandler: passa l'errore
+        ErrorHandler->>Client: 401 Unauthorized {"error": "Invalid credentials provided."}
+    end
+
+    Controller->>JWT: Genera il token JWT
+    JWT-->>Controller: Restituisce il token JWT
+
+    Controller->>Client: 200 OK {"token": "JWT"}
+```
+
 
 ### POST '/create/new-game'
+
 Il diagramma di sequenza per la rotta di create game rappresenta il flusso di interazioni durante il processo di creazione di una nuova partita nel sistema di gestione delle partite. Illustra come l'utente interagisce con il middleware di autenticazione, il controller delle partite e il servizio di gioco per finalizzare la richiesta. Questo diagramma è utile per comprendere i passaggi chiave e le responsabilità di ciascun componente.
 
 ### POST '/new-move'
+
 Il diagramma delle sequenze per il modulo di gestione delle mosse nel gioco illustra il flusso delle interazioni tra l'utente, il middleware di autenticazione, il controller delle mosse e il servizio di movimento. Inizia con l'utente che invia una richiesta per eseguire una mossa, passando attraverso il controllo dell'autenticazione JWT. Se autenticato, il controller gestisce la richiesta e delega la logica di esecuzione della mossa al servizio di movimento. Questo diagramma è essenziale per comprendere le dinamiche di interazione e il processo di gestione delle mosse nel sistema di gioco.
 
 ### GET /game/6/moves?format=json(pdf)
 
+Il diagramma di sequenze per la rotta MovesHistory mostra il processo di recupero della cronologia delle mosse per una partita specifica. Il client, autenticato tramite token JWT, invia una richiesta GET al server. Il server risponde con l'elenco delle mosse effettuate, permettendo al client di visualizzare la cronologia completa delle mosse per quella partita.
+
 ### POST /abandon-game/4
+
+Il diagramma di sequenze per la rotta AbandonGame descrive il processo in cui un giocatore abbandona una partita. Il client, autenticato tramite token JWT, invia una richiesta POST per abbandonare una partita specifica. Il server verifica il token, cambia lo stato della partita per indicare che è stata abbandonata, e invia una conferma al client.
 
 ### GET /completed-games?startDate=2024-10-26&endDate=2024-10-30
 
+Il diagramma di sequenze per la rotta CompletedGames rappresenta il processo per ottenere l'elenco delle partite completate in un determinato intervallo di date. Il client invia una richiesta GET, autenticato tramite token JWT, includendo le date di inizio e di fine. Il server risponde con la lista delle partite completate nel periodo specificato.
+
 ### PUT /chargeTokens
+
+Il diagramma di sequenze per la rotta ChargeTokens mostra il processo di ricarica dei token di un utente. Il client, già autenticato con un token JWT, invia una richiesta PUT con l'email dell'utente e il numero di token da aggiungere. Il server verifica il token JWT, aggiorna il credito dell'utente specificato, e restituisce una risposta con i dettagli della ricarica.
 
 ### GET /game-status/4
 
+Il diagramma di sequenze per la rotta GameStatus illustra il processo per ottenere lo stato attuale di una partita specifica. Il client invia una richiesta GET, autenticato tramite token JWT, e il server risponde con lo stato della partita. Questa rotta permette al client di aggiornare le informazioni sullo stato della partita in corso.
+
 ### GET /leaderboard?order=desc
 
+Il diagramma di sequenze per la rotta Ranking descrive il processo per visualizzare la classifica dei giocatori. Il client invia una richiesta GET senza necessità di autenticazione e specifica l'ordine di ordinamento (ascendente o discendente). Il server risponde con la classifica dei giocatori in base ai loro punteggi.
+
 ### GET /win-certificate/6
+
+Il diagramma di sequenze per la rotta WinnerCertificate rappresenta il processo di generazione di un certificato di vittoria per una partita specifica. Il client, autenticato tramite token JWT, invia una richiesta GET al server. Il server verifica l'autenticazione, raccoglie i dettagli della vittoria (come durata della partita e nome dell'avversario), e restituisce un certificato di vittoria sotto forma di documento o file PDF.
 
 # Diagramma ER
 Il diagramma ER (Entity-Relationship) offre una rappresentazione visiva delle entità coinvolte nel sistema e delle loro relazioni. In questo progetto, il diagramma illustra come i modelli Player, Game e Move interagiscono tra loro. Le entità rappresentano le diverse componenti del sistema, come i giocatori e le partite, mentre le relazioni mostrano come queste entità si collegano, ad esempio, attraverso le mosse effettuate dai giocatori in una partita. Questo diagramma è utile per comprendere la struttura dei dati e la logica sottostante dell'applicazione.
