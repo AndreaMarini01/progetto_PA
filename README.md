@@ -289,6 +289,8 @@ Importare la collection in Postman e seguire le istruzioni per testare le divers
 
 ## Rotte
 
+**NOTA:** Nelle rotte in cui non è specificato, è necessaria autenticazione per potervi accedere.
+
 ## Rotta di Login come utente non admin 
 - **POST /login**
   
@@ -517,6 +519,9 @@ Un utente può controllare la cronologia delle mosse effettuate in una partita, 
     }
 ]
 ```
+
+Di seguito viene riportato un esempio della cronologia delle mosse eseguite in una partita in formato PDF:
+[Qui un esempio di file .pdf generato](./images/Move History.pdf)
 
 
 ## Rotta di abbandono della partita
