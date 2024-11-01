@@ -51,6 +51,7 @@ import GameFactory, {gameErrorType} from '../factories/gameFactory';
 import {Op} from 'sequelize';
 import AuthFactory, {authErrorType} from "../factories/authFactory";
 import PDFDocument from "pdfkit";
+import moment from 'moment-timezone';
 
 const GAME_CREATION_COST = 0.35;
 
@@ -291,9 +292,13 @@ class gameService {
             }
 
         }
+        const formattedStartDate = game.created_at
+            ? moment(game.created_at).tz('Europe/Rome').format('YYYY-MM-DD HH:mm:ss')
+            : "Data non disponibile";
 
-        const formattedStartDate = game.created_at ? new Date(game.created_at).toDateString() + ' ' + new Date(game.created_at).toTimeString().split(' ')[0] : "Data non disponibile";
-        const formattedEndDate = game.ended_at ? new Date(game.ended_at).toDateString() + ' ' + new Date(game.ended_at).toTimeString().split(' ')[0] : "Data non disponibile";
+        const formattedEndDate = game.ended_at
+            ? moment(game.ended_at).tz('Europe/Rome').format('YYYY-MM-DD HH:mm:ss')
+            : "Data non disponibile";
         // Genera il PDF
         const doc = new PDFDocument();
         let buffers: Buffer[] = [];

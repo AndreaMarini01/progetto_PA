@@ -3,6 +3,9 @@ import gameService from '../services/gameService';
 import Game, {GameType, AIDifficulty, GameStatus} from '../models/Game';
 import GameFactory, { gameErrorType } from '../factories/gameFactory';
 import Player from "../models/Player";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import {readFileSync} from "fs";
 
 /**
  * Classe `GameController` per gestire le operazioni legate alle partite.
@@ -129,18 +132,11 @@ class gameController {
                 throw GameFactory.createError(gameErrorType.MISSING_GAME_PARAMETERS);
             }
             const total_moves = 0;
-            const initialBoard = {
-                board: [
-                    [null, "B", null, "B", null, "B", null, "B"],
-                    ["B", null, "B", null, "B", null, "B", null],
-                    [null, "B", null, "B", null, "B", null, "B"],
-                    [null, null, null, null, null, null, null, null],
-                    [null, null, null, null, null, null, null, null],
-                    ["W", null, "W", null, "W", null, "W", null],
-                    [null, "W", null, "W", null, "W", null, "W"],
-                    ["W", null, "W", null, "W", null, "W", null]
-                ]
-            };
+
+            // Lettura della configurazione della board dal file JSON
+            const initialBoardPath = 'src/initialBoard.json';
+            const initialBoard = JSON.parse(readFileSync(initialBoardPath, 'utf8'));
+
             const newGame = await gameService.createGame(playerId, opponent_email, type, ai_difficulty, initialBoard, total_moves);
             res.status(201).json({game: newGame});
         } catch (error) {

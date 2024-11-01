@@ -105,6 +105,15 @@ class moveService {
         if (game.status !== GameStatus.ONGOING) {
             throw GameFactory.createError(gameErrorType.GAME_NOT_IN_PROGRESS);
         }
+        // Recupera l'ultima mossa per determinare il turno
+        const lastMove = await Move.findOne({
+            where: { game_id: gameId },
+            order: [['move_number', 'DESC']]
+        });
+        // Se l'ultima mossa è stata fatta dal giocatore corrente, non è il suo turno
+        if (lastMove && lastMove.user_id === playerId) {
+            throw MoveFactory.createError(moveErrorType.NOT_PLAYER_TURN);
+        }
         // Se il giocatore che esegue la mossa non è uno dei due giocatori coinvolti, restituisce un errore
         if (game.player_id !== playerId && game.opponent_id !== playerId) {
             throw AuthFactory.createError(authErrorType.UNAUTHORIZED);
@@ -130,7 +139,9 @@ class moveService {
         flattenedBoard.forEach((square, index) => {
             draughts.board[index] = square;
         });
+        console.log("Board attuale impostata su draughts:", draughts.board);
         // Stampa le mosse possibili
+        console.log(draughts.asciiBoard())
         console.log("Mosse possibili dalla configurazione data:");
         draughts.moves.forEach(move => {
             const moveFrom = moveService.convertPositionBack(move.origin);
@@ -145,16 +156,16 @@ class moveService {
         if (!moveToMake) {
             throw MoveFactory.createError(moveErrorType.NOT_VALID_MOVE);
         }
-        // Controlla se la mossa corrente è uguale all'ultima mossa effettuata
-        const lastMove = await Move.findOne({
+        // Controlla se la mossa corrente è uguale all'ultima mossa effettuata dallo stesso player
+        const lastPlayerMove = await Move.findOne({
             where: {
                 game_id: gameId,
                 user_id: playerId
             },
             order: [['created_at', 'DESC']]
         });
-        if (lastMove) {
-            const lastMoveTime = new Date(lastMove.created_at);
+        if (lastPlayerMove) {
+            const lastMoveTime = new Date(lastPlayerMove.created_at);
             const currentTime = new Date();
             const timeDifference = (currentTime.getTime() - lastMoveTime.getTime()) / (1000 * 60); // Differenza in minuti
             if (timeDifference > TIMEOUT_MINUTES) {
@@ -182,7 +193,7 @@ class moveService {
                 };
             }
         }
-        if (lastMove && lastMove.from_position === from && lastMove.to_position === to) {
+        if (lastPlayerMove && lastPlayerMove.from_position === from && lastPlayerMove.to_position === to) {
             throw MoveFactory.createError(moveErrorType.NOT_VALID_MOVE);
         }
         // Esegui la mossa del giocatore

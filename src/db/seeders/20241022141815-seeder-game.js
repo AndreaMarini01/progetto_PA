@@ -25,6 +25,8 @@
 
 'use strict';
 
+const {readFileSync} = require("fs");
+
 /**
  * Funzione di utilità per generare una data casuale tra l'epoca Unix e il momento attuale.
  *
@@ -37,33 +39,12 @@ function getRandomDate() {
   return new Date(randomTime);
 }
 
-/**
- * Funzione di utilità per generare la configurazione iniziale della board 8x8.
- *
- * @returns Un oggetto contenente la configurazione della board.
- */
-
-function generateBoardConfig() {
-  // Configurazione della board 8x8, utilizzando un array di array
-  const board = [
-    [null, "B", null, "B", null, "B", null, "B"],
-    ["B", null, "B", null, "B", null, "B", null],
-    [null, "B", null, "B", null, "B", null, "B"],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    ["W", null, "W", null, "W", null, "W", null],
-    [null, "W", null, "W", null, "W", null, "W", null],
-    ["W", null, "W", null, "W", null, "W", null]
-  ];
-
-  return { board }; // Restituisce un oggetto JSON nativo
-}
-
 module.exports = {
 
   async up(queryInterface, Sequelize) {
-    const boardConfig = generateBoardConfig();
-    const serializedBoard = JSON.stringify(boardConfig.board);
+    const initialBoardPath = 'src/initialBoard.json';
+    const initialBoardParsing = JSON.parse(readFileSync(initialBoardPath, 'utf8'));
+    const initialBoard = JSON.stringify(initialBoardParsing, null, 2);
 
     const games = [
       {
@@ -75,7 +56,7 @@ module.exports = {
         type: 'pvp',
         ai_difficulty: 'absent',
         winner_id: null,
-        board: Sequelize.literal(`'${serializedBoard}'::json`),
+        board: initialBoard,
         total_moves:0
       },
       {
@@ -87,7 +68,7 @@ module.exports = {
         type: 'pve',
         ai_difficulty: 'hard',
         winner_id: null,
-        board: Sequelize.literal(`'${serializedBoard}'::json`),
+        board: initialBoard,
         total_moves:0
       },
       {
@@ -99,7 +80,7 @@ module.exports = {
         type: 'pve',
         ai_difficulty: 'hard',
         winner_id: 3,
-        board: Sequelize.literal(`'${serializedBoard}'::json`),
+        board: initialBoard,
         total_moves:0
       }
     ];

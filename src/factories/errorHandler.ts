@@ -29,7 +29,7 @@ import {GameError, gameErrorType} from './gameFactory';
 import {AuthError, authErrorType} from './authFactory';
 import {TokenError, tokenErrorType} from "./tokenFactory";
 import {MoveError, moveErrorType} from "./moveFactory";
-import { StatusCodes } from 'http-status-codes';
+import {StatusCodes} from 'http-status-codes';
 
 function errorHandler(err: any, req: Request, res: Response, next: NextFunction) {
     if (err instanceof GameError) {
@@ -154,6 +154,9 @@ function errorHandler(err: any, req: Request, res: Response, next: NextFunction)
                 break;
             case moveErrorType.INVALID_FORMAT:
                 statusCode = StatusCodes.NOT_FOUND;
+                break;
+            case moveErrorType.NOT_PLAYER_TURN:
+                statusCode = StatusCodes.BAD_REQUEST;
                 break;
             default:
                 statusCode = StatusCodes.INTERNAL_SERVER_ERROR;

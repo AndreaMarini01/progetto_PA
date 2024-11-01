@@ -19,6 +19,7 @@ export enum moveErrorType {
     MISSING_PARAMS = 'MISSING_PARAMS',
     NO_MOVES = 'NO_MOVES',
     INVALID_FORMAT = 'INVALID_FORMAT',
+    NOT_PLAYER_TURN = 'NOT_PLAYER_TURN',
 }
 
 /**
@@ -73,7 +74,9 @@ class MoveFactory {
             case moveErrorType.NO_MOVES:
                 return 'There are no moves for this game';
             case moveErrorType.INVALID_FORMAT:
-                return 'Please, provide a valid format.'
+                return 'Please, provide a valid format.';
+            case moveErrorType.NOT_PLAYER_TURN:
+                return 'You must wait for your turn to play!';
             default:
                 return 'An unknown authentication error occurred.';
         }
