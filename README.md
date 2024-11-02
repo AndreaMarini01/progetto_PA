@@ -754,7 +754,7 @@ sequenceDiagram
 
 ```
 # Diagramma ER
-Il diagramma ER (Entity-Relationship) offre una rappresentazione visiva delle entità coinvolte nel sistema e delle loro relazioni. In questo progetto, il diagramma illustra come i modelli Player, Game e Move interagiscono tra loro. Le entità rappresentano le diverse componenti del sistema, come i giocatori e le partite, mentre le relazioni mostrano come queste entità si collegano, ad esempio, attraverso le mosse effettuate dai giocatori in una partita. Questo diagramma è utile per comprendere la struttura dei dati e la logica sottostante dell'applicazione.
+Il diagramma ER (Entity-Relationship) offre una rappresentazione visiva delle entità coinvolte nel sistema e delle loro relazioni. In questo progetto, il diagramma illustra come i modelli Player, Game e Move interagiscono tra loro. Le entità rappresentano le diverse componenti del sistema, ovvero i giocatori, le partite e le mosse, mentre le relazioni mostrano come queste entità si collegano. Questo diagramma è utile per comprendere la struttura dei dati e la logica sottostante dell'applicazione.
 
 ```mermaid
 erDiagram
@@ -813,24 +813,30 @@ Questo pattern estende il tradizionale modello MVC, aggiungendo un livello di se
 - **Service:** Lo strato dei servizi è stato implementato solo dove necessario, per gestire le operazioni più complesse legate alla logica di business, come la creazione di partite, la gestione delle mosse e l’aggiornamento dei punteggi. Nei servizi viene centralizzata la logica aziendale, consentendo una separazione chiara dai controller, che restano concentrati sulla gestione delle richieste e delle risposte HTTP. Questa divisione ha permesso di semplificare il codice nelle parti più intricate dell’applicazione, mantenendo il sistema organizzato e facile da manutenere.
 
 ## Data Access Object (DAO)
-Il pattern DAO (Data Access Object) è una struttura progettuale che serve a isolare la logica di accesso al database dal resto dell'applicazione. In un’applicazione organizzata secondo questo pattern, tutte le operazioni di creazione, lettura, aggiornamento e cancellazione (CRUD) sono centralizzate in un livello dedicato, costituito da classi o moduli specifici che interagiscono con il database.
+Il pattern DAO (Data Access Object) è una struttura progettuale che serve a isolare la logica di accesso al database dal resto dell'applicazione. In un’applicazione organizzata secondo questo pattern, tutte le operazioni di creazione, lettura, aggiornamento e cancellazione (CRUD) sono centralizzate in un livello dedicato, costituito da classi o moduli specifici che interagiscono con il database. È importante specificare che questo pattern è stato implementato utilizzando Sequelize, che fornisce un’interfaccia per l’accesso ai dati.
 
 ## Chain of Responsibility (COR)
-Il pattern Chain of Responsibility è stato implementato nel nostro progetto per gestire in modo efficace la logica di autenticazione e la gestione degli errori attraverso middleware dedicati. Ad esempio, abbiamo sviluppato un middleware di autenticazione che verifica se l'utente è autenticato tramite JWT. Se l'utente non è autenticato, il middleware interrompe il flusso della richiesta e restituisce un messaggio di errore personalizzato, impedendo l'accesso a risorse riservate. Questo approccio non solo semplifica la logica di controllo dell'accesso, ma consente di gestire in modo centralizzato la validazione dell'autenticazione. Inoltre, abbiamo implementato un middleware per la gestione degli errori, che si attiva quando viene riscontrato un errore durante l'elaborazione della richiesta. Questo middleware genera messaggi di errore personalizzati che forniscono feedback chiaro all'utente, migliorando l'esperienza utente e garantendo una gestione uniforme delle eccezioni nel sistema. In questo modo, il pattern Chain of Responsibility consente di mantenere il codice ben organizzato e facilmente manutenibile.
+Il pattern Chain of Responsibility è stato implementato nel nostro progetto per gestire in modo efficace la logica di autenticazione e la gestione degli errori attraverso middleware dedicati. Ad esempio, abbiamo sviluppato un middleware di autenticazione che verifica se l'utente è autenticato tramite JWT. Se l'utente non è autenticato, il middleware interrompe il flusso della richiesta e restituisce un messaggio di errore personalizzato, impedendo l'accesso a risorse riservate. Questo approccio non solo semplifica la logica di controllo dell'accesso, ma consente di gestire in modo centralizzato la validazione dell'autenticazione. Inoltre, abbiamo implementato un middleware per la gestione degli errori, che si attiva quando viene riscontrato un errore durante l'elaborazione della richiesta. Questo middleware genera messaggi di errore personalizzati che forniscono feedback chiaro all'utente, migliorando l'esperienza utente e garantendo una gestione uniforme delle eccezioni nel sistema.
+Infine, abbiamo implementato anche un middleware che, oltre a verificare l'autenticazione dell'utente, sempre tramite JWT, controlla che l'utente abbia il ruolo di admin, riservando a quest'ultimo ulteriori funzionalità. In caso di permesso mancato, il middleware restituisce un messaggio di errore personalizzato. In questo modo, il pattern Chain of Responsibility consente di mantenere il codice ben organizzato e facilmente manutenibile.
 
 ## Factory
-La gestione degli errori è centralizzata tramite un file chiamato HerrorEndler, responsabile di lanciare gli errori in modo coerente e strutturato. Per ogni macro area (auth, game, move, e token), abbiamo creato una Factory di errori dedicata, che facilita la generazione di errori specifici per ciascun contesto applicativo.
+La gestione degli errori è centralizzata tramite un file chiamato errorHandler, responsabile di lanciare gli errori in modo coerente e strutturato. Per ogni macro area (auth, game, move e token), abbiamo creato una Factory di errori dedicata, che facilita la generazione di errori specifici per ciascun contesto applicativo.
 
 Ogni Factory fornisce un’interfaccia unificata per la creazione degli errori HTTP personalizzati, consentendo la generazione di errori come `NOT_FOUND`, `UNAUTHORIZED`, `FORBIDDEN` e altri, in base alla situazione. Questo approccio ha diversi vantaggi:
 
-- **Centralizzazione della gestione degli errori:** Il file HerrorEndler, combinato con le Factory di errore per ogni area, riduce la ripetizione del codice e semplifica la creazione di messaggi di errore personalizzati.
+- **Centralizzazione della gestione degli errori:** Il file errorHandler, combinato con le Factory di errore per ogni area, riduce la ripetizione del codice e semplifica la creazione di messaggi di errore personalizzati.
 - **Uniformità nei codici di stato HTTP:** Utilizzando una libreria come http-status-codes, le Factory possono associare facilmente i codici HTTP appropriati agli errori, garantendo una gestione standardizzata delle eccezioni.
 - **Estensibilità:** Le Factory per **auth**, **game**, **move** e **token** rendono il sistema di gestione degli errori flessibile, consentendo di aggiungere nuovi tipi di errori o modificare quelli esistenti senza intervenire in ogni singola area del codice.
 
+## Singleton
+
+
+Nel progetto è stato adottato il pattern Singleton per gestire la connessione al database. Durante l'inizializzazione dell'applicazione, viene creata un’unica istanza di Sequelize, responsabile di tutte le interazioni con il database. Questo approccio garantisce una connessione centralizzata e condivisa tra le diverse componenti dell’applicazione, prevenendo problemi di concorrenza e conflitti di connessione. L'uso del Singleton per la connessione al database contribuisce a migliorare l'efficienza e la coerenza nelle operazioni di lettura e scrittura sui dati.
+Per implementare il pattern Singleton, è stata creata la classe Database, che memorizza l'istanza di Sequelize in una proprietà statica. Il metodo getInstance() verifica se l'istanza è già presente: in tal caso, la restituisce; altrimenti, ne crea una nuova utilizzando le variabili d'ambiente configurate. In questo modo, si assicura che tutte le richieste nell’applicazione utilizzino un'unica connessione al database, ottimizzando le risorse.
+
 # Avvio del Progetto
 ## Prerequisiti
-- Docker
-- Docker-compose
+- Docker e Docker-compose installati nel sistema
 
 ## Configurazione
 1. Clonare il repository:
@@ -840,14 +846,13 @@ git clone https://github.com/AndreaMarini01/progetto_pa
 cd progetto_pa
 ```
 2. Configurare le variabili d'ambiente:
-   Creare un file ```.env``` configurandolo con le corrette variabili d'ambiente
+   Creare un file ```.env``` configurandolo con le corrette variabili d'ambiente. Questo file deve trovarsi all’interno della directory principale del progetto.
 3. Posizionarsi sulla radice del progetto e lanciare da terminale il seguente comando:
    ```bash
-    ./build.sh
+    docker-compose up --build
    ```
    Il seguente file di configurazione contiene tutti comandi per l'installazione delle dipendenze e per la build (docker compose).
 
-   NOTA: In caso si utilizzi MacOS va utilizzato prima il seguente comando: ``` chmod +x build.sh```
 4. Scaricare la collection e le variabili di environment di Postman per procedere con i test.
 
 # Test del Progetto
