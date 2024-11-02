@@ -301,9 +301,9 @@ sequenceDiagram
     participant JWTAuth as authenticationWithJWT
     participant MoveController as MoveController
     participant MoveService as moveService
-    participant Game as Game (Model)
-    participant Move as Move (Model)
-    participant Player as Player (Model)
+    participant Game as Game
+    participant Move as Move
+    participant Player as Player
 
     Client->>MoveRoute: POST /new-move
     MoveRoute->>JWTAuth: authenticationWithJWT
@@ -388,6 +388,7 @@ Il diagramma di sequenze per la rotta MovesHistory mostra il processo di recuper
 sequenceDiagram
     participant Client
     participant Router
+    participant authMiddleware as authenticationWithJWT
     participant Controller
     participant Service
     participant GameModel
@@ -396,40 +397,48 @@ sequenceDiagram
     participant ErrorHandler
 
     Client->>Router: GET /game/:gameId/moves
-    Router->>Controller: getMoveHistory(req, res, next)
-    Controller->>GameModel: findByPk(gameId)
-    alt Game Not Found
-        GameModel-->>Controller: null
-        Controller->>ErrorHandler: throw GameFactory.createError(GAME_NOT_FOUND)
-        ErrorHandler-->>Client: 404 Not Found { error: "Game not found." }
-    else Game Exists
-        GameModel-->>Controller: game data
-        Controller->>Service: exportMoveHistory(gameId, format)
-        Service->>MoveModel: findAll({ game_id: gameId })
-        alt No Moves
-            MoveModel-->>Service: []
-            Service->>ErrorHandler: throw MoveFactory.createError(NO_MOVES)
-            ErrorHandler-->>Client: 404 Not Found { error: "No moves for this game." }
-        else Moves Exist
-            MoveModel-->>Service: moves data
-            Service->>PlayerModel: findAll(player_ids)
-            PlayerModel-->>Service: player data
-            alt JSON Format
-                Service-->>Controller: moves in JSON format
-                Controller-->>Client: 200 OK { moves: [...] }
-            else PDF Format
-                Service-->>Controller: moves as PDF Buffer
-                Controller-->>Client: PDF file
-            else Invalid Format
-                Service->>ErrorHandler: throw MoveFactory.createError(INVALID_FORMAT)
-                ErrorHandler-->>Client: 404 Not Found { error: "Invalid format." }
+    Router->>AuthMiddleware: Verifica token JWT
+    alt Token JWT non valido o assente
+        AuthMiddleware->>ErrorHandler: throw AuthError("Invalid or missing token")
+        ErrorHandler-->>Client: 401 Unauthorized { error: "Invalid or missing token." } 
+    else Token JWT valido
+        AuthMiddleware->>Router: Autenticazione valida
+        Router->>Controller: getMoveHistory(req, res, next)
+        Controller->>GameModel: findByPk(gameId)
+
+        alt Game Not Found
+            GameModel-->>Controller: null
+            Controller->>ErrorHandler: throw GameFactory.createError(GAME_NOT_FOUND)
+            ErrorHandler-->>Client: 404 Not Found { error: "Game not found." }
+        else Game Exists
+            GameModel-->>Controller: game data
+            Controller->>Service: exportMoveHistory(gameId, format)
+            Service->>MoveModel: findAll({ game_id: gameId })
+            alt No Moves
+                MoveModel-->>Service: []
+                Service->>ErrorHandler: throw MoveFactory.createError(NO_MOVES)
+                ErrorHandler-->>Client: 404 Not Found { error: "No moves for this game." }
+            else Moves Exist
+                MoveModel-->>Service: moves data
+                Service->>PlayerModel: findAll(player_ids)
+                PlayerModel-->>Service: player data
+                alt JSON Format
+                    Service-->>Controller: moves in JSON format
+                    Controller-->>Client: 200 OK { moves: [...] }
+                else PDF Format
+                    Service-->>Controller: moves as PDF Buffer
+                    Controller-->>Client: PDF file
+                else Invalid Format
+                    Service->>ErrorHandler: throw MoveFactory.createError(INVALID_FORMAT)
+                    ErrorHandler-->>Client: 404 Not Found { error: "Invalid format." }
+                end
             end
         end
-    end
+    end    
 
 ```
 
-### POST /abandon-game/4
+### POST /abandon-game/:gameId
 
 Il diagramma di sequenze per la rotta AbandonGame descrive il processo in cui un giocatore abbandona una partita. Il client, autenticato tramite token JWT, invia una richiesta POST per abbandonare una partita specifica. Il server verifica il token, cambia lo stato della partita per indicare che è stata abbandonata, e invia una conferma al client.
 
