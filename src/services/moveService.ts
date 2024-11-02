@@ -49,7 +49,11 @@ import Game, {AIDifficulty, GameStatus, GameType} from '../models/Game';
 import Player from '../models/Player';
 import Move from "../models/Move";
 import {DraughtsMove1D, DraughtsSquare1D, DraughtsStatus} from 'rapid-draughts';
-import {EnglishDraughts as Draughts, EnglishDraughtsComputerFactory as ComputerFactory} from 'rapid-draughts/english';
+import {
+    EnglishDraughts,
+    EnglishDraughtsComputerFactory as ComputerFactory,
+    EnglishDraughtsGame
+} from 'rapid-draughts/english';
 import MoveFactory, {moveErrorType} from "../factories/moveFactory";
 import AuthFactory, {authErrorType} from "../factories/authFactory";
 import GameFactory, {gameErrorType} from "../factories/gameFactory";
@@ -60,6 +64,8 @@ const TIMEOUT_MINUTES = 1;
 const MOVE_COST = 0.02;
 
 class moveService {
+
+    private static draughts: EnglishDraughtsGame = EnglishDraughts.setup();
 
     private static async chooseAIMove(draughts: any, difficulty: AIDifficulty): Promise<DraughtsMove1D | null> {
         const validMoves = draughts.moves;
@@ -79,6 +85,7 @@ class moveService {
         }
     }
 
+    /*
     public static convertPosition(position: string): number {
         const file = position.charCodeAt(0) - 'A'.charCodeAt(0);
         const rank = 8 - parseInt(position[1]);
@@ -89,7 +96,36 @@ class moveService {
         const file = String.fromCharCode('A'.charCodeAt(0) + (index % 8));
         const rank = 8 - Math.floor(index / 8);
         return `${file}${rank}`;
+    }*/
+
+    public static convertPosition(position: string): number {
+        const file = position.charCodeAt(0) - 'A'.charCodeAt(0);
+        const rank = 8 - parseInt(position[1]);
+
+        // Solo le caselle scure sono numerate in dama.
+        if ((file + rank) % 2 === 0) {
+            throw new Error("La posizione specificata non è una casella scura valida nella dama.");
+        }
+
+        // Calcola l'indice per le sole caselle scure
+        return Math.floor((rank * 4) + (file / 2)) + 1;
     }
+
+    public static convertPositionBack(index: number): string {
+        if (index < 1 || index > 32) {
+            throw new Error("Indice non valido per una casella scura.");
+        }
+
+        // Calcola la riga e la colonna per le caselle scure
+        const rank = Math.floor((index - 1) / 4);
+        const file = ((index - 1) % 4) * 2 + (rank % 2 === 0 ? 1 : 0);
+
+        const fileLetter = String.fromCharCode('A'.charCodeAt(0) + file);
+        const rankNumber = 8 - rank;
+
+        return `${fileLetter}${rankNumber}`;
+    }
+
 
     public static async executeMove(gameId: number, from: string, to: string, playerId: number) {
         const player = await Player.findByPk(playerId);
@@ -130,20 +166,24 @@ class moveService {
         }
         // Verifica che la board esista e che sia di tipo JSON
         const savedBoard = savedData?.board;
+        console.log("Board salvata:", JSON.stringify(savedBoard, null, 2));
         if (!savedBoard || !Array.isArray(savedBoard)) {
             throw MoveFactory.createError(moveErrorType.NOT_VALID_ARRAY);
         }
         const flattenedBoard = savedBoard.flat();
+
         // Inizializza il gioco utilizzando la board salvata in precedenza
-        const draughts = Draughts.setup();
+        //const draughts = Draughts.setup();
+        console.log(moveService.draughts.asciiBoard())
+
         flattenedBoard.forEach((square, index) => {
-            draughts.board[index] = square;
+            moveService.draughts.board[index] = square;
         });
-        console.log("Board attuale impostata su draughts:", draughts.board);
+
+        console.log("Board attuale impostata su draughts:", moveService.draughts.board);
         // Stampa le mosse possibili
-        console.log(draughts.asciiBoard())
         console.log("Mosse possibili dalla configurazione data:");
-        draughts.moves.forEach(move => {
+        moveService.draughts.moves.forEach(move => {
             const moveFrom = moveService.convertPositionBack(move.origin);
             const moveTo = moveService.convertPositionBack(move.destination);
             console.log(`Mossa: da ${moveFrom} a ${moveTo}`);
@@ -151,7 +191,7 @@ class moveService {
         const origin = moveService.convertPosition(from);
         const destination = moveService.convertPosition(to);
         // Verifica che una mossa sia valida
-        const validMoves = draughts.moves;
+        const validMoves = moveService.draughts.moves;
         const moveToMake = validMoves.find(move => move.origin === origin && move.destination === destination);
         if (!moveToMake) {
             throw MoveFactory.createError(moveErrorType.NOT_VALID_MOVE);
@@ -197,9 +237,13 @@ class moveService {
             throw MoveFactory.createError(moveErrorType.NOT_VALID_MOVE);
         }
         // Esegui la mossa del giocatore
-        draughts.move(moveToMake);
+        moveService.draughts.move(moveToMake);
+
+        // Il problema è che ogni volta viene richiamato il metodo setup()
+        console.log(moveService.draughts.asciiBoard())
+
         // Aggiorna la board e salva la mossa del giocatore
-        game.board = { board: draughts.board };
+        game.board = { board: moveService.draughts.board };
         game.total_moves = (game.total_moves || 0) + 1;
         await game.save();
 
@@ -208,7 +252,7 @@ class moveService {
         // Salva la mossa nel database
         await Move.create({
             move_number: moveNumber,
-            board: {board: draughts.board},
+            board: {board: moveService.draughts.board},
             from_position: from,
             to_position: to,
             piece_type: savedBoard[origin]?.piece?.king ? 'king' : 'single',
@@ -216,8 +260,8 @@ class moveService {
             user_id: playerId,
         });
         // Verifica se la mossa del giocatore ha concluso il gioco
-        if ([DraughtsStatus.LIGHT_WON, DraughtsStatus.DARK_WON, DraughtsStatus.DRAW].includes(draughts.status as DraughtsStatus)) {
-            const gameOverResult = await moveService.handleGameOver(draughts, game);
+        if ([DraughtsStatus.LIGHT_WON, DraughtsStatus.DARK_WON, DraughtsStatus.DRAW].includes(moveService.draughts.status as DraughtsStatus)) {
+            const gameOverResult = await moveService.handleGameOver(moveService.draughts, game);
             return {
                 message: gameOverResult.message,
                 game_id: gameId,
@@ -238,7 +282,7 @@ class moveService {
                 order: [['created_at', 'DESC']],
             });
 
-            let aiMove = await moveService.chooseAIMove(draughts, game.ai_difficulty);
+            let aiMove = await moveService.chooseAIMove(moveService.draughts, game.ai_difficulty);
 
             if (lastAIMove && aiMove &&
                 lastAIMove.from_position && lastAIMove.to_position &&
@@ -246,7 +290,7 @@ class moveService {
                 aiMove.destination === moveService.convertPosition(lastAIMove.to_position)) {
 
                 // Filtra l'ultima mossa dell'IA dalle mosse valide
-                const validMoves = draughts.moves.filter(move =>
+                const validMoves = moveService.draughts.moves.filter(move =>
                     aiMove && (move.origin !== aiMove.origin || move.destination !== aiMove.destination)
                 );
 
@@ -255,8 +299,8 @@ class moveService {
             }
 
             if (aiMove) {
-                draughts.move(aiMove);
-                game.board = { board: draughts.board };
+                moveService.draughts.move(aiMove);
+                game.board = { board: moveService.draughts.board };
                 game.total_moves += 1;
                 await game.save();
 
@@ -270,7 +314,7 @@ class moveService {
 
                 await Move.create({
                     move_number: moveNumber + 1,
-                    board: {board: draughts.board},
+                    board: {board: moveService.draughts.board},
                     from_position: fromPositionAI,
                     to_position: toPositionAI,
                     piece_type: savedBoard[aiMove.origin]?.piece?.king ? 'king' : 'single',
@@ -279,8 +323,8 @@ class moveService {
                 });
 
                 // Verifica se la mossa dell'IA ha concluso il gioco
-                if ([DraughtsStatus.LIGHT_WON, DraughtsStatus.DARK_WON, DraughtsStatus.DRAW].includes(draughts.status as DraughtsStatus)) {
-                    const gameOverResult = await moveService.handleGameOver(draughts, game);
+                if ([DraughtsStatus.LIGHT_WON, DraughtsStatus.DARK_WON, DraughtsStatus.DRAW].includes(moveService.draughts.status as DraughtsStatus)) {
+                    const gameOverResult = await moveService.handleGameOver(moveService.draughts, game);
                     return {
                         message: gameOverResult.message,
                         game_id: gameId,
@@ -306,6 +350,7 @@ class moveService {
             moveDescription: `You moved a ${savedBoard[origin]?.piece?.king ? 'king' : 'single'} from ${from} to ${to}.`,
         };
     }
+
 
     private static async handleGameOver(draughts: any, game: any) {
         let result;
