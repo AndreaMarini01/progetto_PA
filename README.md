@@ -27,7 +27,9 @@ Il progetto consiste nella realizzazione di un back-end per un sistema di gioco 
 - **Certificato di vittoria:** Generazione di un certificato PDF per le partite vinte, contenente informazioni come il nome del vincitore, il tempo di gioco e il numero di mosse.
 - **Gestione utenti:** Implementazione di una rotta amministrativa per ricaricare i token di un utente, tramite email.
 
-Le specifiche prevedono l'utilizzo di TypeScript, JWT per l'autenticazione, un database relazionale con Sequelize, e Docker per l'avvio e la gestione dei servizi del progetto.
+Alcune delle funzionalità presenti nell'applicazione, come l'inizializzazione della board di gioco e l'implementazione dei livelli di difficoltà, utilizzano la libreria [rapid-draughts](https://github.com/loks0n/rapid-draughts.git).
+
+Le specifiche prevedono la realizzazione di un'applicazione Node.js utilizzando TypeScript e il framework Express, con JWT per l'autenticazione, un database relazionale gestito tramite Sequelize, e Docker per l'avvio e la gestione dei servizi del progetto.
 
 # Progettazione 
 
