@@ -17,15 +17,15 @@
 
 # Obiettivo di Progetto
 
-Il progetto consiste nella realizzazione di un back-end per un sistema di gioco della dama. L'obiettivo è permettere a un utente autenticato (con JWT) di giocare partite di dama contro un altro giocatore o contro un'intelligenza artificiale (IA). Le funzionalità principali includono:
+Il progetto consiste nella realizzazione di un back-end per un sistema di gioco della dama. L'obiettivo è permettere a un utente autenticato (con JWT) di giocare partite di dama contro un altro giocatore o contro un'intelligenza artificiale (IA). Le funzionalità principali dell'applicazione includono:
 
-- **Gestione delle partite:** Creazione di partite contro un avversario umano o IA, con livelli di difficoltà selezionabili. Il sistema consente la gestione di più partite attive simultaneamente, limitando ogni utente a partecipare a una sola partita alla volta.
-- **Timeout e abbandono:** Se un utente non esegue una mossa entro un intervallo di tempo prestabilito, la partita viene considerata abbandonata.
+- **Creazione delle partite:** Creazione di partite contro un avversario umano o IA, con livelli di difficoltà selezionabili. Il sistema consente la gestione di più partite attive simultaneamente, limitando ogni utente a partecipare a una sola partita alla volta.
+- **Timeout e abbandono:** Se un utente non esegue una mossa entro un intervallo di tempo prestabilito, la partita viene considerata abbandonata per timeout. Inoltre, la partita può essere volontariamente abbandonata.
 - **Token di pagamento:** Ogni partita richiede l'addebito di token per la creazione e per ogni mossa effettuata. Il credito dell'utente viene verificato prima dell'inizio della partita e aggiornato durante il gioco.
-- **Rotte API:** Creazione di API per eseguire mosse, verificare lo stato della partita, visualizzare partite passate e lo storico delle mosse, con possibilità di esportazione in JSON o PDF.
+- **Rotte API:** Creazione di API per eseguire mosse, verificare lo stato della partita, visualizzare partite passate e lo storico delle mosse, con possibilità di esportazione in formato JSON o PDF.
 - **Classifica giocatori:** Fornitura di una classifica pubblica che mostra il punteggio dei giocatori, con opzioni di ordinamento.
-- **Certificato di vittoria:** Generazione di un certificato PDF per le partite vinte, contenente informazioni come il tempo di gioco e il numero di mosse.
-- **Gestione utenti:** Implementazione di una rotta amministrativa per ricaricare i token di un utente autenticato tramite email.
+- **Certificato di vittoria:** Generazione di un certificato PDF per le partite vinte, contenente informazioni come il nome del vincitore, il tempo di gioco e il numero di mosse.
+- **Gestione utenti:** Implementazione di una rotta amministrativa per ricaricare i token di un utente, tramite email.
 
 Le specifiche prevedono l'utilizzo di TypeScript, JWT per l'autenticazione, un database relazionale con Sequelize, e Docker per l'avvio e la gestione dei servizi del progetto.
 
