@@ -212,7 +212,7 @@ Il diagramma di sequenza per la rotta di create game rappresenta il flusso di in
 
 ```mermaid
 sequenceDiagram
-participant Client
+actor Player as Player
 participant AuthMiddleware as authenticationWithJWT
 participant Router as gameRoute
 participant Controller as gameController
@@ -296,87 +296,89 @@ Il diagramma delle sequenze per il modulo di gestione delle mosse nel gioco illu
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant MoveRoute as moveRoutes
+    actor Player as Player
     participant JWTAuth as authenticationWithJWT
+    participant MoveRoute as moveRoutes
     participant MoveController as MoveController
     participant MoveService as moveService
     participant Game as Game
     participant Move as Move
     participant Player as Player
 
-    Client->>MoveRoute: POST /new-move
-    MoveRoute->>JWTAuth: authenticationWithJWT
-    JWTAuth-->>MoveRoute: Authorized (if token valid)
-    JWTAuth-->>Client: 401 Unauthorized (if token invalid)
+    Client->>JWTAuth: POST /new-move
+    JWTAuth->>JWTAuth: Verifica token JWT
+    alt Token JWT non valido o assente
+        JWTAuth-->>Client: 401 Unauthorized (Invalid or missing token)
+    else Token JWT valido
+        JWTAuth->>MoveRoute: Autenticazione valida
+        MoveRoute->>MoveController: executeMove()
+        MoveController->>MoveService: executeMove(gameId, from, to, playerId)
 
-    MoveRoute->>MoveController: executeMove()
-    MoveController->>MoveService: executeMove(gameId, from, to, playerId)
+        alt Missing Parameters
+            MoveService->>MoveFactory: createError(MISSING_PARAMS)
+            MoveFactory-->>MoveService: MoveError("You have to specify the game id, from and to!")
+            MoveService-->>MoveController: 400 Bad Request
+            MoveController-->>Client: 400 Bad Request
+        end
 
-    alt Missing Parameters
-        MoveService->>MoveFactory: createError(MISSING_PARAMS)
-        MoveFactory-->>MoveService: MoveError("You have to specify the game id, from and to!")
-        MoveService-->>MoveController: 400 Bad Request
-        MoveController-->>Client: 400 Bad Request
+        MoveService->>Game: findByPk(gameId)
+        alt Game Not Found
+            MoveService->>MoveFactory: createError(GAME_NOT_FOUND)
+            MoveFactory-->>MoveService: MoveError("The game doesn’t exist!")
+            MoveService-->>MoveController: 404 Not Found
+            MoveController-->>Client: 404 Not Found
+        end
+
+        Game-->>MoveService: Game data
+
+        alt Game Not Ongoing
+            MoveService->>GameFactory: createError(GAME_NOT_IN_PROGRESS)
+            GameFactory-->>MoveService: GameError("The game is not more available.")
+            MoveService-->>MoveController: 409 Conflict
+            MoveController-->>Client: 409 Conflict
+        end
+
+        MoveService->>Player: findByPk(playerId)
+        alt Player Not Authorized
+            MoveService->>AuthFactory: createError(UNAUTHORIZED)
+            AuthFactory-->>MoveService: AuthError("You are not authorized to perform this action.")
+            MoveService-->>MoveController: 403 Forbidden
+            MoveController-->>Client: 403 Forbidden
+        end
+
+        MoveService->>Move: findOne(last move details)
+        alt Timeout or Duplicate Move
+            MoveService->>MoveFactory: createError(NOT_VALID_MOVE)
+            MoveFactory-->>MoveService: MoveError("The move is not valid!")
+            MoveService-->>MoveController: 422 Unprocessable Entity
+            MoveController-->>Client: 422 Unprocessable Entity
+        end
+
+        MoveService->>Game: parse and validate board
+        alt Failed Parsing or Invalid Board
+            MoveService->>MoveFactory: createError(FAILED_PARSING or NOT_VALID_ARRAY)
+            MoveFactory-->>MoveService: MoveError("The parsing of the board has failed" or "The board's conversion is not valid!")
+            MoveService-->>MoveController: 400 Bad Request
+            MoveController-->>Client: 400 Bad Request
+        end
+
+        MoveService->>Draughts: setup board and execute move
+        Draughts-->>MoveService: Updated board and valid moves
+
+        alt No Valid Move
+            MoveService->>MoveFactory: createError(NOT_VALID_MOVE)
+            MoveFactory-->>MoveService: MoveError("The move is not valid!")
+            MoveService-->>MoveController: 422 Unprocessable Entity
+            MoveController-->>Client: 422 Unprocessable Entity
+        end
+
+        MoveService->>Move: create(new move entry)
+        Move-->>MoveService: Move saved
+
+        MoveService->>Game: Update board and total_moves
+        MoveService-->>MoveController: Move execution result
+        MoveController-->>Client: 200 OK, move result
     end
-
-    MoveService->>Game: findByPk(gameId)
-    alt Game Not Found
-        MoveService->>MoveFactory: createError(GAME_NOT_FOUND)
-        MoveFactory-->>MoveService: MoveError("The game doesn’t exist!")
-        MoveService-->>MoveController: 404 Not Found
-        MoveController-->>Client: 404 Not Found
-    end
-
-    Game-->>MoveService: Game data
-
-    alt Game Not Ongoing
-        MoveService->>GameFactory: createError(GAME_NOT_IN_PROGRESS)
-        GameFactory-->>MoveService: GameError("The game is not more available.")
-        MoveService-->>MoveController: 409 Conflict
-        MoveController-->>Client: 409 Conflict
-    end
-
-    MoveService->>Player: findByPk(playerId)
-    alt Player Not Authorized
-        MoveService->>AuthFactory: createError(UNAUTHORIZED)
-        AuthFactory-->>MoveService: AuthError("You are not authorized to perform this action.")
-        MoveService-->>MoveController: 403 Forbidden
-        MoveController-->>Client: 403 Forbidden
-    end
-
-    MoveService->>Move: findOne(last move details)
-    alt Timeout or Duplicate Move
-        MoveService->>MoveFactory: createError(NOT_VALID_MOVE)
-        MoveFactory-->>MoveService: MoveError("The move is not valid!")
-        MoveService-->>MoveController: 422 Unprocessable Entity
-        MoveController-->>Client: 422 Unprocessable Entity
-    end
-
-    MoveService->>Game: parse and validate board
-    alt Failed Parsing or Invalid Board
-        MoveService->>MoveFactory: createError(FAILED_PARSING or NOT_VALID_ARRAY)
-        MoveFactory-->>MoveService: MoveError("The parsing of the board has failed" or "The board's conversion is not valid!")
-        MoveService-->>MoveController: 400 Bad Request
-        MoveController-->>Client: 400 Bad Request
-    end
-
-    MoveService->>Draughts: setup board and execute move
-    Draughts-->>MoveService: Updated board and valid moves
-
-    alt No Valid Move
-        MoveService->>MoveFactory: createError(NOT_VALID_MOVE)
-        MoveFactory-->>MoveService: MoveError("The move is not valid!")
-        MoveService-->>MoveController: 422 Unprocessable Entity
-        MoveController-->>Client: 422 Unprocessable Entity
-    end
-
-    MoveService->>Move: create(new move entry)
-    Move-->>MoveService: Move saved
-
-    MoveService->>Game: Update board and total_moves
-    MoveService-->>MoveController: Move execution result
-    MoveController-->>Client: 200 OK, move result
 
 ```
 
@@ -386,9 +388,9 @@ Il diagramma di sequenze per la rotta MovesHistory mostra il processo di recuper
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant Router
+    actor Player as Player
     participant authMiddleware as authenticationWithJWT
+    participant Router
     participant Controller
     participant Service
     participant GameModel
@@ -396,13 +398,13 @@ sequenceDiagram
     participant PlayerModel
     participant ErrorHandler
 
-    Client->>Router: GET /game/:gameId/moves
-    Router->>AuthMiddleware: Verifica token JWT
+    Client->>authMiddleware: GET /game/:gameId/moves
+    authMiddleware->>authMiddleware: Verifica token JWT
     alt Token JWT non valido o assente
-        AuthMiddleware->>ErrorHandler: throw AuthError("Invalid or missing token")
-        ErrorHandler-->>Client: 401 Unauthorized { error: "Invalid or missing token." } 
+        authMiddleware->>ErrorHandler: throw AuthError("Invalid or missing token")
+        ErrorHandler-->>Client: 401 Unauthorized { error: "Invalid or missing token." }
     else Token JWT valido
-        AuthMiddleware->>Router: Autenticazione valida
+        authMiddleware->>Router: Autenticazione valida
         Router->>Controller: getMoveHistory(req, res, next)
         Controller->>GameModel: findByPk(gameId)
 
@@ -434,7 +436,7 @@ sequenceDiagram
                 end
             end
         end
-    end    
+    end
 
 ```
 
@@ -444,226 +446,238 @@ Il diagramma di sequenze per la rotta AbandonGame descrive il processo in cui un
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    actor Giocatore as Giocatore
+    actor Player as Player
+    participant JWTAuth as authenticationWithJWT
     participant Router as gameRoutes (abandon-game)
     participant Controller as gameController (abandonGame)
     participant Service as gameService (abandonGame)
     participant Model as Game
     participant ErrorHandler as errorHandler
 
-    Giocatore ->> Router: POST /abandon-game/:gameId
-    Router ->> Controller: invoke abandonGame(req, res, next)
-    
-    Controller ->> Service: abandonGame(gameId, playerId)
-    Service ->> Model: Game.findByPk(gameId)
+    Player ->> JWTAuth: POST /abandon-game/:gameId
+    JWTAuth ->> JWTAuth: Verifica token JWT
+    alt Token JWT non valido o assente
+        JWTAuth ->> ErrorHandler: AuthError("Invalid or missing token")
+        ErrorHandler ->> Player: 401 Unauthorized (Invalid or missing token)
+    else Token JWT valido
+        JWTAuth ->> Router: Autenticazione valida
+        Router ->> Controller: invoke abandonGame(req, res, next)
 
-    alt Partita non trovata
-        Model -->> Service: null
-        Service ->> ErrorHandler: GameError(gameErrorType.GAME_NOT_FOUND)
-        ErrorHandler ->> Giocatore: 404 Not Found (Game not found)
-    
-    else Giocatore non autorizzato
-        Model -->> Service: Game instance
-        Service ->> Model: Controlla se il player_id o opponent_id corrisponde al playerId
-        Model -->> Service: player_id ≠ playerId e opponent_id ≠ playerId
-        Service ->> ErrorHandler: AuthError(authErrorType.UNAUTHORIZED)
-        ErrorHandler ->> Giocatore: 403 Forbidden (Unauthorized)
-    
-    else Partita non in corso
-        Model -->> Service: Game instance (status ≠ 'ONGOING')
-        Service ->> ErrorHandler: GameError(gameErrorType.GAME_NOT_IN_PROGRESS)
-        ErrorHandler ->> Giocatore: 409 Conflict (Game not in progress)
-    
-    else Partita abbandonata con successo
-        Model -->> Service: Game instance (status = 'ONGOING')
-        Service ->> Model: Aggiorna status = 'ABANDONED' e winner_id
-        Service ->> Model: Aggiorna ended_at = new Date()
-        Service ->> Model: Salva la partita aggiornata
+        Controller ->> Service: abandonGame(gameId, playerId)
+        Service ->> Model: Game.findByPk(gameId)
 
-        Service ->> Model: Cerca e decrementa score per il giocatore
-        Model -->> Service: Successo nella modifica
+        alt Partita non trovata
+            Model -->> Service: null
+            Service ->> ErrorHandler: GameError(gameErrorType.GAME_NOT_FOUND)
+            ErrorHandler ->> Player: 404 Not Found (Game not found)
 
-        Service -->> Controller: Partita aggiornata (status: ABANDONED)
-        Controller -->> Giocatore: 200 OK {"message": "Game abandoned", "game_id": gameId, "status": "ABANDONED"}
+        else Giocatore non autorizzato
+            Model -->> Service: Game instance
+            Service ->> Model: Controlla se il player_id o opponent_id corrisponde al playerId
+            alt player_id ≠ playerId e opponent_id ≠ playerId
+                Service ->> ErrorHandler: AuthError(authErrorType.UNAUTHORIZED)
+                ErrorHandler ->> Player: 403 Forbidden (Unauthorized)
+            else Giocatore autorizzato
+                alt Partita non in corso
+                    Model -->> Service: Game instance (status ≠ 'ONGOING')
+                    Service ->> ErrorHandler: GameError(gameErrorType.GAME_NOT_IN_PROGRESS)
+                    ErrorHandler ->> Player: 409 Conflict (Game not in progress)
+
+                else Partita abbandonata con successo
+                    Model -->> Service: Game instance (status = 'ONGOING')
+                    Service ->> Model: Aggiorna status = 'ABANDONED' e winner_id
+                    Service ->> Model: Aggiorna ended_at = new Date()
+                    Service ->> Model: Salva la partita aggiornata
+
+                    Service ->> Model: Cerca e decrementa score per il giocatore
+                    Model -->> Service: Successo nella modifica
+
+                    Service -->> Controller: Partita aggiornata (status: ABANDONED)
+                    Controller -->> Player: 200 OK {"message": "Game abandoned", "game_id": gameId, "status": "ABANDONED"}
+                end
+            end
+        end
     end
 
+
 ```
-### GET /completed-games?startDate=2024-10-26&endDate=2024-10-30
+### GET /completed-games?startDate={startDate}&endDate={endDate}
 
 Il diagramma di sequenze per la rotta CompletedGames rappresenta il processo per ottenere l'elenco delle partite completate in un determinato intervallo di date. Il client invia una richiesta GET, autenticato tramite token JWT, includendo le date di inizio e di fine. Il server risponde con la lista delle partite completate nel periodo specificato.
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    actor Giocatore as Giocatore
+    actor Player as Player
+    participant JWTAuth as authenticationWithJWT
     participant Router as gameRoutes (completed-games)
     participant Controller as gameController (getCompletedGames)
     participant Service as gameService (getCompletedGames)
     participant Model as Game
     participant ErrorHandler as errorHandler
 
-    Giocatore ->> Router: GET /completed-games?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
-    Router ->> Controller: invoke getCompletedGames(req, res, next)
+    Player ->> JWTAuth: GET /completed-games?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+    JWTAuth ->> JWTAuth: Verifica token JWT
+    alt Token JWT non valido o assente
+        JWTAuth ->> ErrorHandler: AuthError("Invalid or missing token")
+        ErrorHandler ->> Player: 401 Unauthorized (Invalid or missing token)
+    else Token JWT valido
+        JWTAuth ->> Router: Autenticazione valida
+        Router ->> Controller: invoke getCompletedGames(req, res, next)
 
-    Controller ->> Service: getCompletedGames(playerId, startDate, endDate)
+        Controller ->> Service: getCompletedGames(playerId, startDate, endDate)
 
-    alt playerId non presente (non autenticato)
-        Service ->> ErrorHandler: GameError(gameErrorType.MISSING_PLAYER_ID)
-        ErrorHandler ->> Giocatore: 400 Bad Request (Player's ID is missing)
-    
-    else Data non valida
-        Service ->> Service: Verifica formato startDate e endDate
-        Service -->> ErrorHandler: GameError(gameErrorType.INVALID_DATE)
-        ErrorHandler ->> Giocatore: 400 Bad Request (Invalid date format)
-    
-    else Date mancanti
-        Service ->> Service: Verifica che entrambe le date siano presenti
-        Service -->> ErrorHandler: GameError(gameErrorType.MISSING_DATE)
-        ErrorHandler ->> Giocatore: 400 Bad Request (Missing start or end date)
-    
-    else Intervallo date non valido
-        Service ->> Service: Verifica che startDate <= endDate
-        Service -->> ErrorHandler: GameError(gameErrorType.INVALID_DATE_RANGE)
-        ErrorHandler ->> Giocatore: 400 Bad Request (Start date must be lower than end date)
-    
-    else Nessuna partita trovata
-        Service ->> Model: Query partite completate in intervallo date
-        Model -->> Service: Nessuna partita trovata
-        Service -->> Controller: { message: "No matches found for the specified date range", games: [], wins: 0, losses: 0 }
-        Controller -->> Giocatore: 200 OK (Nessuna partita trovata)
-    
-    else Partite trovate
-        Service ->> Model: Query partite completate in intervallo date
-        Model -->> Service: Lista partite trovate
-        Service -->> Controller: Lista partite con risultati (vittorie, sconfitte)
-        Controller -->> Giocatore: 200 OK (Lista partite completate)
+        alt playerId non presente (non autenticato)
+            Service ->> ErrorHandler: GameError(gameErrorType.MISSING_PLAYER_ID)
+            ErrorHandler ->> Player: 400 Bad Request (Player's ID is missing)
+
+        else Data non valida
+            Service ->> Service: Verifica formato startDate e endDate
+            Service -->> ErrorHandler: GameError(gameErrorType.INVALID_DATE)
+            ErrorHandler ->> Player: 400 Bad Request (Invalid date format)
+
+        else Date mancanti
+            Service ->> Service: Verifica che entrambe le date siano presenti
+            Service -->> ErrorHandler: GameError(gameErrorType.MISSING_DATE)
+            ErrorHandler ->> Player: 400 Bad Request (Missing start or end date)
+
+        else Intervallo date non valido
+            Service ->> Service: Verifica che startDate <= endDate
+            Service -->> ErrorHandler: GameError(gameErrorType.INVALID_DATE_RANGE)
+            ErrorHandler ->> Player: 400 Bad Request (Start date must be lower than end date)
+
+        else Nessuna partita trovata
+            Service ->> Model: Query partite completate in intervallo date
+            Model -->> Service: Nessuna partita trovata
+            Service -->> Controller: { message: "No matches found for the specified date range", games: [], wins: 0, losses: 0 }
+            Controller -->> Player: 200 OK (Nessuna partita trovata)
+
+        else Partite trovate
+            Service ->> Model: Query partite completate in intervallo date
+            Model -->> Service: Lista partite trovate
+            Service -->> Controller: Lista partite con risultati (vittorie, sconfitte)
+            Controller -->> Player: 200 OK (Lista partite completate)
+        end
     end
+
 
 ```
 ### PUT /chargeTokens
 
-Il diagramma di sequenze per la rotta ChargeTokens mostra il processo di ricarica dei token di un utente. Il client, già autenticato con un token JWT, invia una richiesta PUT con l'email dell'utente e il numero di token da aggiungere. Il server verifica il token JWT, aggiorna il credito dell'utente specificato, e restituisce una risposta con i dettagli della ricarica.
+Il diagramma di sequenze per la rotta ChargeTokens mostra il processo di ricarica dei token di un utente. Il client, già autenticato con un token JWT e con il ruolo di admin, invia una richiesta PUT con l'email dell'utente e il numero di token da aggiungere. Il server verifica il token JWT, aggiorna il credito dell'utente specificato, e restituisce una risposta con i dettagli della ricarica.
 
 ```mermaid
 sequenceDiagram
-    participant Admin as Admin
-    participant AdminRoute as adminRoute (/chargeTokens)
+    actor Admin as Admin
     participant JWTMiddleware as authenticationWithJWT
+    participant AdminRoute as adminRoute (/chargeTokens)
     participant AdminAuth as adminAuthMiddleware
     participant Controller as adminController
     participant Model as Player
     participant ErrorHandler as errorHandler
 
-    Admin->>+AdminRoute: PUT /chargeTokens (email, tokens)
-    AdminRoute->>+JWTMiddleware: Verifica autenticazione JWT
+    Admin->>+JWTMiddleware: PUT /chargeTokens (email, tokens)
+    JWTMiddleware->>JWTMiddleware: Verifica token JWT
 
     alt Token mancante
         JWTMiddleware-->>ErrorHandler: AuthError (NEED_AUTHORIZATION)
         ErrorHandler-->>Admin: 401 Unauthorized
-    end
-
-    alt Token scaduto
+    else Token scaduto
         JWTMiddleware-->>ErrorHandler: AuthError (TOKEN_EXPIRED)
         ErrorHandler-->>Admin: 401 Unauthorized
+    else Token valido
+        JWTMiddleware-->>AdminRoute: Autenticazione JWT valida
+        AdminRoute->>+AdminAuth: Verifica autorizzazione admin
+
+        AdminAuth->>+Model: Trova l'utente tramite ID
+        alt Utente non trovato
+            AdminAuth-->>ErrorHandler: AuthError (INVALID_CREDENTIALS)
+            ErrorHandler-->>Admin: 401 Unauthorized
+        else Ruolo non amministrativo
+            AdminAuth-->>ErrorHandler: TokenError (ADMIN_AUTHORIZATION)
+            ErrorHandler-->>Admin: 403 Forbidden
+        else Utente admin verificato
+            AdminAuth-->>Controller: Utente admin verificato
+
+            Controller->>+Model: Trova il giocatore tramite email
+            alt Parametri mancanti (email o tokens)
+                Controller-->>ErrorHandler: TokenError (MISSING_PARAMETERS)
+                ErrorHandler-->>Admin: 400 Bad Request
+            else Utente non trovato
+                Controller-->>ErrorHandler: TokenError (USER_NOT_FOUND)
+                ErrorHandler-->>Admin: 404 Not Found
+            else Token negativo o zero
+                Controller-->>ErrorHandler: TokenError (POSITIVE_TOKEN)
+                ErrorHandler-->>Admin: 422 Unprocessable Entity
+            else
+                Model-->>Controller: Giocatore trovato
+                Controller->>Model: Aggiunge tokens esistenti
+
+                Model-->>Controller: Aggiornamento tokens completato
+                Controller-->>Admin: 200 OK, Tokens aggiornati
+            end
+        end
     end
 
-    JWTMiddleware-->>AdminAuth: Token valido, passa i dati dell'utente
-
-    AdminAuth->>+Model: Trova l'utente tramite ID
-    alt Utente non trovato
-        AdminAuth-->>ErrorHandler: AuthError (INVALID_CREDENTIALS)
-        ErrorHandler-->>Admin: 401 Unauthorized
-    end
-
-    alt Ruolo non amministrativo
-        AdminAuth-->>ErrorHandler: TokenError (ADMIN_AUTHORIZATION)
-        ErrorHandler-->>Admin: 403 Forbidden
-    end
-
-    AdminAuth-->>Controller: Utente admin verificato
-
-    Controller->>+Model: Trova il giocatore tramite email
-    alt Parametri mancanti (email o tokens)
-        Controller-->>ErrorHandler: TokenError (MISSING_PARAMETERS)
-        ErrorHandler-->>Admin: 400 Bad Request
-    end
-
-    alt Utente non trovato
-        Controller-->>ErrorHandler: TokenError (USER_NOT_FOUND)
-        ErrorHandler-->>Admin: 404 Not Found
-    end
-
-    alt Token negativo o zero
-        Controller-->>ErrorHandler: TokenError (POSITIVE_TOKEN)
-        ErrorHandler-->>Admin: 422 Unprocessable Entity
-    end
-
-    Model-->>Controller: Giocatore trovato
-    Controller->>Model: Aggiunge tokens esistenti
-
-    Model-->>Controller: Aggiornamento tokens completato
-    Controller-->>Admin: 200 OK, Tokens aggiornati
 
 ```
-### GET /game-status/4
+### GET /game-status/:gameId
 
-Il diagramma di sequenze per la rotta GameStatus illustra il processo per ottenere lo stato attuale di una partita specifica. Il client invia una richiesta GET, autenticato tramite token JWT, e il server risponde con lo stato della partita. Questa rotta permette al client di aggiornare le informazioni sullo stato della partita in corso.
+Il diagramma di sequenze per la rotta GameStatus illustra il processo per ottenere lo stato attuale di una partita specifica. Il client invia una richiesta GET, autenticato tramite token JWT, e il server risponde con lo stato della partita. Questa rotta permette al client di ottenere informazioni sullo stato della partita in corso.
 
 ```mermaid
 sequenceDiagram
-    participant User as Utente
-    participant GameRoute as gameRoute (/game-status/:gameId)
+    actor Player as Player
     participant JWTMiddleware as authenticationWithJWT
+    participant GameRoute as gameRoute (/game-status/:gameId)
     participant Controller as gameController
     participant Model as Game
     participant ErrorHandler as errorHandler
 
-    User->>+GameRoute: GET /game-status/:gameId (gameId)
-    GameRoute->>+JWTMiddleware: Verifica autenticazione JWT
+    Player->>+JWTMiddleware: GET /game-status/:gameId (gameId)
+    JWTMiddleware->>JWTMiddleware: Verifica autenticazione JWT
 
     alt Token mancante
         JWTMiddleware-->>ErrorHandler: AuthError (NEED_AUTHORIZATION)
-        ErrorHandler-->>User: 401 Unauthorized
-    end
-
-    alt Token scaduto
+        ErrorHandler-->>Player: 401 Unauthorized
+    else Token scaduto
         JWTMiddleware-->>ErrorHandler: AuthError (TOKEN_EXPIRED)
-        ErrorHandler-->>User: 401 Unauthorized
+        ErrorHandler-->>Player: 401 Unauthorized
+    else Token valido
+        JWTMiddleware-->>GameRoute: Autenticazione JWT valida
+        GameRoute->>+Controller: Token valido, invoca gameController
+
+        Controller->>+Model: Trova partita con gameId
+        alt Partita non trovata
+            Model-->>Controller: null
+            Controller-->>ErrorHandler: GameError (GAME_NOT_FOUND)
+            ErrorHandler-->>Player: 404 Not Found
+        else Partita trovata
+            Model-->>Controller: Partita trovata
+            Controller-->>Player: 200 OK, Restituisce stato partita e configurazione board
+        end
     end
 
-    JWTMiddleware-->>Controller: Token valido, passa i dati dell'utente
-
-    Controller->>+Model: Trova partita con gameId
-    alt Partita non trovata
-        Model-->>Controller: null
-        Controller-->>ErrorHandler: GameError (GAME_NOT_FOUND)
-        ErrorHandler-->>User: 404 Not Found
-    end
-
-    Model-->>Controller: Partita trovata
-    Controller-->>User: 200 OK, Restituisce stato partita e configurazione board
 
 ```
-### GET /leaderboard?order=desc
+### GET /leaderboard?order={desc, asc}
 
 Il diagramma di sequenze per la rotta Ranking descrive il processo per visualizzare la classifica dei giocatori. Il client invia una richiesta GET senza necessità di autenticazione e specifica l'ordine di ordinamento (ascendente o discendente). Il server risponde con la classifica dei giocatori in base ai loro punteggi.
 
 ```mermaid
 sequenceDiagram
-    participant User as Utente
+    participant Client
     participant GameRoute as gameRoute (/leaderboard)
     participant Controller as gameController
     participant Service as gameService
     participant Model as Player
     participant ErrorHandler as errorHandler
 
-    User->>+GameRoute: GET /leaderboard?order=asc/desc
+    Client->>+GameRoute: GET /leaderboard?order=asc/desc
     GameRoute->>+Controller: Richiesta classifica con parametro 'order'
 
     alt Parametro non valido o errore di server
         Controller-->>ErrorHandler: Generic Error
-        ErrorHandler-->>User: 500 Internal Server Error
+        ErrorHandler-->>Client: 500 Internal Server Error
     end
 
     Controller->>+Service: Ottieni classifica giocatori (order)
@@ -672,21 +686,22 @@ sequenceDiagram
     alt Giocatori trovati
         Model-->>Service: Restituisce elenco giocatori ordinato
         Service-->>Controller: Elenco giocatori
-        Controller-->>User: 200 OK, Restituisce classifica
+        Controller-->>Client: 200 OK, Restituisce classifica
     else Nessun giocatore trovato
         Model-->>Service: []
         Service-->>Controller: Messaggio "No players found"
-        Controller-->>User: 404 Not Found, Nessun giocatore trovato
+        Controller-->>Client: 404 Not Found, Nessun giocatore trovato
     end
 
 ```
-### GET /win-certificate/6
+### GET /win-certificate/:gameId
 
-Il diagramma di sequenze per la rotta WinnerCertificate rappresenta il processo di generazione di un certificato di vittoria per una partita specifica. Il client, autenticato tramite token JWT, invia una richiesta GET al server. Il server verifica l'autenticazione, raccoglie i dettagli della vittoria (come durata della partita e nome dell'avversario), e restituisce un certificato di vittoria sotto forma di documento o file PDF.
+Il diagramma di sequenze per la rotta WinnerCertificate rappresenta il processo di generazione di un certificato di vittoria per una partita specifica. Il client, autenticato tramite token JWT, invia una richiesta GET al server. Il server verifica l'autenticazione, raccoglie i dettagli della vittoria (come durata della partita e nome dell'avversario), e restituisce un certificato di vittoria sotto forma di documento o file PDF.  E' importante specificare che, solo il giocatore che ha vinto, può ottenere il certificato di vittoria.
 
 ```mermaid
 sequenceDiagram
-    participant User as Utente
+    participant Player as Player
+    participant JWTMiddleware as authenticationWithJWT
     participant GameRoute as gameRoute (/win-certificate/:gameId)
     participant Controller as gameController
     participant Service as gameService
@@ -694,36 +709,49 @@ sequenceDiagram
     participant PDFGenerator as PDFKit
     participant ErrorHandler as errorHandler
 
-    User->>+GameRoute: GET /win-certificate/:gameId
-    GameRoute->>+Controller: Richiesta certificato vittoria per gameId
+    Player->>+JWTMiddleware: GET /win-certificate/:gameId
+    JWTMiddleware->>JWTMiddleware: Verifica token JWT
 
-    alt Utente non autenticato
-        Controller-->>ErrorHandler: AuthError (NEED_AUTHORIZATION)
-        ErrorHandler-->>User: 401 Unauthorized
-    else Partita non trovata
+    alt Token mancante
+        JWTMiddleware-->>ErrorHandler: AuthError (NEED_AUTHORIZATION)
+        ErrorHandler-->>Player: 401 Unauthorized
+    else Token scaduto
+        JWTMiddleware-->>ErrorHandler: AuthError (TOKEN_EXPIRED)
+        ErrorHandler-->>Player: 401 Unauthorized
+    else Token valido
+        JWTMiddleware-->>GameRoute: Autenticazione JWT valida
+        GameRoute->>+Controller: Richiesta certificato vittoria per gameId
+
         Controller->>Service: Verifica esistenza partita con gameId
         Service->>Model: Trova partita per ID
-        Model-->>Service: null
-        Service-->>Controller: GameError (GAME_NOT_FOUND)
-        ErrorHandler-->>User: 404 Game not found
-    else Solo il vincitore può ottenere il certificato
-        Model-->>Service: Partita trovata
-        Service->>+Controller: Verifica vincitore (confronto winner_id)
-        Controller-->>ErrorHandler: GameError (ONLY_WINNER)
-        ErrorHandler-->>User: 400 Only the winner can obtain the certificate
-    else Partita ancora in corso
-        Model-->>Service: Stato partita
-        Service->>Controller: Controllo stato completato
-        Controller-->>ErrorHandler: GameError (GAME_IN_PROGRESS)
-        ErrorHandler-->>User: 400 The game is still in progress
+
+        alt Partita non trovata
+            Model-->>Service: null
+            Service-->>Controller: GameError (GAME_NOT_FOUND)
+            ErrorHandler-->>Player: 404 Game not found
+        else Partita trovata
+            Model-->>Service: Partita trovata
+            Service->>+Controller: Verifica vincitore (confronto winner_id)
+
+            alt Solo il vincitore può ottenere il certificato
+                Controller-->>ErrorHandler: GameError (ONLY_WINNER)
+                ErrorHandler-->>Player: 400 Only the winner can obtain the certificate
+            else Partita ancora in corso
+                Model-->>Service: Stato partita
+                Service->>Controller: Controllo stato completato
+                Controller-->>ErrorHandler: GameError (GAME_IN_PROGRESS)
+                ErrorHandler-->>Player: 400 The game is still in progress
+            else Partita completata e giocatore è il vincitore
+                Controller->>+Service: Generazione certificato vittoria (gameId, playerId)
+                Service->>+PDFGenerator: Crea PDF certificato
+                PDFGenerator-->>Service: PDF Buffer
+                Service-->>Controller: Certificato PDF generato
+
+                Controller-->>Player: 200 OK, Restituisce certificato PDF
+            end
+        end
     end
 
-    Controller->>+Service: Generazione certificato vittoria (gameId, playerId)
-    Service->>+PDFGenerator: Crea PDF certificato
-    PDFGenerator-->>Service: PDF Buffer
-    Service-->>Controller: Certificato PDF generato
-
-    Controller-->>User: 200 OK, Restituisce certificato PDF
 ```
 # Diagramma ER
 Il diagramma ER (Entity-Relationship) offre una rappresentazione visiva delle entità coinvolte nel sistema e delle loro relazioni. In questo progetto, il diagramma illustra come i modelli Player, Game e Move interagiscono tra loro. Le entità rappresentano le diverse componenti del sistema, come i giocatori e le partite, mentre le relazioni mostrano come queste entità si collegano, ad esempio, attraverso le mosse effettuate dai giocatori in una partita. Questo diagramma è utile per comprendere la struttura dei dati e la logica sottostante dell'applicazione.
