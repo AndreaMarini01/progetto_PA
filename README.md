@@ -33,7 +33,7 @@ Le specifiche prevedono la realizzazione di un'applicazione Node.js utilizzando 
 
 # Progettazione 
 
-La progettazione del sistema di gioco della dama è stata sviluppata per garantire una struttura solida e modulare, sfruttando principi di progettazione orientata agli oggetti e best practice di architettura software. L’obiettivo principale è stato quello di creare un sistema scalabile e manutenibile, che consenta un'esperienza di gioco fluida e sicura, assicurando al contempo un facile accesso e gestione delle risorse per gli utenti. 
+La progettazione del sistema di gioco della dama è stata sviluppata per garantire una struttura solida e modulare, sfruttando principi di progettazione orientata agli oggetti e best practice di architettura software. L’obiettivo principale è stato quello di creare un sistema scalabile e manutenibile, assicurando al contempo un facile accesso e gestione delle risorse per gli utenti. 
 
 Di seguito viene riportata la struttura della directory:
 
@@ -100,60 +100,55 @@ Di seguito vengono descritti i principali diagrammi e pattern utilizzati, spiega
 ## Diagrammi UML
 
 ### Diagramma dei Casi d'Uso
-Il diagramma dei casi d'uso è uno strumento essenziale per illustrare le interazioni tra gli attori, ovvero gli utenti, e il sistema stesso. In questo progetto, i casi d'uso delineano le principali funzionalità che il sistema mette a disposizione degli utenti, mettendo in evidenza le azioni che possono essere eseguite all'interno del sistema di gestione delle partite di dama.
+Il diagramma dei casi d'uso è uno strumento essenziale per illustrare le interazioni tra gli attori, ovvero gli utenti, e il sistema stesso. In questo progetto, i casi d'uso delineano le principali funzionalità che il sistema mette a disposizione degli utenti, evidenziando le azioni che possono essere eseguite all'interno del sistema di gestione delle partite di dama.
 
-Grazie al diagramma dei casi d'uso, è possibile ottenere una panoramica generale delle operazioni disponibili per gli utenti. Sono identificati quattro attori: Utente Pubblico, Giocatore, Amministratore e AI, ognuno dei quali interagisce con il sistema attraverso funzioni specifiche. Di seguito verrà presentato il diagramma dei casi d'uso:
+Grazie al diagramma dei casi d'uso, è possibile ottenere una panoramica generale delle operazioni disponibili per gli utenti. Sono identificati quattro attori: Utente Pubblico, Giocatore, Amministratore e IA, ognuno dei quali interagisce con il sistema attraverso funzioni specifiche. Di seguito verrà presentato il diagramma dei casi d'uso:
 
 ```mermaid
 graph TD
-    PublicUser["Public User"] --> playersRanking["playersRanking"]
+    PublicUser["Public User"] --> getPlayerLeaderboard["getPlayerLeaderboard"]
     PublicUser --> login["login"]
+
+    AI["AI"] --> chooseAIMove["chooseAIMove"]
 
     Player["Player"] --> createGame["createGame"]
     Player --> executeMove["executeMove"]
     Player --> getMoveHistory["getMoveHistory"]
     Player --> abandonGame["abandonGame"]
-    Player --> evaluateGame["evaluateGame"]
-    Player --> getGameDetails["getGameDetails"]
-    Player --> exportToPDF["exportToPDF"]
-    Player --> getVictoryCertify["getVictoryCertify"]
-    Player --> getMatchList["getMatchList"]
+    Player --> evaluateGameStatus["evaluateGameStatus"]
+    Player --> getCompletedGames["getCompletedGames"]
+    Player --> getVictoryCertificate["getVictoryCertificate"]
 
     Admin["Admin"] --> createGame["createGame"]
     Admin --> executeMove["executeMove"]
     Admin --> getMoveHistory["getMoveHistory"]
     Admin --> abandonGame["abandonGame"]
-    Admin --> evaluateGame["evaluateGame"]
-    Admin --> getGameDetails["getGameDetails"]
-    Admin --> exportToPDF["exportToPDF"]
-    Admin --> getVictoryCertify["getVictoryCertify"]
-    Admin --> getMatchList["getMatchList"]
+    Admin --> evaluateGameStatus["evaluateGameStatus"]
+    Admin --> getCompletedGames["getCompletedGames"]
+    Admin --> getVictoryCertificate["getVictoryCertificate"]
     Admin --> RechargeUserTokens["Recharge User Tokens"]
 
-    AI["AI"] --> executeAiMove["executeAiMove"]
-
     System["System"] --> GenerateJSONFile["Generate JSON File"]
-    System --> GeneratePDF["exportToPDF"]
-    System --> CheckForGameEnd["Check For Game End"]
-    System --> VerifyMoveValidity["Verify Move Validity"]
-    System --> UpdateGameStatus["Update Game Status"]
-    System --> UpdatePlayerPoints["Update Player Points"]
-    System --> removeCredits["removeCredits"]
+    System --> GeneratePDF["GeneratePDF"]
+    System --> HandleGameOver["HandleGameOver"]
+    System --> VerifyMoveValidity["VerifyMoveValidity"]
+    System --> UpdateGameStatus["UpdateGameStatus"]
+    System --> UpdatePlayerPoints["UpdatePlayerPoints"]
+    System --> RemoveCredits["RemoveCredits"]
 
-    createGame --> authenticateJWT["authenticateJWT"]
-    executeMove --> authenticateJWT["authenticateJWT"]
-    getMoveHistory --> authenticateJWT["authenticateJWT"]
-    abandonGame --> authenticateJWT["authenticateJWT"]
-    evaluateGame --> authenticateJWT["authenticateJWT"]
-    getGameDetails --> authenticateJWT["authenticateJWT"]
-    exportToPDF --> authenticateJWT["authenticateJWT"]
-    getVictoryCertify --> authenticateJWT["authenticateJWT"]
-    getMatchList --> authenticateJWT["authenticateJWT"]
-    RechargeUserTokens --> authenticateJWT["authenticateJWT"]
+    createGame --> authenticationWithJWT["authenticationWithJWT"]
+    executeMove --> authenticationWithJWT["authenticationWithJWT"]
+    getMoveHistory --> authenticationWithJWT["authenticationWithJWT"]
+    abandonGame --> authenticationWithJWT["authenticationWithJWT"]
+    evaluateGameStatus --> authenticationWithJWT["authenticationWithJWT"]
+    getCompletedGames --> authenticationWithJWT["authenticationWithJWT"]
+    getVictoryCertificate --> authenticationWithJWT["authenticationWithJWT"]
+    RechargeUserTokens --> authenticationWithJWT["authenticationWithJWT"]
+    RechargeUserTokens --> adminAuthMiddleware["adminAuthMiddleware"]
 
-    playersRanking --> SortPlayerRankings["Sort Player Rankings"]
-    exportToPDF --> FilterGamesByDate["Filter Games By Date"]
-    abandonGame --> UpdatePlayerPoints
+    getPlayerLeaderboard --> SortPlayerRankings["SortPlayerRankings"]
+    GeneratePDF --> FilterGamesByDate["FilterGamesByDate"]
+    abandonGame --> UpdatePlayerScore
 ```
 ### Diagrammi delle Sequenze
 
@@ -164,11 +159,11 @@ Il diagramma di sequenza per la rotta di login descrive il flusso di interazione
 ```mermaid
 sequenceDiagram
     participant Client
-    participant AuthRoute as /login (authRoute)
+    participant AuthRoute as authRoute
     participant AuthController as authController
-    participant PlayerModel as Player Model
-    participant AuthFactory as AuthFactory
-    participant JWT as JWT Service
+    participant PlayerModel as Player
+    participant AuthFactory as authFactory
+    participant JWT as authMiddleware
     participant ErrorHandler as errorHandler
 
     Client->>AuthRoute: POST /login { email, password }
@@ -219,15 +214,23 @@ Il diagramma di sequenza per la rotta di create game rappresenta il flusso di in
 sequenceDiagram
     participant Client
     participant Router as gameRoute
+    participant AuthMiddleware as authenticationWithJWT
     participant Controller as gameController
     participant Service as gameService
-    participant PlayerModel as Player (Model)
-    participant GameModel as Game (Model)
+    participant PlayerModel as Player
+    participant GameModel as Game
     participant ErrorHandler as errorHandler
     participant Factory as GameFactory
 
     Client->>Router: POST /create/new-game (opponent_email, ai_difficulty)
-    Router->>Controller: createGame(req, res, next)
+    Router->>AuthMiddleware: Verifica token JWT
+    alt Token JWT non valido o assente
+        AuthMiddleware->>ErrorHandler: next(AuthError)
+        ErrorHandler->>Client: 401 Unauthorized ("Invalid or missing token")
+    else Token JWT valido
+        AuthMiddleware->>Router: Autenticazione valida
+        Router->>Controller: createGame(req, res, next)
+
 
     Controller->>Controller: Converte email e difficoltà IA in minuscolo
     Controller->>Controller: Ottiene playerId da req.user
@@ -337,7 +340,7 @@ sequenceDiagram
     MoveService->>Player: findByPk(playerId)
     alt Player Not Authorized
         MoveService->>AuthFactory: createError(UNAUTHORIZED)
-        AuthFactory-->>MoveService: AuthError("Unauthorized")
+        AuthFactory-->>MoveService: AuthError("You are not authorized to perform this action.")
         MoveService-->>MoveController: 403 Forbidden
         MoveController-->>Client: 403 Forbidden
     end
@@ -377,7 +380,7 @@ sequenceDiagram
 
 ```
 
-### GET /game/6/moves?format=json(pdf)
+### GET /game/:gameId/moves?format={json, pdf}
 
 Il diagramma di sequenze per la rotta MovesHistory mostra il processo di recupero della cronologia delle mosse per una partita specifica. Il client, autenticato tramite token JWT, invia una richiesta GET al server. Il server risponde con l'elenco delle mosse effettuate, permettendo al client di visualizzare la cronologia completa delle mosse per quella partita.
 
