@@ -230,6 +230,7 @@ sequenceDiagram
     else Token JWT valido
         AuthMiddleware->>Router: Autenticazione valida
         Router->>Controller: createGame(req, res, next)
+    end    
 
 
     Controller->>Controller: Converte email e difficoltà IA in minuscolo
@@ -287,7 +288,6 @@ sequenceDiagram
     GameModel->>Service: Nuova partita creata
     Service->>Controller: Partita creata con successo
     Controller->>Client: 201 Created (Dettagli della partita)
-
 ```
 
 ### POST '/new-move'
