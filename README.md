@@ -212,18 +212,18 @@ Il diagramma di sequenza per la rotta di create game rappresenta il flusso di in
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant Router as gameRoute
-    participant AuthMiddleware as authenticationWithJWT
-    participant Controller as gameController
-    participant Service as gameService
-    participant PlayerModel as Player
-    participant GameModel as Game
-    participant ErrorHandler as errorHandler
-    participant Factory as GameFactory
+participant Client
+participant AuthMiddleware as authenticationWithJWT
+participant Router as gameRoute
+participant Controller as gameController
+participant Service as gameService
+participant PlayerModel as Player
+participant GameModel as Game
+participant ErrorHandler as errorHandler
+participant Factory as GameFactory
 
-    Client->>Router: POST /create/new-game (opponent_email, ai_difficulty)
-    Router->>AuthMiddleware: Verifica token JWT
+    Client->>AuthMiddleware: POST /create/new-game (opponent_email, ai_difficulty)
+    AuthMiddleware->>AuthMiddleware: Verifica token JWT
     alt Token JWT non valido o assente
         AuthMiddleware->>ErrorHandler: next(AuthError)
         ErrorHandler->>Client: 401 Unauthorized ("Invalid or missing token")
@@ -231,7 +231,6 @@ sequenceDiagram
         AuthMiddleware->>Router: Autenticazione valida
         Router->>Controller: createGame(req, res, next)
     end    
-
 
     Controller->>Controller: Converte email e difficoltà IA in minuscolo
     Controller->>Controller: Ottiene playerId da req.user
@@ -288,6 +287,7 @@ sequenceDiagram
     GameModel->>Service: Nuova partita creata
     Service->>Controller: Partita creata con successo
     Controller->>Client: 201 Created (Dettagli della partita)
+
 ```
 
 ### POST '/new-move'
