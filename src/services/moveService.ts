@@ -166,7 +166,7 @@ class moveService {
         }
         // Verifica che la board esista e che sia di tipo JSON
         const savedBoard = savedData?.board;
-        console.log("Board salvata:", JSON.stringify(savedBoard, null, 2));
+
         if (!savedBoard || !Array.isArray(savedBoard)) {
             throw MoveFactory.createError(moveErrorType.NOT_VALID_ARRAY);
         }
@@ -174,13 +174,13 @@ class moveService {
 
         // Inizializza il gioco utilizzando la board salvata in precedenza
         //const draughts = Draughts.setup();
-        console.log(moveService.draughts.asciiBoard())
+        //console.log(moveService.draughts.asciiBoard())
 
         flattenedBoard.forEach((square, index) => {
             moveService.draughts.board[index] = square;
         });
 
-        console.log("Board attuale impostata su draughts:", moveService.draughts.board);
+        //console.log("Board attuale impostata su draughts:", moveService.draughts.board);
         // Stampa le mosse possibili
         console.log("Mosse possibili dalla configurazione data:");
         moveService.draughts.moves.forEach(move => {
@@ -239,9 +239,6 @@ class moveService {
         // Esegui la mossa del giocatore
         moveService.draughts.move(moveToMake);
 
-        // Il problema è che ogni volta viene richiamato il metodo setup()
-        console.log(moveService.draughts.asciiBoard())
-
         // Aggiorna la board e salva la mossa del giocatore
         game.board = { board: moveService.draughts.board };
         game.total_moves = (game.total_moves || 0) + 1;
@@ -259,6 +256,9 @@ class moveService {
             game_id: gameId,
             user_id: playerId,
         });
+
+        console.log(moveService.draughts.asciiBoard())
+
         // Verifica se la mossa del giocatore ha concluso il gioco
         if ([DraughtsStatus.LIGHT_WON, DraughtsStatus.DARK_WON, DraughtsStatus.DRAW].includes(moveService.draughts.status as DraughtsStatus)) {
             const gameOverResult = await moveService.handleGameOver(moveService.draughts, game);
@@ -321,6 +321,8 @@ class moveService {
                     game_id: gameId,
                     user_id: -1, // Indica che la mossa è dell'IA
                 });
+
+                console.log(moveService.draughts.asciiBoard())
 
                 // Verifica se la mossa dell'IA ha concluso il gioco
                 if ([DraughtsStatus.LIGHT_WON, DraughtsStatus.DARK_WON, DraughtsStatus.DRAW].includes(moveService.draughts.status as DraughtsStatus)) {

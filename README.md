@@ -857,7 +857,7 @@ cd progetto_pa
 
 # Test del Progetto
 Se le operazioni precedenti sono state eseguite correttamente, i due container (postgres_db e express_app) saranno in esecuzione.
-Nella versione attuale (DEMO version) è possibile testare l'applicativo e le relative rotte.
+Nella versione attuale è possibile testare l'applicativo e le relative rotte.
 
 ## Postman
 È possibile testare il progetto utilizzando Postman. Forniamo una collection Postman che contiene tutte le richieste necessarie per testare le API, e le relative variabili d'ambiente. 
@@ -870,12 +870,12 @@ Importare la collection in Postman e seguire le istruzioni per testare le divers
 
 ## Rotte
 
-**NOTA:** Nelle rotte in cui non è specificato, è necessaria autenticazione per potervi accedere.
+**NOTA:** Nelle rotte in cui non è specificato, è necessaria autenticazione per potervi accedere. Quando un utente non autorizzato o con un token jwt errato tenta di accedere a una rotta protetta, viene restituito un messaggio di errore apposito.
 
-## Rotta di Login come utente non admin 
+### Rotta di Login come utente non admin 
 - **POST /login**
   
-Per poter ottenere una risposta dalla seguente rotta è necessario riempire il campo body con i campi richiesti, di seguito viene riportato un esempio:
+Per poter ottenere una risposta dalla seguente rotta è necessario riempire il body della richiesta con gli appositi campi; di seguito viene riportato un esempio:
 
 ```json
 {
@@ -883,12 +883,14 @@ Per poter ottenere una risposta dalla seguente rotta è necessario riempire il c
     "password":"password2"
 }
 ```
- Se la richiesta viene effettuata correttamente viene restituito il token generato per l'utente:
+ Se la richiesta viene effettuata correttamente, ovvero email e password corrispondono ad un utente, viene generato un token JWT per quell'utente:
 
   ```json
-"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwbGF5ZXJfaWQiOjIsImVtYWlsIjoiYWxlc3Npb0BnbWFpbC5jb20iLCJyb2xlIjoidXNlciIsImlhdCI6MTczMDM3MjExNiwiZXhwIjoxNzMwMzc1NzE2fQ.jCZQAAK0778mwo_gA7h9h0a4OB_ah1D2LyCYr71x8YE"
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwbGF5ZXJfaWQiOjIsImVtYWlsIjoiYWxlc3Npb0BnbWFpbC5jb20iLCJyb2xlIjoidXNlciIsImlhdCI6MTczMDYyNDc0NSwiZXhwIjoxNzMwNjI4MzQ1fQ.UKmAknltBuxS4yn8Wgdcx0L-nEjQ3gzxc6JpiwhGU04"
+}
   ```
-  In caso di utente non presente nel sistema viene generato un errore con relativo status code e messaggio personalizzato:
+  In caso di utente non presente nel sistema, viene generato un errore con relativo status code e messaggio personalizzato:
   
   ```json
  {
@@ -898,57 +900,16 @@ Per poter ottenere una risposta dalla seguente rotta è necessario riempire il c
   ```
 
   ```json
-     status: 401 UNAUTHORIZED
      {
-       "message": "Invalid credentials provided."
+       "error": "Invalid credentials provided."
      }
   ```
 
-## Rotta di Login come utente admin
-Per poter ottenere una risposta dalla seguente rotta è necessario riempire il campo body con i campi richiesti, di seguito viene riportato un esempio:
+### Rotte per la creazione di una partita
+- **POST /create/new-game**
 
-```json
-{
-     "email":"admin@gmail.com",
-    "password":"adminpassword"
- }
-  ```
-Se la richiesta viene effettuata correttamente viene restituito il token generato per l'utente:
-
-   ```json
-"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwbGF5ZXJfaWQiOjMsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzMwMzk5NzIwLCJleHAiOjE3MzA0MDMzMjB9.pafr21-jVwoYg27WrSmPNJbNBtL21NIto5PCZgHd3Nc"
-  ```
-  In caso di credenziali errate viene generato un errore con relativo status code e messaggio personalizzato:
-  
-  ```json
- {
-     "email":"luca@gmail.com",
-    "password":"adminpassword"
- }
-  ```
-
-  ```json
-     status: 401 UNAUTHORIZED
-     {
-       "message": "Invalid credentials provided."
-     }
-  ```
-
-
-## Rotta protetta (decodeJWT)
-Quando un utente non autorizzato o con un token jwt errato tenta di accedere a una rotta protetta viene restituito il seguente messaggio di errore:
-
- ```json
-     status: 401 UNAUTHORIZED
-     {   
-        "message": "Unauthorized"
-     }
-  ```
-
-## Rotte di gestione di una partita
-- **POST /new-game**
-
-Per poter ottenere una risposta dalla seguente rotta è necessario riempire il campo body con i campi richiesti. È possibile creare una partita contro un giocatore reale (PVP) o contro l'intelligenza artificiale (PVE), dopo aver verificato che il/i giocatore/i non sono convolto/i in altre partite in corso. Di seguito viene riportato un esempio per entrambe le situazioni:
+Per poter ottenere una risposta dalla seguente rotta è necessario riempire il campo body con i campi richiesti. È possibile creare una partita contro un giocatore reale (PVP) o contro l'intelligenza artificiale (PVE), dopo aver verificato che il/i giocatore/i non sono convolto/i in altre partite in corso. Di seguito viene riportato un esempio per entrambe le situazioni.
+Questo è il caso di una partita PVP:
 
 ```json
 {
@@ -959,121 +920,710 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
  
 ```json
 {
-    {
-    "game": {
-        "created_at": "2024-10-31T11:27:39.654Z",
-        "winner_id": null,
-        "game_id": 4,
-        "player_id": 2,
-        "opponent_id": 1,
-        "status": "Ongoing",
-        "type": "PvP",
-        "ai_difficulty": "Absent",
-        "board": {
-            "board": [
-                [
-                    null,
-                    "B",
-                    null,
-                    "B",
-                    null,
-                    "B",
-                    null,
-                    "B"
-                ],
-                [
-                    "B",
-                    null,
-                    "B",
-                    null,
-                    "B",
-                    null,
-                    "B",
-                    null
-                ],
-                [
-                    null,
-                    "B",
-                    null,
-                    "B",
-                    null,
-                    "B",
-                    null,
-                    "B"
-                ],
-                [
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null
-                ],
-                [
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null
-                ],
-                [
-                    "W",
-                    null,
-                    "W",
-                    null,
-                    "W",
-                    null,
-                    "W",
-                    null
-                ],
-                [
-                    null,
-                    "W",
-                    null,
-                    "W",
-                    null,
-                    "W",
-                    null,
-                    "W"
-                ],
-                [
-                    "W",
-                    null,
-                    "W",
-                    null,
-                    "W",
-                    null,
-                    "W",
-                    null
-                ]
-            ]
+  "game": {
+    "created_at": "2024-11-03T10:15:06+01:00",
+    "ended_at": null,
+    "winner_id": null,
+    "game_id": 4,
+    "player_id": 2,
+    "opponent_id": 1,
+    "status": "ongoing",
+    "type": "pvp",
+    "ai_difficulty": "absent",
+    "board": {
+      "board": [
+        {
+          "dark": false
         },
-        "total_moves": 0,
-        "ended_at": null
-    }
-}
+        {
+          "dark": true,
+          "position": 1,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 2,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 3,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 4,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": true,
+          "position": 5,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 6,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 7,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 8,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 9
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 10,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 11,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 12,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": true,
+          "position": 13,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 14
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 15
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 16
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 17
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 18
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 19,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 20
+        },
+        {
+          "dark": true,
+          "position": 21,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 22,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 23,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 24
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 25,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 26,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 27,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 28,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": true,
+          "position": 29,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 30,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 31,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 32,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        }
+      ]
+    },
+    "total_moves": 0
+  }
 }
 
 ```
 
-## Rotta di esecuzione di una mossa
+Mentre questo è il caso di una partita PVE:
+
+```json
+{
+  "ai_difficulty": "Hard"
+}
+```
+
+Se la richiesta viene effettuata correttamente, viene restituita la seguente risposta:
+
+```json
+{
+  "game": {
+    "created_at": "2024-11-03T10:19:58+01:00",
+    "ended_at": null,
+    "winner_id": null,
+    "game_id": 5,
+    "player_id": 2,
+    "opponent_id": -1,
+    "status": "ongoing",
+    "type": "pve",
+    "ai_difficulty": "hard",
+    "board": {
+      "board": [
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 1,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 2,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 3,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 4,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": true,
+          "position": 5,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 6,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 7,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 8,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 9
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 10,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 11,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 12,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": true,
+          "position": 13,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 14
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 15
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 16
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 17
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 18
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 19,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 20
+        },
+        {
+          "dark": true,
+          "position": 21,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 22,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 23,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 24
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 25,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 26,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 27,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 28,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": true,
+          "position": 29,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 30,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 31,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 32,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        }
+      ]
+    },
+    "total_moves": 0
+  }
+}
+```
+
+### Rotta di esecuzione di una mossa
 - **POST /new-move**
   
 Per poter ottenere una risposta dalla seguente rotta è necessario riempire il campo body con i campi richiesti. È possibile effettuare una mossa tra quelle disponibili. Di seguito viene riportato un esempio:
 ```json
 {
-    "gameId": 6,
-    "from": "A7",
-    "to": "E7"
+    "gameId": 5,
+    "from": "G7",
+    "to": "H6"
 }
 ```
 
-Se la richiesta viene effettuata correttamente viene restituito il seguente messaggio:
+Nel caso di una partita PVP, se la richiesta viene effettuata correttamente, viene restituito il seguente messaggio:
 
 ```json
 {
@@ -1083,259 +1633,511 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
 }
 ```
 
-## Rotta di visualizzazione della cronologia delle mosse della partita
+Invece, nel caso di una partita PVE, vengono aggiunti anche dettagli sulla mossa dell'IA:
 
-- **GET /game/6/moves?format=json**
+```json
+{
+  "message": "Move successfully executed",
+  "game_id": 5,
+  "moveDescription": "You moved a single from G7 to H6. AI moved a single from E3 to D4."
+}
+```
 
-Un utente può controllare la cronologia delle mosse effettuate in una partita, non sono richiesti campi nel body. Di seguito viene riportato un esempio:
+### Rotta di visualizzazione della cronologia delle mosse della partita
+
+- **GET /game/5/moves?format=json**
+
+Un utente può controllare la cronologia delle mosse effettuate in una partita, non sono richiesti campi nel body. Di seguito viene riportato un esempio di risposta:
 
 ```json
 [
-    {
-        "moveNumber": 1,
-        "fromPosition": "A7",
-        "toPosition": "E7",
-        "pieceType": "single",
-        "timestamp": "31/10/2024 21:50:02",
-        "username": "Alessio Capriotti"
-    }
+  {
+    "move_number": 1,
+    "from_position": "G7",
+    "to_position": "H6",
+    "piece_type": "single",
+    "created_at": "03/11/2024 10:22:30",
+    "username": "Alessio Capriotti"
+  },
+  {
+    "move_number": 2,
+    "from_position": "E3",
+    "to_position": "D4",
+    "piece_type": "single",
+    "created_at": "03/11/2024 10:22:30",
+    "username": "Artificial Intelligence"
+  }
 ]
 ```
-- **GET /game/1/moves?format=pdf**
+- **GET /game/5/moves?format=pdf**
 
 Di seguito viene riportato un esempio della cronologia delle mosse eseguite in una partita in formato PDF:
 [Qui un esempio di file .pdf generato](./images/MoveHistory.pdf)
 
 
-## Rotta di abbandono della partita
-- **POST /abandon-game/4**
+### Rotta di abbandono della partita
+- **POST /abandon-game/5**
   
 Un utente impegnato in una partita può abbandonarla, non sono richiesti campi nel body. Di seguito viene riportato un esempio:
 
 ```json
 {
-    "message": "Game with ID 4 has been abandoned.",
-    "game_id": 4,
+    "message": "Game with ID 5 has been abandoned.",
+    "game_id": 5,
     "status": "Abandoned"
 }
 ```
 
-
-
-## Rotta di visualizzazione delle partite completate
+### Rotta di visualizzazione delle partite completate
 - **GET /completed-games?startDate=2024-10-26&endDate=2024-10-30**
   
 È possibile visualizzare i dati relativi alle partite completate. Di seguito viene riportato un esempio:
 
 ```json
- "data": {
-        "games": [
-            {
-                "game_id": 1,
-                "player_id": 1,
-                "opponent_id": 2,
-                "status": "Completed",
-                "created_at": "1993-06-26T01:33:30.286Z",
-                "ended_at": null,
-                "type": "PvP",
-                "ai_difficulty": "Absent",
-                "total_moves": 0,
-                "winner_id": null,
-                "outcome": "Lost"
-            },
-            {
-                "game_id": 3,
-                "player_id": 2,
-                "opponent_id": null,
-                "status": "Completed",
-                "created_at": "2006-09-14T07:37:30.137Z",
-                "ended_at": "2024-10-31T18:31:41.221Z",
-                "type": "PvE",
-                "ai_difficulty": "Hard",
-                "total_moves": 0,
-                "winner_id": 2,
-                "outcome": "Won"
-            }
-        ],
-        "wins": 1,
-        "losses": 1
-    }
+ {
+  "data": {
+    "games": [
+      {
+        "created_at": "2024-11-03T10:15:06+01:00",
+        "ended_at": "2024-11-03T10:19:43+01:00",
+        "game_id": 4,
+        "player_id": 2,
+        "opponent_id": 1,
+        "status": "abandoned",
+        "type": "pvp",
+        "ai_difficulty": "absent",
+        "total_moves": 0,
+        "winner_id": 1,
+        "outcome": "Lost"
+      }
+    ],
+    "wins": 0,
+    "losses": 1
+  }
+}
 ```
 
-## Rotta di ricarica dei token
+### Rotta di ricarica dei token
 - **PUT /chargeTokens**
   
-L'utente autenticato come admin può ricaricare il numero di token di un utente normale. Per poter ottenere una risposta dalla seguente rotta è necessario riempire il campo body con i campi richiesti. Di seguito viene riportato un esempio:
+L'utente autenticato come admin può ricaricare il numero di token di un utente normale. Per poter ottenere una risposta dalla seguente rotta è necessario inserire nel body con i campi richiesti. Supponendo, ad esempio, che l'utente con email "andrea@gmail.com" abbia 0.3 token residui:
 
 ```json
 {
-    "email": "andrea@gmail.com",
-    "tokens": "3"
+  "email":"andrea@gmail.com",
+  "tokens": 3
 }
 ```
-Se la richiesta viene effettuata correttamente viene restituito il seguente messaggio:
+Se la richiesta viene effettuata correttamente, viene restituito il seguente messaggio:
 
 ```json
 {
-    "message": "Tokens have been updated!",
-    "currentTokens": "0.33"
+  "message": "Tokens have been updated!",
+  "currentTokens": 3.3
 }
 ```
 
-## Rotta di visualizzazione dello stato della partita
-- **GET /game-status/4**
+### Rotta di visualizzazione dello stato della partita
+- **GET /game-status/5**
   
 È possibile visualizzare i dati relativi allo stato della partita. Di seguito viene riportato un esempio:
 
 ```json
 {
-    "message": "The current status of the game is: Ongoing",
-    "game_id": 4,
-    "board": {
-        "board": [
-            [
-                null,
-                "B",
-                null,
-                "B",
-                null,
-                "B",
-                null,
-                "B"
-            ],
-            [
-                "B",
-                null,
-                "B",
-                null,
-                "B",
-                null,
-                "B",
-                null
-            ],
-            [
-                null,
-                "B",
-                null,
-                "B",
-                null,
-                "B",
-                null,
-                "B"
-            ],
-            [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-            ],
-            [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-            ],
-            [
-                "W",
-                null,
-                "W",
-                null,
-                "W",
-                null,
-                "W",
-                null
-            ],
-            [
-                null,
-                "W",
-                null,
-                "W",
-                null,
-                "W",
-                null,
-                "W"
-            ],
-            [
-                "W",
-                null,
-                "W",
-                null,
-                "W",
-                null,
-                "W",
-                null
-            ]
-        ]
-    }
+  "message": "The current status of the game is: ongoing",
+  "game_id": 5,
+  "board": {
+    "board": [
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 0,
+        "piece": {
+          "player": "dark",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 1,
+        "piece": {
+          "player": "dark",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 2,
+        "piece": {
+          "player": "dark",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 3,
+        "piece": {
+          "player": "dark",
+          "king": false
+        }
+      },
+      {
+        "dark": true,
+        "position": 4,
+        "piece": {
+          "player": "dark",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 5,
+        "piece": {
+          "player": "dark",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 6,
+        "piece": {
+          "player": "dark",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 7,
+        "piece": {
+          "player": "dark",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 8
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 9,
+        "piece": {
+          "player": "dark",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 10,
+        "piece": {
+          "player": "dark",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 11,
+        "piece": {
+          "player": "dark",
+          "king": false
+        }
+      },
+      {
+        "dark": true,
+        "position": 12,
+        "piece": {
+          "player": "dark",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 13
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 14
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 15
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 16
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 17
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 18,
+        "piece": {
+          "player": "light",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 19
+      },
+      {
+        "dark": true,
+        "position": 20,
+        "piece": {
+          "player": "light",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 21,
+        "piece": {
+          "player": "light",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 22,
+        "piece": {
+          "player": "light",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 23
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 24,
+        "piece": {
+          "player": "light",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 25,
+        "piece": {
+          "player": "light",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 26,
+        "piece": {
+          "player": "light",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 27,
+        "piece": {
+          "player": "light",
+          "king": false
+        }
+      },
+      {
+        "dark": true,
+        "position": 28,
+        "piece": {
+          "player": "light",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 29,
+        "piece": {
+          "player": "light",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 30,
+        "piece": {
+          "player": "light",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      },
+      {
+        "dark": true,
+        "position": 31,
+        "piece": {
+          "player": "light",
+          "king": false
+        }
+      },
+      {
+        "dark": false
+      }
+    ]
+  }
 }
 ```
 
-## Rotta di visualizzazione della classifica
+### Rotta di visualizzazione della classifica
 - **GET /leaderboard?order=desc**
   
-È possibile visualizzare la classifica degli utenti in ordine crescente e decrescente di punteggio, non è necessaria alcuna autenticazione jwt. Di seguito vengono riportati i due esempi:
+È possibile visualizzare la classifica degli utenti in ordine crescente e decrescente di punteggio (attributo 'score' nel database). Non è necessaria alcuna autenticazione JWT. Di seguito vengono riportati i due esempi:
 
 ```json
 {
-"message": "Classifica giocatori recuperata con successo.",
-    "data": [
-        {
-            "username": "Andrea Marini",
-            "score": 10
-        },
-        {
-            "username": "Prova Prova",
-            "score": 7
-        },
-        {
-            "username": "Alessio Capriotti",
-            "score": 7
-        },
-        {
-            "username": "Admin Admin",
-            "score": 2
-        }
-    ]
-}
-```
-```json
-{
-"message": "Classifica giocatori recuperata con successo.",
-    "data": [
-        {
-            "username": "Artificial Intelligence",
-            "score": 0
-        },
-        {
-            "username": "Admin Admin",
-            "score": 2
-        },
-        {
-            "username": "Alessio Capriotti",
-            "score": 7
-        },
-        {
-            "username": "Prova Prova",
-            "score": 7
-        },
-        {
-            "username": "Andrea Marini",
-            "score": 10
-        }
-    ]
+  "message": "Classifica giocatori recuperata con successo.",
+  "data": [
+    {
+      "username": "Andrea Marini",
+      "score": 9.5
+    },
+    {
+      "username": "Prova Prova",
+      "score": 7
+    },
+    {
+      "username": "Alessio Capriotti",
+      "score": 6
+    },
+    {
+      "username": "Admin Admin",
+      "score": 2
+    },
+    {
+      "username": "Artificial Intelligence",
+      "score": 0
+    }
+  ]
 }
 ```
 
-## Rotta di ottenimento del certificato di vittoria in PDF
-- **GET /win-certificate/6**
+- **GET /leaderboard?order=asc**
+
+```json
+{
+  "message": "Classifica giocatori recuperata con successo.",
+  "data": [
+    {
+      "username": "Artificial Intelligence",
+      "score": 0
+    },
+    {
+      "username": "Admin Admin",
+      "score": 2
+    },
+    {
+      "username": "Alessio Capriotti",
+      "score": 6
+    },
+    {
+      "username": "Prova Prova",
+      "score": 7
+    },
+    {
+      "username": "Andrea Marini",
+      "score": 9.5
+    }
+  ]
+}
+```
+
+### Rotta di ottenimento del certificato di vittoria in PDF
+- **GET /win-certificate/4**
 L'utente vincitore di una partita può scaricare il certificato di vittoria, non sono richiesti campi nel body. Di seguito viene riportato un esempio di file pdf:
 
  [Qui un esempio di file .pdf generato](./images/WinnerCertificate.pdf)

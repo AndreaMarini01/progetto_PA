@@ -23,19 +23,16 @@
 
 'use strict';
 
+const {readFileSync} = require("fs");
+
 module.exports = {
 
   async up(queryInterface, Sequelize) {
-    const board = [
-      [null, "B", null, "B", null, "B", null, "B"],
-      ["B", null, "B", null, "B", null, "B", null],
-      [null, "B", null, "B", null, "B", null, "B"],
-      [null, null, null, null, null, null, null, null],
-      [null, null, null, null, null, null, null, null],
-      ["W", null, "W", null, "W", null, "W", null],
-      [null, "W", null, "W", null, "W", null, "W"],
-      ["W", null, "W", null, "W", null, "W", null]
-    ]
+
+    const initialBoardPath = 'src/initialBoard.json';
+    const initialBoardParsing = JSON.parse(readFileSync(initialBoardPath, 'utf8'));
+    const initialBoard = JSON.stringify(initialBoardParsing, null, 2);
+
     const moves = [
       {
         game_id: 1,
@@ -45,7 +42,7 @@ module.exports = {
         from_position: 'E2',
         to_position: 'E4',
         piece_type: 'single',
-        board: JSON.stringify({ initialBoard: board })
+        board: initialBoard
       },
       {
         game_id: 1,
@@ -55,7 +52,7 @@ module.exports = {
         from_position: 'E2',
         to_position: 'E4',
         piece_type: 'single',
-        board: JSON.stringify({ initialBoard: board })
+        board: initialBoard
       },
       {
         game_id: 2,
@@ -65,7 +62,7 @@ module.exports = {
         from_position: 'E2',
         to_position: 'E4',
         piece_type: 'single',
-        board: JSON.stringify({ initialBoard: board })
+        board: initialBoard
       }
     ];
     await queryInterface.bulkInsert('Move', moves, {});
