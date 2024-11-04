@@ -35,7 +35,7 @@ interface MoveCreationAttributes extends Optional<MoveAttributes, 'move_id'> {}
  *
  * @property {number} move_id - ID univoco della mossa.
  * @property {number} game_id - ID della partita a cui appartiene la mossa.
- * @property {number | undefined} user_id - ID dell'utente che ha effettuato la mossa, opzionale.
+ * @property {number} user_id - ID dell'utente che ha effettuato la mossa.
  * @property {Date} created_at - Data e ora in cui la mossa è stata effettuata.
  * @property {number | undefined} move_number - Numero progressivo della mossa nella partita.
  * @property {object | undefined} board - Configurazione della board al momento della mossa, rappresentata in formato JSON.

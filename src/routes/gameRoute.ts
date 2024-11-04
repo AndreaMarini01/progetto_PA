@@ -38,7 +38,7 @@
  */
 
 import express from 'express';
-import gameController from '../controllers/gameController';
+import gameController from '../controllers/GameController';
 import { authenticationWithJWT } from '../middleware/authMiddleware';
 
 const router = express.Router();

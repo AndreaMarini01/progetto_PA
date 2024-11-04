@@ -2,22 +2,22 @@
  * Enumerazione `gameErrorType` che rappresenta i diversi tipi di errori relativi al gioco.
  *
  * @enum {string}
- * @property MISSING_PLAYER_ID - L'ID del giocatore è mancante.
- * @property INVALID_DIFFICULTY - Difficoltà selezionata non valida.
- * @property INVALID_GAME_PARAMETERS - Parametri del gioco non validi, non si possono specificare sia l'avversario che la difficoltà dell'IA.
- * @property MISSING_GAME_PARAMETERS - Parametri di gioco mancanti.
- * @property INSUFFICIENT_CREDIT - Credito insufficiente per creare una partita.
- * @property OPPONENT_NOT_FOUND - Avversario non trovato.
- * @property PLAYER_ALREADY_IN_GAME - Il giocatore è già in una partita attiva.
- * @property OPPONENT_ALREADY_IN_GAME - L'avversario è già in una partita attiva.
- * @property SELF_CHALLENGE_NOT_ALLOWED - Il giocatore non può sfidare se stesso.
- * @property GAME_NOT_IN_PROGRESS - La partita non è più disponibile.
- * @property INVALID_DATE - Data non valida.
- * @property MISSING_DATE - Data di inizio o fine mancante.
- * @property INVALID_DATE_RANGE - La data di inizio deve essere precedente alla data di fine.
- * @property GAME_NOT_FOUND - Partita non trovata.
- * @property ONLY_WINNER - Solo il vincitore della partita può ottenere il certificato.
- * @property GAME_IN_PROGRESS - La partita è ancora in corso.
+ * @property {string} MISSING_PLAYER_ID - L'ID del giocatore è mancante.
+ * @property {string} INVALID_DIFFICULTY - Difficoltà selezionata non valida.
+ * @property {string} INVALID_GAME_PARAMETERS - Parametri del gioco non validi; non si possono specificare sia l'avversario che la difficoltà dell'IA.
+ * @property {string} MISSING_GAME_PARAMETERS - Parametri di gioco mancanti.
+ * @property {string} INSUFFICIENT_CREDIT - Credito insufficiente per creare una partita.
+ * @property {string} OPPONENT_NOT_FOUND - Avversario non trovato.
+ * @property {string} PLAYER_ALREADY_IN_GAME - Il giocatore è già in una partita attiva.
+ * @property {string} OPPONENT_ALREADY_IN_GAME - L'avversario è già in una partita attiva.
+ * @property {string} SELF_CHALLENGE_NOT_ALLOWED - Il giocatore non può sfidare se stesso.
+ * @property {string} GAME_NOT_IN_PROGRESS - La partita non è più disponibile.
+ * @property {string} INVALID_DATE - Data non valida.
+ * @property {string} MISSING_DATE - Data di inizio o fine mancante.
+ * @property {string} INVALID_DATE_RANGE - La data di inizio deve essere precedente alla data di fine.
+ * @property {string} GAME_NOT_FOUND - Partita non trovata.
+ * @property {string} ONLY_WINNER - Solo il vincitore della partita può ottenere il certificato.
+ * @property {string} GAME_IN_PROGRESS - La partita è ancora in corso.
  */
 
 export enum gameErrorType {
@@ -91,9 +91,9 @@ class GameFactory {
             case gameErrorType.OPPONENT_NOT_FOUND:
                 return 'Opponent not found.';
             case gameErrorType.PLAYER_ALREADY_IN_GAME:
-                return 'The requesting player is already in an active game';
+                return 'The requesting player is already in an active game.';
             case gameErrorType.OPPONENT_ALREADY_IN_GAME:
-                return 'The opponent is already in an active game';
+                return 'The opponent is already in an active game.';
             case gameErrorType.SELF_CHALLENGE_NOT_ALLOWED:
                 return 'You can\'t challenge yourself!';
             case gameErrorType.GAME_NOT_IN_PROGRESS:
@@ -101,7 +101,7 @@ class GameFactory {
             case gameErrorType.INVALID_DATE:
                 return 'The provided date is not valid. Please ensure the date is in the correct format (YYYY-MM-DD) and is a valid calendar date.';
             case gameErrorType.MISSING_DATE:
-                return 'Start date or end date is missing';
+                return 'Start date or end date is missing.';
             case gameErrorType.INVALID_DATE_RANGE:
                 return 'Start date must be lower than end date!';
             case gameErrorType.GAME_NOT_FOUND:
@@ -109,9 +109,9 @@ class GameFactory {
             case gameErrorType.ONLY_WINNER:
                 return 'Only the winner of the match can obtain the certificate!';
             case gameErrorType.GAME_IN_PROGRESS:
-                return 'The game is in progress yet';
+                return 'The game is in progress yet.';
             default:
-                return 'An unknown error occurred.';
+                return 'An unknown game error occurred.';
         }
     }
 

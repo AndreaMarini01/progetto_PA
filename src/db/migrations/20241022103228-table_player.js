@@ -3,12 +3,12 @@
 /**
  * Migrazione per la creazione della tabella `Player`.
  *
- * @param queryInterface - L'interfaccia utilizzata per eseguire le query nel database.
- * @param Sequelize - L'istanza di Sequelize che fornisce i tipi di dati per i campi della tabella.
+ * @param {object} queryInterface - L'interfaccia utilizzata per eseguire le query nel database.
+ * @param {object} Sequelize - L'istanza di Sequelize che fornisce i tipi di dati per i campi della tabella.
  *
  * @function up
  * Crea la tabella `Player` con i seguenti campi:
- *   - `player_id` (INTEGER) - Chiave primaria autoincrementante, non nulla.
+ *   - `player_id` (INTEGER) - Chiave primaria autoincrementante, non nullo.
  *   - `username` (STRING) - Nome utente unico, non nullo.
  *   - `email` (STRING) - Email unica, non nulla.
  *   - `password_hash` (STRING) - Hash della password dell'utente, non nullo.

@@ -3,20 +3,20 @@
 /**
  * Migrazione per la creazione della tabella `Game`.
  *
- * @param queryInterface - L'interfaccia utilizzata per eseguire le query nel database.
- * @param Sequelize - L'istanza di Sequelize che fornisce i tipi di dati per i campi della tabella.
+ * @param {object} queryInterface - L'interfaccia utilizzata per eseguire le query nel database.
+ * @param {object} Sequelize - L'istanza di Sequelize che fornisce i tipi di dati per i campi della tabella.
  *
  * @function up
  * Crea la tabella `Game` con i seguenti campi:
  *   - `game_id` (INTEGER) - Chiave primaria autoincrementante, non nulla.
  *   - `player_id` (INTEGER) - ID del giocatore, non nullo.
- *   - `opponent_id` (INTEGER) - ID dell'avversario, può essere nullo (es. partita contro IA).
+ *   - `opponent_id` (INTEGER) - ID dell'avversario, non può essere nullo.
  *   - `winner_id` (INTEGER) - ID del vincitore, può essere nullo.
- *   - `status` (ENUM) - Stato della partita: 'Ongoing', 'Completed', 'Abandoned', 'Timed Out', non nullo.
+ *   - `status` (ENUM) - Stato della partita: 'ongoing', 'completed', 'abandoned', 'timed out', non nullo.
  *   - `created_at` (DATE) - Data di creazione, non nulla, con valore predefinito `Sequelize.NOW`.
  *   - `ended_at` (DATE) - Data di fine partita, può essere nullo.
- *   - `type` (ENUM) - Tipo di partita: 'PvP' (Player vs Player) o 'PvE' (Player vs Environment), non nullo.
- *   - `ai_difficulty` (ENUM) - Difficoltà dell'IA per partite PvE: 'Absent', 'Easy', 'Hard', può essere nullo.
+ *   - `type` (ENUM) - Tipo di partita: 'pvp' (Player vs Player) o 'pve' (Player vs Environment), non nullo.
+ *   - `ai_difficulty` (ENUM) - Difficoltà dell'IA per partite PvE: 'absent', 'easy', 'hard'.
  *   - `board` (JSON) - Stato della board, non nullo, con valore predefinito caricato da `initialBoard.json`.
  *   - `total_moves` (INTEGER) - Numero totale di mosse, non nullo, con valore predefinito `0`.
  *

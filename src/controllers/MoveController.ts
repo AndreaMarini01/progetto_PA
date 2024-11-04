@@ -1,9 +1,9 @@
 import {NextFunction, Request, Response} from 'express';
-import moveService from '../services/moveService';
-import AuthFactory, {authErrorType} from "../factories/authFactory";
-import MoveFactory, {moveErrorType} from "../factories/moveFactory";
+import moveService from '../services/MoveService';
+import AuthFactory, {authErrorType} from "../factories/AuthFactory";
+import MoveFactory, {moveErrorType} from "../factories/MoveFactory";
 import Game from "../models/Game";
-import GameFactory, {gameErrorType} from "../factories/gameFactory";
+import GameFactory, {gameErrorType} from "../factories/GameFactory";
 
 /**
  * Classe `MoveController` per gestire le operazioni legate alle mosse di gioco.
@@ -11,7 +11,7 @@ import GameFactory, {gameErrorType} from "../factories/gameFactory";
  * Contiene metodi per eseguire una mossa e recuperare la cronologia delle mosse.
  */
 
-class moveController {
+class MoveController {
 
     /**
      * Esegue una mossa in una partita specifica utilizzando le coordinate di partenza e di destinazione fornite.
@@ -98,5 +98,5 @@ class moveController {
     }
 }
 
-export default moveController;
+export default MoveController;
 

@@ -1,14 +1,14 @@
 /**
  * Migrazione per la creazione della tabella `Move`.
  *
- * @param queryInterface - L'interfaccia utilizzata per eseguire le query nel database.
- * @param Sequelize - L'istanza di Sequelize che fornisce i tipi di dati per i campi della tabella.
+ * @param {object} queryInterface - L'interfaccia utilizzata per eseguire le query nel database.
+ * @param {object} Sequelize - L'istanza di Sequelize che fornisce i tipi di dati per i campi della tabella.
  *
  * @function up
  * Crea la tabella `Move` con i seguenti campi:
  *   - `move_id` (INTEGER) - Chiave primaria autoincrementante, non nulla.
  *   - `game_id` (INTEGER) - Chiave esterna riferita a `Game`, con aggiornamento e cancellazione a cascata, non nulla.
- *   - `user_id` (INTEGER) - Chiave esterna riferita a `Player`, con aggiornamento e cancellazione a cascata, può essere nullo.
+ *   - `user_id` (INTEGER) - Chiave esterna riferita a `Player`, con aggiornamento e cancellazione a cascata.
  *   - `created_at` (DATE) - Data di creazione della mossa, non nulla, con valore predefinito `Sequelize.NOW`.
  *   - `move_number` (INTEGER) - Numero progressivo della mossa all'interno della partita, non nullo.
  *   - `board` (JSON) - Stato della board dopo la mossa, può essere nullo.

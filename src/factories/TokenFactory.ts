@@ -2,10 +2,10 @@
  * Enumerazione `tokenErrorType` che rappresenta i diversi tipi di errori relativi alla gestione dei token.
  *
  * @enum {string}
- * @property MISSING_PARAMETERS - Parametri mancanti nella richiesta (es. email e token).
- * @property USER_NOT_FOUND - Utente non trovato nel database.
- * @property ADMIN_AUTHORIZATION - Autorizzazione amministrativa necessaria per eseguire l'operazione.
- * @property POSITIVE_TOKEN - Solo token positivi possono essere aggiunti.
+ * @property {string} MISSING_PARAMETERS - Parametri mancanti nella richiesta (es. email e token).
+ * @property {string} USER_NOT_FOUND - Utente non trovato nel database.
+ * @property {string} ADMIN_AUTHORIZATION - Autorizzazione amministrativa necessaria per eseguire l'operazione.
+ * @property {string} POSITIVE_TOKEN - Solo token positivi possono essere aggiunti.
  */
 
 export enum tokenErrorType {
@@ -59,11 +59,11 @@ class TokenFactory {
             case tokenErrorType.USER_NOT_FOUND:
                 return "User not found.";
             case tokenErrorType.ADMIN_AUTHORIZATION:
-                return "You must be an admin to charge Tokens.";
+                return "You must be an admin to charge tokens.";
             case tokenErrorType.POSITIVE_TOKEN:
-                return 'You can only add tokens!';
+                return 'You can only add positive tokens!';
             default:
-                return "Unknown error.";
+                return "An unknown token error occurred.";
         }
     }
 

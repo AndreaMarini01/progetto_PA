@@ -16,8 +16,8 @@
  *   - `DB_DIALECT` - Dialetto del database, ad esempio 'postgres', 'mysql'.
  *   - `DB_PORT` - Porta di connessione al database.
  *
- * @method getInstance
- * Metodo statico per ottenere l'istanza unica della classe `Database`.
+ * @method static getInstance
+ * Ottiene l'istanza unica della classe `Database`.
  *   - Crea l'istanza se non esiste e la congela per evitare modifiche.
  *
  * @method getSequelize
@@ -28,8 +28,8 @@
  * const db = Database.getInstance();
  * const sequelize = db.getSequelize();
  *
- * @property _sequelize - L'oggetto `Sequelize` che gestisce la connessione al database.
- * @property instance - La singola istanza della classe `Database`.
+ * @property {Sequelize} _sequelize - L'oggetto `Sequelize` che gestisce la connessione al database.
+ * @property {Database} instance - La singola istanza della classe `Database`.
  */
 
 'use strict';

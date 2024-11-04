@@ -1,18 +1,18 @@
 /**
  * Migrazione per l'inserimento di partite di esempio nella tabella `Game`.
  *
- * @param queryInterface - L'interfaccia utilizzata per eseguire le query nel database.
- * @param Sequelize - L'istanza di Sequelize che fornisce i tipi di dati per i campi della tabella.
+ * @param {object} queryInterface - L'interfaccia utilizzata per eseguire le query nel database.
+ * @param {object} Sequelize - L'istanza di Sequelize che fornisce i tipi di dati per i campi della tabella.
  *
  * @function up
  * Inserisce un insieme di partite di esempio nella tabella `Game` con i seguenti campi:
  *   - `player_id` (INTEGER) - ID del giocatore che ha iniziato la partita.
- *   - `opponent_id` (INTEGER | opzionale) - ID dell'avversario, se presente; `null` per una partita contro l'IA.
- *   - `status` (ENUM) - Stato della partita: 'Ongoing', 'Timed Out', ecc.
+ *   - `opponent_id` (INTEGER) - ID dell'avversario; se '-1' indica una partita contro l'IA.
+ *   - `status` (ENUM) - Stato della partita: 'ongoing', 'timed out', 'completed', 'abandoned'.
  *   - `created_at` (DATE) - Data di creazione casuale generata dalla funzione `getRandomDate`.
  *   - `ended_at` (DATE | opzionale) - Data di fine della partita, può essere `null`.
- *   - `type` (ENUM) - Tipo di partita: 'PvP' (Player vs Player) o 'PvE' (Player vs Environment).
- *   - `ai_difficulty` (ENUM | opzionale) - Difficoltà dell'IA per partite PvE, come 'Absent' o 'Hard'.
+ *   - `type` (ENUM) - Tipo di partita: 'pvp' (Player vs Player) o 'pve' (Player vs Environment).
+ *   - `ai_difficulty` (ENUM) - Difficoltà dell'IA per partite PvE, come 'absent', 'easy' o 'hard'.
  *   - `winner_id` (INTEGER | opzionale) - ID del vincitore, `null` se la partita è ancora in corso.
  *   - `board` (JSON) - Configurazione della board 8x8 serializzata in JSON.
  *   - `total_moves` (INTEGER) - Numero totale di mosse inizialmente impostato a `0`.
@@ -28,9 +28,9 @@
 const {readFileSync} = require("fs");
 
 /**
- * Funzione di utilità per generare una data casuale tra l'epoca Unix e il momento attuale.
+ * Funzione di utilità per generare una data casuale tra sei mesi fa e il momento attuale.
  *
- * @returns Un oggetto `Date` con un timestamp casuale.
+ * @returns {Date} Un oggetto `Date` con un timestamp casuale.
  */
 
 function getRandomDate() {

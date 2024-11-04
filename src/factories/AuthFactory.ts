@@ -2,11 +2,11 @@
  * Enumerazione `authErrorType` che rappresenta i diversi tipi di errori di autenticazione.
  *
  * @enum {string}
- * @property INVALID_CREDENTIALS - Credenziali non valide fornite.
- * @property TOKEN_EXPIRED - Il token di autenticazione è scaduto.
- * @property UNAUTHORIZED - Azione non autorizzata.
- * @property NOT_VALID_TOKEN - Il token fornito non è valido.
- * @property NEED_AUTHORIZATION - È necessaria l'autenticazione.
+ * @property {string} INVALID_CREDENTIALS - Credenziali non valide fornite.
+ * @property {string} TOKEN_EXPIRED - Il token di autenticazione è scaduto.
+ * @property {string} UNAUTHORIZED - Azione non autorizzata.
+ * @property {string} NOT_VALID_TOKEN - Il token fornito non è valido.
+ * @property {string} NEED_AUTHORIZATION - È necessaria l'autenticazione.
  */
 
 export enum authErrorType {
@@ -43,11 +43,11 @@ class AuthError extends Error {
 /**
  * Classe `AuthFactory` per la creazione di errori di autenticazione (`AuthError`) in base al tipo di errore.
  *
- * @method getErrorMessage - Ritorna un messaggio di errore specifico in base al tipo di errore di autenticazione.
+ * @method static getErrorMessage - Ritorna un messaggio di errore specifico in base al tipo di errore di autenticazione.
  * @param {authErrorType} errorType - Tipo di errore di autenticazione.
  * @returns {string} - Messaggio di errore corrispondente.
  *
- * @method createError - Crea un'istanza di `AuthError` in base al tipo di errore specificato.
+ * @method static createError - Crea un'istanza di `AuthError` in base al tipo di errore specificato.
  * @param {authErrorType} errorType - Tipo di errore di autenticazione.
  * @returns {AuthError} - Istanza di `AuthError` con tipo e messaggio specifici.
  */
@@ -65,13 +65,11 @@ class AuthFactory {
             case authErrorType.NOT_VALID_TOKEN:
                 return 'Not valid token.';
             case authErrorType.NEED_AUTHORIZATION:
-                return 'You need to authenticate';
+                return 'You need to authenticate.';
             default:
                 return 'An unknown authentication error occurred.';
         }
     }
-
-
 
     static createError(errorType: authErrorType): AuthError {
         const message = this.getErrorMessage(errorType);

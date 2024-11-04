@@ -25,13 +25,13 @@
  */
 
 import {NextFunction, Request, Response} from 'express';
-import {GameError, gameErrorType} from './gameFactory';
-import {AuthError, authErrorType} from './authFactory';
-import {TokenError, tokenErrorType} from "./tokenFactory";
-import {MoveError, moveErrorType} from "./moveFactory";
+import {GameError, gameErrorType} from './GameFactory';
+import {AuthError, authErrorType} from './AuthFactory';
+import {TokenError, tokenErrorType} from "./TokenFactory";
+import {MoveError, moveErrorType} from "./MoveFactory";
 import {StatusCodes} from 'http-status-codes';
 
-function errorHandler(err: any, req: Request, res: Response, next: NextFunction) {
+function ErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {
     if (err instanceof GameError) {
         let statusCode: number;
         switch (err.type) {
@@ -169,4 +169,4 @@ function errorHandler(err: any, req: Request, res: Response, next: NextFunction)
     }
 }
 
-export default errorHandler;
+export default ErrorHandler;

@@ -12,6 +12,7 @@ services:
     # Recupera le variabile d'ambiente, necessarie per la connessione al db, dal .env
     env_file:
       - .env
+    # Definisce uno script di avvio personalizzato per l'applicazione
     entrypoint: ["/bin/bash", "/usr/src/app/entrypoint.sh"]
 
   db:

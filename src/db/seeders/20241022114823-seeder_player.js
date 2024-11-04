@@ -1,8 +1,8 @@
 /**
  * Migrazione per l'inserimento di utenti di esempio nella tabella `Player`.
  *
- * @param queryInterface - L'interfaccia utilizzata per eseguire le query nel database.
- * @param Sequelize - L'istanza di Sequelize che fornisce i tipi di dati per i campi della tabella.
+ * @param {object} queryInterface - L'interfaccia utilizzata per eseguire le query nel database.
+ * @param {object} Sequelize - L'istanza di Sequelize che fornisce i tipi di dati per i campi della tabella.
  *
  * @function up
  * Inserisce un insieme di utenti di esempio nella tabella `Player` con i seguenti campi:
@@ -84,10 +84,11 @@ module.exports = {
 /**
  * Funzione di utilità per generare l'hash della password.
  *
- * @param password - La password da hashare.
- * @param salt - (Opzionale) Salt per la creazione dell'hash. Se non specificato, viene generato casualmente.
- * @returns Un oggetto contenente `salt` e `password_hash`.
+ * @param {string} password - La password da hashare.
+ * @param {string} [salt] - Salt per la creazione dell'hash. Se non specificato, viene generato casualmente.
+ * @returns {object} Un oggetto contenente `salt` e `password_hash`.
  */
+
 
 function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
   const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha256').toString('hex');

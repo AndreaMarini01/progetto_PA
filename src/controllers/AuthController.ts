@@ -2,16 +2,16 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import Player from '../models/Player';
 import { verifyPassword } from '../utils/cryptoUtils'; // Importa la funzione per la verifica della password
-import AuthFactory, { authErrorType } from '../factories/authFactory';
+import AuthFactory, { authErrorType } from '../factories/AuthFactory';
 import validator from 'validator';
 
 /**
- * Classe `authController` per gestire le operazioni di autenticazione.
+ * Classe `AuthController` per gestire le operazioni di autenticazione.
  *
  * Contiene metodi per l'autenticazione, come il login degli utenti.
  */
 
-class authController {
+class AuthController {
 
     /**
      * Gestisce l'autenticazione dell'utente e restituisce un token JWT in caso di successo.
@@ -25,7 +25,7 @@ class authController {
      *
      * @returns `Promise<void>` - Non restituisce un valore diretto, ma invia una risposta JSON contenente il token JWT o passa l'errore al middleware di gestione degli errori.
      *
-     * @throws {AuthError} - Genera un errore se:
+     * @throws {AuthError} - Lancia un errore se:
      *   - `email` o `password` sono assenti nel corpo della richiesta.
      *   - L'email fornita non è valida.
      *   - Le credenziali non sono valide o l'utente non è trovato.
@@ -51,17 +51,20 @@ class authController {
             if (!user) {
                 throw AuthFactory.createError(authErrorType.INVALID_CREDENTIALS);
             }
+
             // Verifica la password fornita con l'hash salvato e il salt
             const isPasswordValid = verifyPassword(password, user.password_hash, user.salt);
             if (!isPasswordValid) {
                 throw AuthFactory.createError(authErrorType.INVALID_CREDENTIALS);
             }
+
             // Genera un token JWT per l'utente autenticato
             const token = jwt.sign(
                 { player_id: user.player_id, email: user.email, role: user.role },
                 process.env.JWT_SECRET as string,
                 { expiresIn: '1h' }
             );
+
             // Restituisce il token JWT all'utente
             res.json({ token });
         } catch (error) {
@@ -70,4 +73,4 @@ class authController {
     }
 }
 
-export default new authController();
+export default new AuthController();

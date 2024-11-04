@@ -21,7 +21,7 @@
 
 import { Router } from 'express';
 import {authenticationWithJWT} from "../middleware/authMiddleware";
-import moveController from "../controllers/moveController";
+import moveController from "../controllers/MoveController";
 
 const router = Router();
 

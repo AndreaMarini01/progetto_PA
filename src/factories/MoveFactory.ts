@@ -2,13 +2,14 @@
  * Enumerazione `moveErrorType` che rappresenta i diversi tipi di errori relativi alle mosse di gioco.
  *
  * @enum {string}
- * @property GAME_NOT_FOUND - La partita specificata non è stata trovata.
- * @property FAILED_PARSING - Errore durante il parsing della board di gioco.
- * @property NOT_VALID_ARRAY - Conversione della board non valida.
- * @property NOT_VALID_MOVE - La mossa non è valida.
- * @property MISSING_PARAMS - Parametri mancanti nella richiesta della mossa (es. ID della partita, `from`, `to`).
- * @property NO_MOVES - Nessuna mossa disponibile per la partita specificata.
- * @property INVALID_FORMAT - Formato richiesto non valido
+ * @property {string} GAME_NOT_FOUND - La partita specificata non è stata trovata.
+ * @property {string} FAILED_PARSING - Errore durante il parsing della board di gioco.
+ * @property {string} NOT_VALID_ARRAY - Conversione della board non valida.
+ * @property {string} NOT_VALID_MOVE - La mossa non è valida.
+ * @property {string} MISSING_PARAMS - Parametri mancanti nella richiesta della mossa (es. ID della partita, `from`, `to`).
+ * @property {string} NO_MOVES - Nessuna mossa disponibile per la partita specificata.
+ * @property {string} INVALID_FORMAT - Formato richiesto non valido.
+ * @property {string} NOT_PLAYER_TURN - Non è il turno del giocatore.
  */
 
 export enum moveErrorType {
@@ -64,7 +65,7 @@ class MoveFactory {
             case moveErrorType.GAME_NOT_FOUND:
                 return 'The game doesn\'t exist!';
             case moveErrorType.FAILED_PARSING:
-                return 'The parsing of the board has failed';
+                return 'The parsing of the board has failed.';
             case moveErrorType.NOT_VALID_ARRAY:
                 return 'The board\'s conversion is not valid!';
             case moveErrorType.NOT_VALID_MOVE:
@@ -72,13 +73,13 @@ class MoveFactory {
             case moveErrorType.MISSING_PARAMS:
                 return 'You have to specify the game id, from and to!';
             case moveErrorType.NO_MOVES:
-                return 'There are no moves for this game';
+                return 'There are no moves for this game.';
             case moveErrorType.INVALID_FORMAT:
                 return 'Please, provide a valid format.';
             case moveErrorType.NOT_PLAYER_TURN:
                 return 'You must wait for your turn to play!';
             default:
-                return 'An unknown authentication error occurred.';
+                return 'An unknown move error occurred.';
         }
     }
 

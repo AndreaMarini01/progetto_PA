@@ -1,5 +1,5 @@
 /**
- * Servizio `gameService` per gestire le operazioni relative alle partite,
+ * Servizio `GameService` per gestire le operazioni relative alle partite,
  * tra cui creazione di partite, abbandono, ottenimento di certificati e gestione delle classifiche.
  *
  * @constant {number} GAME_CREATION_COST - Costo in token per la creazione di una partita.
@@ -13,7 +13,7 @@
  * @method createGame
  * Crea una nuova partita, detraendo il costo dai token del giocatore e inizializzando i dati di gioco.
  * @param {number} playerId - ID del giocatore principale.
- * @param {number | null} opponentEmail - Email dell'avversario, opzionale per partite PvE.
+ * @param {string | null} opponentEmail - Email dell'avversario, opzionale per partite PvE.
  * @param {GameType} type - Tipo di partita (`PVP` o `PVE`).
  * @param {AIDifficulty} aiDifficulty - Difficoltà dell'IA per le partite PvE, predefinito a `ABSENT`.
  * @param {any} board - Stato iniziale della board.
@@ -47,15 +47,15 @@
 
 import Game, {AIDifficulty, GameStatus, GameType} from '../models/Game';
 import Player from '../models/Player';
-import GameFactory, {gameErrorType} from '../factories/gameFactory';
+import GameFactory, {gameErrorType} from '../factories/GameFactory';
 import {Op} from 'sequelize';
-import AuthFactory, {authErrorType} from "../factories/authFactory";
+import AuthFactory, {authErrorType} from "../factories/AuthFactory";
 import PDFDocument from "pdfkit";
 import moment from 'moment-timezone';
 
 const GAME_CREATION_COST = 0.35;
 
-class gameService {
+class GameService {
 
     public async findActiveGameForPlayer(playerId: number, opponentId: number): Promise<Game | null> {
         const orConditions = [{ player_id: playerId }, { opponent_id: playerId }];
@@ -154,10 +154,10 @@ class gameService {
         }
         const isoDateRegex = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(?:\.\d{3})?(Z|[+-]\d{2}:\d{2}))?$/;
         if (startDate && !isoDateRegex.test(startDate)) {
-            throw GameFactory.createError(gameErrorType.INVALID_DATE); // Errore per formato data non valido
+            throw GameFactory.createError(gameErrorType.INVALID_DATE);
         }
         if (endDate && !isoDateRegex.test(endDate)) {
-            throw GameFactory.createError(gameErrorType.INVALID_DATE); // Errore per formato data non valido
+            throw GameFactory.createError(gameErrorType.INVALID_DATE);
         }
         // Validazione delle date
         const parsedStartDate = startDate ? new Date(startDate) : null;
@@ -170,7 +170,7 @@ class gameService {
         }
         // Verifica che startDate sia minore o uguale a endDate
         if (parsedStartDate && parsedEndDate && parsedStartDate > parsedEndDate) {
-            throw GameFactory.createError(gameErrorType.INVALID_DATE_RANGE); // Errore per intervallo di date non valido
+            throw GameFactory.createError(gameErrorType.INVALID_DATE_RANGE);
         }
         // Aggiungi un giorno alla fine per includere tutte le partite fino alla fine di endDate
         const nextDay = parsedEndDate ? new Date(parsedEndDate) : null;
@@ -209,8 +209,8 @@ class gameService {
         let losses = 0;
         // Elimina il campo "board" direttamente dalle istanze di Game
         for (const game of games) {
-            delete game.dataValues.board; // Rimuovi il campo "board"
-            let outcome = "Lost" // Valore di default
+            delete game.dataValues.board;
+            let outcome = "Lost"
             if (game.winner_id === playerId) {
                 // Il giocatore ha vinto
                 wins++;
@@ -230,8 +230,9 @@ class gameService {
     public async getPlayerLeaderboard(order: 'asc' | 'desc'): Promise<Player[]> {
         // Recupera i giocatori ordinati per punteggio
         const players = await Player.findAll({
-            order: [['score', order]], // Ordina in base al punteggio (score)
-            attributes: ['username', 'score'], // Specifica i campi da restituire
+            order: [['score', order]],
+            // Specifica i campi da restituire
+            attributes: ['username', 'score'],
         });
         return players;
     }
@@ -309,10 +310,8 @@ class gameService {
         });
         doc.fontSize(26).fillColor('#4B0082').text('Winner Certificate', { align: 'center' });
         doc.moveDown();
-        // Separator line
         doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#4B0082');
         doc.moveDown(2);
-        // Game Details
         doc.fontSize(18).fillColor('black').text('Game Details', { underline: true });
         doc.moveDown(0.5);
         doc.fontSize(14).text(`Game Starting Date: `, { continued: true }).fillColor('#333').text(formattedStartDate);
@@ -320,19 +319,15 @@ class gameService {
         doc.fontSize(14).fillColor('black').text(`Duration: `, { continued: true }).fillColor('#333').text(`${timeTakenMinutes} minutes`);
         doc.fontSize(14).fillColor('black').text(`Total Moves: `, { continued: true }).fillColor('#333').text(totalMoves.toString());
         doc.moveDown(2);
-        // Player Details
         doc.fontSize(18).fillColor('black').text('Player Details', { underline: true });
         doc.moveDown(0.5);
         doc.fontSize(14).fillColor('black').text(`Winner Name: `, { continued: true }).fillColor('#008000').text(winnerName);
         doc.fontSize(14).fillColor('black').text(`Opponent Name: `, { continued: true }).fillColor('#FF4500').text(opponentName);
         doc.moveDown(2);
-        // Congratulations message
         doc.fontSize(20).fillColor('#4B0082').text('Congratulations on Your Victory!', { align: 'center' });
         doc.moveDown();
-        // Bottom separator line
         doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#4B0082');
         doc.moveDown(2);
-        // Signature
         doc.fontSize(14).fillColor('#333').text('This certificate is automatically generated by the game system.', { align: 'center' });
         doc.moveDown();
         doc.text('Game System Signature', { align: 'center' });
@@ -343,4 +338,4 @@ class gameService {
     }
 }
 
-export default new gameService();
+export default new GameService();

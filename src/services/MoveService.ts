@@ -1,5 +1,5 @@
 /**
- * Servizio `moveService` per gestire le operazioni di mossa all'interno delle partite,
+ * Servizio `MoveService` per gestire le operazioni di mossa all'interno delle partite,
  * inclusa la gestione delle mosse dei giocatori e dell'IA, timeout, e generazione di report.
  *
  * @constant {number} TIMEOUT_MINUTES - Timeout di inattività per una mossa, dopo il quale la partita è persa.
@@ -9,7 +9,7 @@
  * Genera una mossa per l'IA in base alla difficoltà selezionata (EASY o HARD).
  * @param {any} draughts - Istanza del gioco di dama.
  * @param {AIDifficulty} difficulty - Difficoltà dell'IA (`EASY`, `HARD`, `ABSENT`).
- * @returns {Promise<DraughtsMove1D | null>} - La mossa scelta dall'IA o `null`.
+ * @returns {Promise<DraughtsMove1D | null>} - La mossa scelta dall'IA o `null` se non disponibile.
  *
  * @method convertPosition
  * Converte una posizione in notazione scacchistica (es. "E2") in un indice numerico.
@@ -28,7 +28,7 @@
  * @param {string} from - Posizione di partenza in notazione scacchistica.
  * @param {string} to - Posizione di destinazione.
  * @param {number} playerId - ID del giocatore.
- * @throws {MoveError} - Errori legati alle mosse, inclusi timeout e invalidità.
+ * @throws {MoveError} - Errori legati alle mosse, inclusi timeout, turno non valido e mossa non valida.
  * @returns {Promise<object>} - Dettagli della mossa e stato della partita.
  *
  * @method handleGameOver
@@ -54,16 +54,16 @@ import {
     EnglishDraughtsComputerFactory as ComputerFactory,
     EnglishDraughtsGame
 } from 'rapid-draughts/english';
-import MoveFactory, {moveErrorType} from "../factories/moveFactory";
-import AuthFactory, {authErrorType} from "../factories/authFactory";
-import GameFactory, {gameErrorType} from "../factories/gameFactory";
+import MoveFactory, {moveErrorType} from "../factories/MoveFactory";
+import AuthFactory, {authErrorType} from "../factories/AuthFactory";
+import GameFactory, {gameErrorType} from "../factories/GameFactory";
 import PDFDocument from 'pdfkit';
 import moment from 'moment';
 
 const TIMEOUT_MINUTES = 1;
 const MOVE_COST = 0.02;
 
-class moveService {
+class MoveService {
 
     private static draughts: EnglishDraughtsGame = EnglishDraughts.setup();
 
@@ -158,19 +158,19 @@ class moveService {
         const flattenedBoard = savedBoard.flat();
 
         flattenedBoard.forEach((square, index) => {
-            moveService.draughts.board[index] = square;
+            MoveService.draughts.board[index] = square;
         });
 
         console.log("Mosse possibili dalla configurazione data:");
-        moveService.draughts.moves.forEach(move => {
-            const moveFrom = moveService.convertPositionBack(move.origin);
-            const moveTo = moveService.convertPositionBack(move.destination);
+        MoveService.draughts.moves.forEach(move => {
+            const moveFrom = MoveService.convertPositionBack(move.origin);
+            const moveTo = MoveService.convertPositionBack(move.destination);
             console.log(`Mossa: da ${moveFrom} a ${moveTo}`);
         });
-        const origin = moveService.convertPosition(from);
-        const destination = moveService.convertPosition(to);
+        const origin = MoveService.convertPosition(from);
+        const destination = MoveService.convertPosition(to);
         // Verifica che una mossa sia valida
-        const validMoves = moveService.draughts.moves;
+        const validMoves = MoveService.draughts.moves;
         const moveToMake = validMoves.find(move => move.origin === origin && move.destination === destination);
         if (!moveToMake) {
             throw MoveFactory.createError(moveErrorType.NOT_VALID_MOVE);
@@ -186,14 +186,14 @@ class moveService {
         if (lastPlayerMove) {
             const lastMoveTime = new Date(lastPlayerMove.created_at);
             const currentTime = new Date();
-            const timeDifference = (currentTime.getTime() - lastMoveTime.getTime()) / (1000 * 60); // Differenza in minuti
+            const timeDifference = (currentTime.getTime() - lastMoveTime.getTime()) / (1000 * 60);
             if (timeDifference > TIMEOUT_MINUTES) {
                 // Imposta lo stato della partita come persa per "timeout"
                 game.status = GameStatus.TIMED_OUT;
                 game.ended_at = currentTime;
                 if (game.opponent_id === -1) {
                     // La partita è contro l'IA, quindi l'IA vince
-                    game.winner_id = -1; // Usa -1 per indicare la vittoria dell'IA
+                    game.winner_id = -1;
                 } else {
                     // La partita è PvP, quindi l'altro giocatore vince
                     game.winner_id = (game.player_id === playerId) ? game.opponent_id ?? null : game.player_id ?? null;
@@ -216,10 +216,10 @@ class moveService {
             throw MoveFactory.createError(moveErrorType.NOT_VALID_MOVE);
         }
         // Esegui la mossa del giocatore
-        moveService.draughts.move(moveToMake);
+        MoveService.draughts.move(moveToMake);
 
         // Aggiorna la board e salva la mossa del giocatore
-        game.board = { board: moveService.draughts.board };
+        game.board = { board: MoveService.draughts.board };
         game.total_moves = (game.total_moves || 0) + 1;
         await game.save();
 
@@ -228,7 +228,7 @@ class moveService {
         // Salva la mossa nel database
         await Move.create({
             move_number: moveNumber,
-            board: {board: moveService.draughts.board},
+            board: {board: MoveService.draughts.board},
             from_position: from,
             to_position: to,
             piece_type: savedBoard[origin]?.piece?.king ? 'king' : 'single',
@@ -236,11 +236,11 @@ class moveService {
             user_id: playerId,
         });
 
-        console.log(moveService.draughts.asciiBoard())
+        console.log(MoveService.draughts.asciiBoard())
 
         // Verifica se la mossa del giocatore ha concluso il gioco
-        if ([DraughtsStatus.LIGHT_WON, DraughtsStatus.DARK_WON, DraughtsStatus.DRAW].includes(moveService.draughts.status as DraughtsStatus)) {
-            const gameOverResult = await moveService.handleGameOver(moveService.draughts, game);
+        if ([DraughtsStatus.LIGHT_WON, DraughtsStatus.DARK_WON, DraughtsStatus.DRAW].includes(MoveService.draughts.status as DraughtsStatus)) {
+            const gameOverResult = await MoveService.handleGameOver(MoveService.draughts, game);
             return {
                 message: gameOverResult.message,
                 game_id: gameId,
@@ -261,15 +261,15 @@ class moveService {
                 order: [['created_at', 'DESC']],
             });
 
-            let aiMove = await moveService.chooseAIMove(moveService.draughts, game.ai_difficulty);
+            let aiMove = await MoveService.chooseAIMove(MoveService.draughts, game.ai_difficulty);
 
             if (lastAIMove && aiMove &&
                 lastAIMove.from_position && lastAIMove.to_position &&
-                aiMove.origin === moveService.convertPosition(lastAIMove.from_position) &&
-                aiMove.destination === moveService.convertPosition(lastAIMove.to_position)) {
+                aiMove.origin === MoveService.convertPosition(lastAIMove.from_position) &&
+                aiMove.destination === MoveService.convertPosition(lastAIMove.to_position)) {
 
                 // Filtra l'ultima mossa dell'IA dalle mosse valide
-                const validMoves = moveService.draughts.moves.filter(move =>
+                const validMoves = MoveService.draughts.moves.filter(move =>
                     aiMove && (move.origin !== aiMove.origin || move.destination !== aiMove.destination)
                 );
 
@@ -278,8 +278,8 @@ class moveService {
             }
 
             if (aiMove) {
-                moveService.draughts.move(aiMove);
-                game.board = { board: moveService.draughts.board };
+                MoveService.draughts.move(aiMove);
+                game.board = { board: MoveService.draughts.board };
                 game.total_moves += 1;
                 await game.save();
 
@@ -288,24 +288,24 @@ class moveService {
                 await player.save();
 
                 // Salva la mossa dell'IA nel database
-                const fromPositionAI = moveService.convertPositionBack(aiMove.origin);
-                const toPositionAI = moveService.convertPositionBack(aiMove.destination);
+                const fromPositionAI = MoveService.convertPositionBack(aiMove.origin);
+                const toPositionAI = MoveService.convertPositionBack(aiMove.destination);
 
                 await Move.create({
                     move_number: moveNumber + 1,
-                    board: {board: moveService.draughts.board},
+                    board: {board: MoveService.draughts.board},
                     from_position: fromPositionAI,
                     to_position: toPositionAI,
                     piece_type: savedBoard[aiMove.origin]?.piece?.king ? 'king' : 'single',
                     game_id: gameId,
-                    user_id: -1, // Indica che la mossa è dell'IA
+                    user_id: -1,
                 });
 
-                console.log(moveService.draughts.asciiBoard())
+                console.log(MoveService.draughts.asciiBoard())
 
                 // Verifica se la mossa dell'IA ha concluso il gioco
-                if ([DraughtsStatus.LIGHT_WON, DraughtsStatus.DARK_WON, DraughtsStatus.DRAW].includes(moveService.draughts.status as DraughtsStatus)) {
-                    const gameOverResult = await moveService.handleGameOver(moveService.draughts, game);
+                if ([DraughtsStatus.LIGHT_WON, DraughtsStatus.DARK_WON, DraughtsStatus.DRAW].includes(MoveService.draughts.status as DraughtsStatus)) {
+                    const gameOverResult = await MoveService.handleGameOver(MoveService.draughts, game);
                     return {
                         message: gameOverResult.message,
                         game_id: gameId,
@@ -342,7 +342,7 @@ class moveService {
         } else if (draughts.status === DraughtsStatus.DARK_WON) {
             if (game.type === GameType.PVE) {
                 // Se è una partita PvE, l'IA ha vinto
-                winnerId = -1; // Usa -1 per rappresentare la vittoria dell'IA
+                winnerId = -1;
                 result = 'The AI has won!';
             } else {
                 // Se è una partita PvP, l'avversario ha vinto
@@ -356,7 +356,7 @@ class moveService {
         // Aggiorna lo stato del gioco
         game.status = GameStatus.COMPLETED;
         game.ended_at = new Date();
-        game.winner_id = winnerId; // Imposta il vincitore
+        game.winner_id = winnerId;
         await game.save();
 
         //Assegna un punto al vincitore, se esiste
@@ -461,4 +461,4 @@ class moveService {
     }
 }
 
-export default moveService;
+export default MoveService;

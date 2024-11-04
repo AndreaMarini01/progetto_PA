@@ -1,6 +1,6 @@
 import {NextFunction, Request, Response} from 'express';
 import jwt, {JwtPayload} from 'jsonwebtoken';
-import AuthFactory, {authErrorType} from "../factories/authFactory";
+import AuthFactory, {authErrorType} from "../factories/AuthFactory";
 
 /**
  * Middleware `authenticationWithJWT` per autenticare gli utenti utilizzando un token JWT.

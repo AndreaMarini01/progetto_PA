@@ -67,12 +67,12 @@ interface GameCreationAttributes extends Optional<GameAttributes, 'game_id' | 'e
  *
  * @property {number} game_id - ID univoco della partita.
  * @property {number} player_id - ID del giocatore che ha avviato la partita.
- * @property {number | null} opponent_id - ID dell'avversario, può essere `null` se si tratta di una partita contro l'IA.
+ * @property {number} opponent_id - ID dell'avversario.
  * @property {GameStatus} status - Stato attuale della partita, ad esempio `ONGOING`, `COMPLETED`, `ABANDONED`, `TIMED_OUT`.
  * @property {Date} created_at - Data e ora di creazione della partita.
  * @property {Date | null} ended_at - Data e ora di fine partita, può essere `null` se la partita è in corso.
  * @property {GameType} type - Tipo di partita, può essere `PVP` (Player vs Player) o `PVE` (Player vs Environment).
- * @property {AIDifficulty} ai_difficulty - Difficoltà dell'IA per le partite PvE, ad esempio `ABSENT`, `EASY`, `HARD`.
+ * @property {AIDifficulty} ai_difficulty - Difficoltà dell'IA per le partite PvE, ad esempio `EASY` o `HARD`.
  * @property {any} board - Stato attuale della board di gioco, rappresentato in formato JSON.
  * @property {number} total_moves - Numero totale di mosse effettuate nella partita, con valore predefinito `0`.
  * @property {number | null} winner_id - ID del vincitore della partita, o `null` se non è stata ancora vinta.

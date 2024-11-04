@@ -1,8 +1,8 @@
 /**
  * Migrazione per l'inserimento di mosse di esempio nella tabella `Move`.
  *
- * @param queryInterface - L'interfaccia utilizzata per eseguire le query nel database.
- * @param Sequelize - L'istanza di Sequelize che fornisce i tipi di dati per i campi della tabella.
+ * @param {object} queryInterface - L'interfaccia utilizzata per eseguire le query nel database.
+ * @param {object} Sequelize - L'istanza di Sequelize che fornisce i tipi di dati per i campi della tabella.
  *
  * @function up
  * Inserisce un insieme di mosse di esempio nella tabella `Move` con i seguenti campi:
@@ -23,7 +23,7 @@
 
 'use strict';
 
-const {readFileSync} = require("fs");
+const { readFileSync } = require("fs");
 
 module.exports = {
 

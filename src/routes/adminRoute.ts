@@ -8,7 +8,7 @@
  * @requires express - Modulo Express per la gestione delle rotte.
  * @requires authenticationWithJWT - Middleware per autenticare l'utente tramite JWT.
  * @requires adminAuthMiddleware - Middleware per verificare i permessi di amministratore.
- * @requires adminController - Controller per gestire le azioni amministrative.
+ * @requires AdminController - Controller per gestire le azioni amministrative.
  *
  * @route PUT /chargeTokens
  * @description Ricarica i token per un utente specificato.
@@ -21,7 +21,7 @@
 import express from 'express';
 import { authenticationWithJWT } from '../middleware/authMiddleware';
 import { adminAuthMiddleware } from '../middleware/adminAuthMiddleware';
-import adminController from '../controllers/adminController';
+import adminController from '../controllers/AdminController';
 
 const router = express.Router();
 

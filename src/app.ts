@@ -5,7 +5,7 @@ import Move from './models/Move';
 import authRoutes from './routes/authRoute';
 import gameRoute from "./routes/gameRoute";
 import adminRoutes from './routes/adminRoute';
-import errorHandler from './factories/errorHandler';
+import errorHandler from './factories/ErrorHandler';
 import moveRoute from "./routes/moveRoute";
 
 const app = express();

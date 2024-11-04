@@ -1,18 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
-import gameService from '../services/gameService';
+import gameService from '../services/GameService';
 import Game, {GameType, AIDifficulty, GameStatus} from '../models/Game';
-import GameFactory, { gameErrorType } from '../factories/gameFactory';
+import GameFactory, { gameErrorType } from '../factories/GameFactory';
 import Player from "../models/Player";
 import {readFileSync} from "fs";
 import {format} from "date-fns";
 
 /**
- * Classe `gameController` per gestire le operazioni legate alle partite.
+ * Classe `GameController` per gestire le operazioni legate alle partite.
  *
  * Contiene metodi per la creazione di nuove partite e l'abbandono di partite esistenti.
  */
 
-class gameController {
+class GameController {
 
     /**
      * Crea una nuova partita tra due giocatori (PvP) o contro l'IA (PvE) con le impostazioni specificate.
@@ -192,27 +192,6 @@ class gameController {
      *   - `playerId` non è presente (ad esempio, se l'utente non è autenticato).
      */
 
-    /*
-    public async getCompletedGames(req: Request, res: Response, next: NextFunction): Promise<void> {
-        const playerId = req.user?.player_id;
-        const {startDate, endDate} = req.query;
-        try {
-            if (!playerId) {
-                throw GameFactory.createError(gameErrorType.MISSING_PLAYER_ID);
-            }
-            // Chiama il metodo del servizio per ottenere le partite concluse
-            const result = await gameService.getCompletedGames(playerId, startDate as string, endDate as string);
-            // Rimuove dalla risposta il campo board
-            result.games.forEach(game => delete game.board);
-            // Invia la risposta con i dati delle partite concluse
-            res.status(200).json({
-                data: result
-            });
-        } catch (error) {
-            next(error);
-        }
-    }*/
-
     public async getCompletedGames(req: Request, res: Response, next: NextFunction): Promise<void> {
         const playerId = req.user?.player_id;
         const {startDate, endDate} = req.query;
@@ -225,7 +204,7 @@ class gameController {
             // Chiama il metodo del servizio per ottenere le partite concluse
             const result = await gameService.getCompletedGames(playerId, startDate as string, endDate as string);
 
-            // Crea un nuovo array di partite con `created_at` e `ended_at` formattati e `board` rimosso
+            // Crea un nuovo array di partite con `created_at` e `ended_at` formattati e rimuove `board` dalla risposta
             const formattedGames = result.games.map(game => {
                 const gameResponse = game.toJSON(); // Converte `game` in un oggetto semplice
 
@@ -237,7 +216,7 @@ class gameController {
                 };
             });
 
-            // Invia la risposta con i dati delle partite concluse formattate
+            // Invia la risposta con i dati delle partite concluse
             res.status(200).json({
                 data: {
                     ...result,
@@ -317,4 +296,4 @@ class gameController {
     }
 }
 
-export default new gameController();
+export default new GameController();

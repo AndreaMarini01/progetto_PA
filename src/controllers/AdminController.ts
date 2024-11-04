@@ -1,31 +1,31 @@
 import { NextFunction, Request, Response } from 'express';
 import Player from '../models/Player';
-import TokenFactory, { tokenErrorType } from "../factories/tokenFactory";
+import TokenFactory, { tokenErrorType } from "../factories/TokenFactory";
 
 /**
- * Classe `adminController` per gestire le operazioni amministrative.
+ * Classe AdminController per gestire le operazioni amministrative.
  *
  * Contiene metodi per operazioni come l'aggiornamento del saldo dei token per i giocatori.
  */
 
-class adminController {
+class AdminController {
 
     /**
      * Aggiorna il saldo dei token di un giocatore, aggiungendo un importo specificato.
      *
-     * @param req - L'oggetto `Request` di Express contenente `email` e `tokens` nel corpo della richiesta.
-     *   - `email` (string) - L'email del giocatore a cui aggiungere i token.
-     *   - `tokens` (number) - L'importo dei token da aggiungere. Deve essere un valore positivo.
-     * @param res - L'oggetto `Response` di Express usato per inviare la risposta al client.
+     * @param req - L'oggetto Request di Express contenente email e tokens nel corpo della richiesta.
+     *   - email (string) - L'email del giocatore a cui aggiungere i token.
+     *   - tokens (number) - L'importo dei token da impostare per l'utente. Deve essere un valore positivo e maggiore di quello attuale.
+     * @param res - L'oggetto Response di Express usato per inviare la risposta al client.
      *   - Risponde con un messaggio di successo e il saldo aggiornato dei token se l'operazione va a buon fine.
-     * @param next - La funzione `NextFunction` di Express utilizzata per gestire eventuali errori.
+     * @param next - La funzione NextFunction di Express utilizzata per gestire eventuali errori.
      *
-     * @returns `Promise<void>` - Non restituisce un valore, ma invia una risposta JSON in caso di successo o passa l'errore al middleware di gestione degli errori.
+     * @returns Promise<void> - Non restituisce un valore, ma invia una risposta JSON in caso di successo o passa l'errore al middleware di gestione degli errori.
      *
      * @throws {TokenError} - Genera un errore nei seguenti casi:
-     *   - `email` o `tokens` non sono presenti nel corpo della richiesta.
+     *   - email o tokens non sono presenti nel corpo della richiesta.
      *   - Il giocatore con l'email specificata non viene trovato.
-     *   - Il valore di `tokens` è negativo o uguale a zero.
+     *   - Il valore di tokens è negativo o uguale a zero.
      */
 
     public async chargeTokens(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -58,4 +58,4 @@ class adminController {
     }
 }
 
-export default new adminController();
+export default new AdminController();
