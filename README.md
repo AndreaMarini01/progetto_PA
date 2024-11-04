@@ -676,7 +676,7 @@ Il diagramma di sequenze per la rotta WinnerCertificate rappresenta il processo 
 
 ```mermaid
 sequenceDiagram
-    participant Player as Player
+    actor Player as Player
     participant JWTMiddleware as authenticationWithJWT
     participant GameRoute as gameRoute (/win-certificate/:gameId)
     participant Controller as gameController
