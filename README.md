@@ -1,18 +1,19 @@
 # Progetto Programmazione Avanzata 23/24
 
 # Indice
-1. [Obiettivo di Progetto](#obiettivo-del-progetto)
+1. [Obiettivo del Progetto](#obiettivo-del-progetto)
 2. [Progettazione](#progettazione)
-   - [Diagrammi UML](#diagrammi-uml)
-     - [Diagramma dei Casi d'Uso](#diagramma-dei-casi-duso)
-     - [Diagrammi delle Sequenze](#diagrammi-delle-sequenze)
-3. [Diagramma ER](#digramma-er)
+    - [Diagrammi UML](#diagrammi-uml)
+        - [Diagramma dei Casi d'Uso](#diagramma-dei-casi-duso)
+        - [Diagrammi delle Sequenze](#diagrammi-delle-sequenze)
+3. [Diagramma ER](#diagramma-er)
 4. [Pattern Utilizzati](#pattern-utilizzati)
 5. [Avvio del Progetto](#avvio-del-progetto)
-     - [Prerequisiti](#prerequisiti)
-     - [Configurazione](#configurazione)
+    - [Prerequisiti](#prerequisiti)
+    - [Configurazione](#configurazione)
 6. [Test del Progetto](#test-del-progetto)
 7. [Riconoscimenti](#riconoscimenti)
+
 
 
 # Obiettivo di Progetto
@@ -839,9 +840,9 @@ Nella versione attuale è possibile testare l'applicativo e le relative rotte.
 
 Importare la collection in Postman e seguire le istruzioni per testare le diverse rotte.
 
-[Scarica la Collection Postman](./postman/PROGETTO_PA_2024.postman_collection.json)
+[Scarica la Collection Postman](./postman-collections/progetto_pa.postman_collection.json)
 
-[Scarica le variabili d'ambiente Postman](./postman/PROGETTO_PA_2024.postman_environment.json)
+[Scarica le variabili d'ambiente Postman](./postman-collections/JWT.postman_environment.json)
 
 ## Rotte
 
@@ -880,11 +881,42 @@ Per poter ottenere una risposta dalla seguente rotta è necessario riempire il b
      }
   ```
 
-### Rotte per la creazione di una partita
+### Rotta di Login come utente admin
+- **POST /login**
+
+Per poter ottenere una risposta dalla seguente rotta è necessario riempire il campo body con i campi richiesti, di seguito viene riportato un esempio di utente con ruolo di admin:
+```json
+{
+    "email":"admin@gmail.com",
+    "password":"adminpassword"
+ }
+  ```
+Se la richiesta viene effettuata correttamente viene restituito il token generato per l'admin:
+   ```json
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwbGF5ZXJfaWQiOjMsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzMwMzk5NzIwLCJleHAiOjE3MzA0MDMzMjB9.pafr21-jVwoYg27WrSmPNJbNBtL21NIto5PCZgHd3Nc"
+}
+  ```
+In caso di credenziali errate viene generato un errore con relativo status code e messaggio personalizzato:
+
+  ```json
+ {
+    "email":"luca@gmail.com",
+    "password":"adminpassword"
+ }
+  ```
+  ```json
+     {
+       "error": "Invalid credentials provided."
+     }
+  ```
+
+
+### Rotta per la creazione di una partita
 - **POST /create/new-game**
 
 Per poter ottenere una risposta dalla seguente rotta è necessario riempire il campo body con i campi richiesti. È possibile creare una partita contro un giocatore reale (PVP) o contro l'intelligenza artificiale (PVE), dopo aver verificato che il/i giocatore/i non sono convolto/i in altre partite in corso. Di seguito viene riportato un esempio per entrambe le situazioni.
-Questo è il caso di una partita PVP:
+Questo è il corpo della richiesta nel caso di una partita PVP:
 
 ```json
 {
@@ -896,7 +928,7 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
 ```json
 {
   "game": {
-    "created_at": "2024-11-03T10:15:06+01:00",
+    "created_at": "2024-11-03",
     "ended_at": null,
     "winner_id": null,
     "game_id": 4,
@@ -1235,7 +1267,7 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
 
 ```
 
-Mentre questo è il caso di una partita PVE:
+Mentre questo è il corpo della richiesta nel caso di una partita PVE:
 
 ```json
 {
@@ -1248,7 +1280,7 @@ Se la richiesta viene effettuata correttamente, viene restituita la seguente ris
 ```json
 {
   "game": {
-    "created_at": "2024-11-03T10:19:58+01:00",
+    "created_at": "2024-11-03",
     "ended_at": null,
     "winner_id": null,
     "game_id": 5,
@@ -1631,7 +1663,7 @@ Un utente può controllare la cronologia delle mosse effettuate in una partita, 
     "from_position": "G7",
     "to_position": "H6",
     "piece_type": "single",
-    "created_at": "03/11/2024 10:22:30",
+    "created_at": "2024-11-03 10:22:30",
     "username": "Alessio Capriotti"
   },
   {
@@ -1639,7 +1671,7 @@ Un utente può controllare la cronologia delle mosse effettuate in una partita, 
     "from_position": "E3",
     "to_position": "D4",
     "piece_type": "single",
-    "created_at": "03/11/2024 10:22:30",
+    "created_at": "2024-11-03 10:22:30",
     "username": "Artificial Intelligence"
   }
 ]
@@ -1664,7 +1696,7 @@ Un utente impegnato in una partita può abbandonarla, non sono richiesti campi n
 ```
 
 ### Rotta di visualizzazione delle partite completate
-- **GET /completed-games?startDate=2024-10-26&endDate=2024-10-30**
+- **GET /completed-games?startDate=2024-11-01&endDate=2024-11-03**
   
 È possibile visualizzare i dati relativi alle partite completate. Di seguito viene riportato un esempio:
 
@@ -1673,8 +1705,8 @@ Un utente impegnato in una partita può abbandonarla, non sono richiesti campi n
   "data": {
     "games": [
       {
-        "created_at": "2024-11-03T10:15:06+01:00",
-        "ended_at": "2024-11-03T10:19:43+01:00",
+        "created_at": "2024-11-03",
+        "ended_at": "2024-11-03",
         "game_id": 4,
         "player_id": 2,
         "opponent_id": 1,
@@ -1695,7 +1727,7 @@ Un utente impegnato in una partita può abbandonarla, non sono richiesti campi n
 ### Rotta di ricarica dei token
 - **PUT /chargeTokens**
   
-L'utente autenticato come admin può ricaricare il numero di token di un utente normale. Per poter ottenere una risposta dalla seguente rotta è necessario inserire nel body con i campi richiesti. Supponendo, ad esempio, che l'utente con email "andrea@gmail.com" abbia 0.3 token residui:
+L'utente autenticato come admin può impostare il numero di token di un utente normale. Per poter ottenere una risposta dalla seguente rotta è necessario inserire nel body i campi richiesti:
 
 ```json
 {
@@ -1708,7 +1740,7 @@ Se la richiesta viene effettuata correttamente, viene restituito il seguente mes
 ```json
 {
   "message": "Tokens have been updated!",
-  "currentTokens": 3.3
+  "tokens": 3
 }
 ```
 

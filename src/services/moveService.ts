@@ -85,19 +85,6 @@ class moveService {
         }
     }
 
-    /*
-    public static convertPosition(position: string): number {
-        const file = position.charCodeAt(0) - 'A'.charCodeAt(0);
-        const rank = 8 - parseInt(position[1]);
-        return rank * 8 + file;
-    }
-
-    public static convertPositionBack(index: number): string {
-        const file = String.fromCharCode('A'.charCodeAt(0) + (index % 8));
-        const rank = 8 - Math.floor(index / 8);
-        return `${file}${rank}`;
-    }*/
-
     public static convertPosition(position: string): number {
         const file = position.charCodeAt(0) - 'A'.charCodeAt(0);
         const rank = 8 - parseInt(position[1]);
@@ -126,11 +113,9 @@ class moveService {
         return `${fileLetter}${rankNumber}`;
     }
 
-
     public static async executeMove(gameId: number, from: string, to: string, playerId: number) {
         const player = await Player.findByPk(playerId);
         if (!player) {
-            console.log('Giocatore non trovato:', playerId);
             throw new Error("Player not found.");
         }
         const game = await Game.findByPk(gameId);
@@ -172,16 +157,10 @@ class moveService {
         }
         const flattenedBoard = savedBoard.flat();
 
-        // Inizializza il gioco utilizzando la board salvata in precedenza
-        //const draughts = Draughts.setup();
-        //console.log(moveService.draughts.asciiBoard())
-
         flattenedBoard.forEach((square, index) => {
             moveService.draughts.board[index] = square;
         });
 
-        //console.log("Board attuale impostata su draughts:", moveService.draughts.board);
-        // Stampa le mosse possibili
         console.log("Mosse possibili dalla configurazione data:");
         moveService.draughts.moves.forEach(move => {
             const moveFrom = moveService.convertPositionBack(move.origin);

@@ -44,7 +44,7 @@ class adminController {
             if (!player) {
                 throw TokenFactory.createError(tokenErrorType.USER_NOT_FOUND);
             }
-            if (tokens > 0) {
+            if (tokens > 0 && tokens > player.tokens) {
                 // Somma i nuovi token a quelli esistenti
                 player.tokens = tokens;
                 await player.save();
