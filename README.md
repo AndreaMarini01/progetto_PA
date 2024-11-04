@@ -812,7 +812,7 @@ Per implementare il pattern Singleton, è stata creata la classe Database, che m
 
 # Avvio del Progetto
 ## Prerequisiti
-- Docker e Docker-compose installati nel sistema
+- Docker e docker-compose installati nel sistema
 
 ## Configurazione
 1. Clonare il repository:
