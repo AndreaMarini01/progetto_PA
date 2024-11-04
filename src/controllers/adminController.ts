@@ -3,7 +3,7 @@ import Player from '../models/Player';
 import TokenFactory, { tokenErrorType } from "../factories/tokenFactory";
 
 /**
- * Classe `AdminController` per gestire le operazioni amministrative.
+ * Classe `adminController` per gestire le operazioni amministrative.
  *
  * Contiene metodi per operazioni come l'aggiornamento del saldo dei token per i giocatori.
  */
@@ -11,29 +11,21 @@ import TokenFactory, { tokenErrorType } from "../factories/tokenFactory";
 class adminController {
 
     /**
-     * Aggiorna il saldo dei token di un giocatore aggiungendo un importo specificato.
+     * Aggiorna il saldo dei token di un giocatore, aggiungendo un importo specificato.
      *
      * @param req - L'oggetto `Request` di Express contenente `email` e `tokens` nel corpo della richiesta.
      *   - `email` (string) - L'email del giocatore a cui aggiungere i token.
      *   - `tokens` (number) - L'importo dei token da aggiungere. Deve essere un valore positivo.
-     * @param res - L'oggetto `Response` di Express utilizzato per inviare la risposta al client.
+     * @param res - L'oggetto `Response` di Express usato per inviare la risposta al client.
      *   - Risponde con un messaggio di successo e il saldo aggiornato dei token se l'operazione va a buon fine.
      * @param next - La funzione `NextFunction` di Express utilizzata per gestire eventuali errori.
      *
      * @returns `Promise<void>` - Non restituisce un valore, ma invia una risposta JSON in caso di successo o passa l'errore al middleware di gestione degli errori.
      *
-     * @throws {TokenError} - Genera un errore se:
+     * @throws {TokenError} - Genera un errore nei seguenti casi:
      *   - `email` o `tokens` non sono presenti nel corpo della richiesta.
      *   - Il giocatore con l'email specificata non viene trovato.
      *   - Il valore di `tokens` è negativo o uguale a zero.
-     *
-     * Esempio di corpo della richiesta:
-     * ```json
-     * {
-     *   "email": "utente@example.com",
-     *   "tokens": 100
-     * }
-     * ```
      */
 
     public async chargeTokens(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -54,7 +46,7 @@ class adminController {
             }
             if (tokens > 0) {
                 // Somma i nuovi token a quelli esistenti
-                player.tokens += tokens;
+                player.tokens = tokens;
                 await player.save();
                 res.status(200).json({ message: 'Tokens have been updated!', currentTokens: player.tokens });
             } else {

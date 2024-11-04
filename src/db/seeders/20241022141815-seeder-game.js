@@ -35,8 +35,12 @@ const {readFileSync} = require("fs");
 
 function getRandomDate() {
   const now = new Date();
-  const randomTime = Math.random() * now.getTime(); // Genera un timestamp casuale tra l'epoca Unix e adesso
-  return new Date(randomTime);
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(now.getMonth() - 6);
+
+  // Ottieni il timestamp casuale tra sei mesi fa e ora
+  const randomTimestamp = Math.random() * (now.getTime() - sixMonthsAgo.getTime()) + sixMonthsAgo.getTime();
+  return new Date(randomTimestamp);
 }
 
 module.exports = {
@@ -55,18 +59,6 @@ module.exports = {
         ended_at: null,
         type: 'pvp',
         ai_difficulty: 'absent',
-        winner_id: null,
-        board: initialBoard,
-        total_moves:0
-      },
-      {
-        status: 'ongoing',
-        player_id: 1,
-        opponent_id: -1,
-        created_at: getRandomDate(),
-        ended_at: new Date(),
-        type: 'pve',
-        ai_difficulty: 'hard',
         winner_id: null,
         board: initialBoard,
         total_moves:0

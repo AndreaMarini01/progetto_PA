@@ -5,10 +5,16 @@ import MoveFactory, {moveErrorType} from "../factories/moveFactory";
 import Game from "../models/Game";
 import GameFactory, {gameErrorType} from "../factories/gameFactory";
 
-class MoveController {
+/**
+ * Classe `MoveController` per gestire le operazioni legate alle mosse di gioco.
+ *
+ * Contiene metodi per eseguire una mossa e recuperare la cronologia delle mosse.
+ */
+
+class moveController {
 
     /**
-     * Esegue una mossa in una partita specifica, utilizzando le coordinate di partenza e di destinazione fornite.
+     * Esegue una mossa in una partita specifica utilizzando le coordinate di partenza e di destinazione fornite.
      *
      * @param req - L'oggetto `Request` di Express contenente:
      *   - `gameId` (number) - L'ID della partita in cui eseguire la mossa, fornito nel corpo della richiesta.
@@ -25,30 +31,6 @@ class MoveController {
      *   - `playerId` non è presente (es. l'utente non è autenticato).
      * @throws {MoveError} - Genera un errore se:
      *   - Uno o più parametri richiesti (`gameId`, `from`, `to`) sono assenti.
-     *
-     * Esempio di corpo della richiesta:
-     * ```json
-     * {
-     *   "gameId": 1,
-     *   "from": "D3",
-     *   "to": "D4"
-     * }
-     * ```
-     *
-     * Esempio di risposta in caso di successo:
-     * ```json
-     * {
-     *   "status": "success",
-     *   "game_id": 1,
-     *   "move": {
-     *     "from": "D3",
-     *     "to": "D4"
-     *   },
-     *   "board": [
-     *     // ...array della configurazione della board aggiornata
-     *   ]
-     * }
-     * ```
      */
 
     public static async executeMove(req: Request, res: Response, next: NextFunction) {
@@ -91,31 +73,6 @@ class MoveController {
      *
      * @throws {GameError} - Genera un errore se:
      *   - `gameId` non è valido o non corrisponde a nessuna partita (GAME_NOT_FOUND).
-     *
-     * Esempio di URL per la richiesta in formato JSON:
-     * ```
-     * GET /game/4/moves?format=json
-     * ```
-     *
-     * Esempio di URL per la richiesta in formato PDF:
-     * ```
-     * GET /game/4/moves?format=pdf
-     * ```
-     *
-     * Esempio di risposta in caso di successo (formato JSON):
-     * ```json
-     * {
-     *   "game_id": 4,
-     *   "moves": [
-     *     { "move_number": 1, "from": "D3", "to": "D4" },
-     *     { "move_number": 2, "from": "E6", "to": "E5" },
-     *     ...
-     *   ]
-     * }
-     * ```
-     *
-     * Esempio di risposta in caso di successo (formato PDF):
-     * - La risposta sarà un file PDF scaricabile con la cronologia delle mosse.
      */
 
     public static async getMoveHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -141,5 +98,5 @@ class MoveController {
     }
 }
 
-export default MoveController;
+export default moveController;
 

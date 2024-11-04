@@ -6,7 +6,7 @@ import AuthFactory, { authErrorType } from '../factories/authFactory';
 import validator from 'validator';
 
 /**
- * Classe `AuthController` per gestire le operazioni di autenticazione.
+ * Classe `authController` per gestire le operazioni di autenticazione.
  *
  * Contiene metodi per l'autenticazione, come il login degli utenti.
  */
@@ -29,21 +29,6 @@ class authController {
      *   - `email` o `password` sono assenti nel corpo della richiesta.
      *   - L'email fornita non è valida.
      *   - Le credenziali non sono valide o l'utente non è trovato.
-     *
-     * Esempio di corpo della richiesta:
-     * ```json
-     * {
-     *   "email": "utente@example.com",
-     *   "password": "password123"
-     * }
-     * ```
-     *
-     * Esempio di risposta in caso di successo:
-     * ```json
-     * {
-     *   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-     * }
-     * ```
      */
 
     public async login(req: Request, res: Response, next: NextFunction): Promise<void> {

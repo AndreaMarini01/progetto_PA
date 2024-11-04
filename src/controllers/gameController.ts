@@ -3,12 +3,11 @@ import gameService from '../services/gameService';
 import Game, {GameType, AIDifficulty, GameStatus} from '../models/Game';
 import GameFactory, { gameErrorType } from '../factories/gameFactory';
 import Player from "../models/Player";
-import * as fs from "node:fs";
-import * as path from "node:path";
 import {readFileSync} from "fs";
+import {format} from "date-fns";
 
 /**
- * Classe `GameController` per gestire le operazioni legate alle partite.
+ * Classe `gameController` per gestire le operazioni legate alle partite.
  *
  * Contiene metodi per la creazione di nuove partite e l'abbandono di partite esistenti.
  */
@@ -35,47 +34,6 @@ class gameController {
      *   - Vengono forniti sia `opponent_email` che `ai_difficulty`.
      *   - Viene fornito un valore di `ai_difficulty` non valido o assente in una partita PvE.
      *   - I parametri di creazione della partita sono insufficienti.
-     *
-     * Esempio di corpo della richiesta per una partita PvP:
-     * ```json
-     * {
-     *   "opponent_email": "avversario@example.com"
-     * }
-     * ```
-     *
-     * Esempio di corpo della richiesta per una partita PvE:
-     * ```json
-     * {
-     *   "ai_difficulty": "Easy"
-     * }
-     * ```
-     *
-     * Esempio di risposta in caso di successo:
-     * ```json
-     * {
-     *   "game": {
-     *     "game_id": 1,
-     *     "player_id": 123,
-     *     "opponent_id": 456,
-     *     "status": "ONGOING",
-     *     "type": "PVP",
-     *     "ai_difficulty": 'Absent',
-     *     "board": {
-     *       "board": [
-     *         [null, "B", null, "B", null, "B", null, "B"],
-     *         ["B", null, "B", null, "B", null, "B", null],
-     *         [null, "B", null, "B", null, "B", null, "B"],
-     *         [null, null, null, null, null, null, null, null],
-     *         [null, null, null, null, null, null, null, null],
-     *         ["W", null, "W", null, "W", null, "W", null],
-     *         [null, "W", null, "W", null, "W", null, "W"],
-     *         ["W", null, "W", null, "W", null, "W", null]
-     *       ]
-     *     },
-     *     "total_moves": 0
-     *   }
-     * }
-     * ```
      */
 
     public async createGame(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -92,7 +50,6 @@ class gameController {
             if (!playerId) {
                 throw GameFactory.createError(gameErrorType.MISSING_PLAYER_ID);
             }
-            //let opponentId: number | null = null;
             let opponentId: number | null = -1
             if (opponent_email) {
                 const opponent = await Player.findOne({where: {email: opponent_email}});
@@ -106,7 +63,6 @@ class gameController {
                 if (existingGame.player_id === playerId || existingGame.opponent_id === playerId) {
                     throw GameFactory.createError(gameErrorType.PLAYER_ALREADY_IN_GAME);
                 }
-                //if (opponentId !== null && (existingGame.player_id === opponentId || existingGame.opponent_id === opponentId)) {
                 if (opponentId !== -1 && (existingGame.player_id === opponentId || existingGame.opponent_id === opponentId)) {
                     throw GameFactory.createError(gameErrorType.OPPONENT_ALREADY_IN_GAME);
                 }
@@ -138,7 +94,16 @@ class gameController {
             const initialBoard = JSON.parse(readFileSync(initialBoardPath, 'utf8'));
 
             const newGame = await gameService.createGame(playerId, opponent_email, type, ai_difficulty, initialBoard, total_moves);
-            res.status(201).json({game: newGame});
+
+            const gameResponse = newGame.toJSON();
+
+            // Cambia il formato dell'attributo created_at
+            const formattedGameResponse = {
+                ...gameResponse,
+                created_at: gameResponse.created_at ? format(new Date(gameResponse.created_at), 'yyyy-MM-dd') : undefined,
+            };
+
+            res.status(201).json({game: formattedGameResponse});
         } catch (error) {
             next(error);
         }
@@ -160,20 +125,6 @@ class gameController {
      *   - `gameId` non è valido o non corrisponde a nessuna partita.
      *   - `playerId` non è presente (ad esempio, se l'utente non è autenticato).
      *   - Il giocatore non ha il permesso di abbandonare la partita o si verifica un altro errore durante l'abbandono.
-     *
-     * Esempio di URL per la richiesta:
-     * ```
-     * POST /abandon-game/4
-     * ```
-     *
-     * Esempio di risposta in caso di successo:
-     * ```json
-     * {
-     *   "message": "Game with ID 4 has been abandoned.",
-     *   "game_id": 4,
-     *   "status": "ABANDONED"
-     * }
-     * ```
      */
 
     public async abandonGame(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -204,29 +155,6 @@ class gameController {
      *
      * @throws {GameError} - Genera un errore se:
      *   - `gameId` non è valido o non corrisponde a nessuna partita (GAME_NOT_FOUND).
-     *
-     * Esempio di URL per la richiesta:
-     * ```
-     * GET /game-status/2
-     * ```
-     *
-     * Esempio di risposta in caso di successo:
-     * ```json
-     * {
-     *   "message": "The current status of the game is: ONGOING",
-     *   "game_id": 2,
-     *   "board": [
-     *     [null, "B", null, "B", null, "B", null, "B"],
-     *     ["B", null, "B", null, "B", null, "B", null],
-     *     [null, "B", null, "B", null, "B", null, "B"],
-     *     [null, null, null, null, null, null, null, null],
-     *     [null, null, null, null, null, null, null, null],
-     *     ["W", null, "W", null, "W", null, "W", null],
-     *     [null, "W", null, "W", null, "W", null, "W"],
-     *     ["W", null, "W", null, "W", null, "W", null]
-     *   ]
-     * }
-     * ```
      */
 
     public async evaluateGameStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -262,34 +190,9 @@ class gameController {
      *
      * @throws {GameError} - Genera un errore se:
      *   - `playerId` non è presente (ad esempio, se l'utente non è autenticato).
-     *
-     * Esempio di URL per la richiesta:
-     * ```
-     * GET /completed-games?startDate=2024-10-26&endDate=2024-10-30
-     * ```
-     *
-     * Esempio di risposta in caso di successo:
-     * ```json
-     * {
-     *   "data": {
-     *     "games": [
-     *       {
-     *         "game_id": 1,
-     *         "player_id": 123,
-     *         "opponent_id": 456,
-     *         "status": "Completed",
-     *         "type": "PVP",
-     *         "total_moves": 42,
-     *         "winner_id": 123,
-     *         "created_at": "2024-10-30T10:32:06.334Z",
-     *         "ended_at": "2024-10-30T10:32:23.428Z"
-     *       },
-     *     ]
-     *   }
-     * }
-     * ```
      */
 
+    /*
     public async getCompletedGames(req: Request, res: Response, next: NextFunction): Promise<void> {
         const playerId = req.user?.player_id;
         const {startDate, endDate} = req.query;
@@ -304,6 +207,42 @@ class gameController {
             // Invia la risposta con i dati delle partite concluse
             res.status(200).json({
                 data: result
+            });
+        } catch (error) {
+            next(error);
+        }
+    }*/
+
+    public async getCompletedGames(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const playerId = req.user?.player_id;
+        const {startDate, endDate} = req.query;
+
+        try {
+            if (!playerId) {
+                throw GameFactory.createError(gameErrorType.MISSING_PLAYER_ID);
+            }
+
+            // Chiama il metodo del servizio per ottenere le partite concluse
+            const result = await gameService.getCompletedGames(playerId, startDate as string, endDate as string);
+
+            // Crea un nuovo array di partite con `created_at` e `ended_at` formattati e `board` rimosso
+            const formattedGames = result.games.map(game => {
+                const gameResponse = game.toJSON(); // Converte `game` in un oggetto semplice
+
+                return {
+                    ...gameResponse,
+                    created_at: gameResponse.created_at ? format(new Date(gameResponse.created_at), 'yyyy-MM-dd HH:mm:ss') : undefined,
+                    ended_at: gameResponse.ended_at ? format(new Date(gameResponse.ended_at), 'yyyy-MM-dd HH:mm:ss') : undefined,
+                    board: undefined, // Rimuove `board` dalla risposta
+                };
+            });
+
+            // Invia la risposta con i dati delle partite concluse formattate
+            res.status(200).json({
+                data: {
+                    ...result,
+                    games: formattedGames,
+                },
             });
         } catch (error) {
             next(error);
@@ -323,31 +262,6 @@ class gameController {
      *
      * @throws {Error} - Genera un errore se:
      *   - Si verifica un problema durante il recupero della classifica.
-     *
-     * Esempio di URL per la richiesta:
-     * ```
-     * GET /leaderboard?order=asc
-     * ```
-     *
-     * Esempio di risposta in caso di successo:
-     * ```json
-     * {
-     *   "message": "Classifica giocatori recuperata con successo.",
-     *   "data": [
-     *     {
-     *       "player_id": 1,
-     *       "username": "Giocatore1",
-     *       "score": 1500
-     *     },
-     *     {
-     *       "player_id": 2,
-     *       "username": "Giocatore2",
-     *       "score": 1450
-     *     },
-     *     ...
-     *   ]
-     * }
-     * ```
      */
 
     public async getPlayerLeaderboard(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -382,14 +296,6 @@ class gameController {
      *   - `gameId` non è valido o non corrisponde a nessuna partita.
      *   - `playerId` non è presente (ad esempio, se l'utente non è autenticato).
      *   - Il certificato non può essere generato per altre ragioni (es. partita non completata).
-     *
-     * Esempio di URL per la richiesta:
-     * ```
-     * GET /win-certificate/1
-     * ```
-     *
-     * Esempio di risposta in caso di successo:
-     * - La risposta sarà un file PDF scaricabile con il certificato di vittoria.
      */
 
     public async getVictoryCertificate(req: Request, res: Response, next: NextFunction): Promise<void> {

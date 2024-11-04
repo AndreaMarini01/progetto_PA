@@ -27,9 +27,10 @@ Il progetto consiste nella realizzazione di un back-end per un sistema di gioco 
 - **Certificato di vittoria:** Generazione di un certificato PDF per le partite vinte, contenente informazioni come il nome del vincitore, il tempo di gioco e il numero di mosse.
 - **Gestione utenti:** Implementazione di una rotta amministrativa per ricaricare i token di un utente, tramite email.
 
-Alcune delle funzionalità presenti nell'applicazione, come l'inizializzazione della board di gioco e l'implementazione dei livelli di difficoltà, utilizzano la libreria [rapid-draughts](https://github.com/loks0n/rapid-draughts.git).
+Alcune delle funzionalità presenti nell'applicazione, come l'inizializzazione della board di gioco e l'implementazione dei livelli di difficoltà dell'IA, utilizzano la libreria [rapid-draughts](https://github.com/loks0n/rapid-draughts.git).
 
-Le specifiche prevedono la realizzazione di un'applicazione Node.js utilizzando TypeScript e il framework Express, con JWT per l'autenticazione, un database relazionale gestito tramite Sequelize, e Docker per l'avvio e la gestione dei servizi del progetto.
+Le specifiche prevedono la realizzazione di un'applicazione Node.js utilizzando TypeScript e il framework Express, con JWT per l'autenticazione, un database relazionale gestito tramite Sequelize, e Docker per l'avvio e la gestione dei servizi del progetto. Dato che l'RDBMS da utilizzare era a discrezione degli studenti,
+abbiamo deciso di utilizzare Postgres.
 
 # Progettazione 
 
@@ -38,56 +39,30 @@ La progettazione del sistema di gioco della dama è stata sviluppata per garanti
 Di seguito viene riportata la struttura della directory:
 
 ```
-.
-├── Dockerfile
-├── README.md
+progetto_pa/
+├── images/
+├── postman-collections/
+├── src/
+│   ├── controllers/
+│   ├── db/
+│   ├── factories/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   ├── services/
+│   ├── utils/
+│   ├── app.ts
+│   ├── express.d.ts
+│   └── initialBoard.json
+├── .dockerignore
+├── .gitignore
 ├── docker-compose.yml
+├── Dockerfile
 ├── entrypoint.sh
-├── package-lock.json
+├── LICENSE
 ├── package.json
-├── src
-│   ├── app.ts
-│   ├── controllers
-│   │   ├── adminController.ts
-│   │   ├── authController.ts
-│   │   ├── gameController.ts
-│   │   └── moveController.ts
-│   ├── db
-│   │   ├── config.js
-│   │   ├── database.js
-│   │   ├── migrations
-│   │   │   ├── 20241022103228-table_player.js
-│   │   │   ├── 20241022104353-table_game.js
-│   │   │   └── 20241022105609-table_move.js
-│   │   └── seeders
-│   │       ├── 20241022114823-seeder_player.js
-│   │       ├── 20241022141815-seeder-game.js
-│   │       └── 20241022141822-seeder-move.js
-│   ├── express.d.ts
-│   ├── factories
-│   │   ├── authFactory.ts
-│   │   ├── errorHandler.ts
-│   │   ├── gameFactory.ts
-│   │   ├── moveFactory.ts
-│   │   └── tokenFactory.ts
-│   ├── initialBoard.json
-│   ├── middleware
-│   │   ├── adminAuthMiddleware.ts
-│   │   └── authMiddleware.ts
-│   ├── models
-│   │   ├── Game.ts
-│   │   ├── Move.ts
-│   │   └── Player.ts
-│   ├── routes
-│   │   ├── adminRoute.ts
-│   │   ├── authRoute.ts
-│   │   ├── gameRoute.ts
-│   │   └── moveRoute.ts
-│   ├── services
-│   │   ├── gameService.ts
-│   │   └── moveService.ts
-│   └── utils
-│       └── cryptoUtils.ts
+├── package-lock.json
+├── README.md
 ├── tsconfig.json
 └── wait-for-it.sh
 
@@ -299,7 +274,7 @@ sequenceDiagram
     actor Player as Player
     participant JWTAuth as authenticationWithJWT
     participant MoveRoute as moveRoutes
-    participant MoveController as MoveController
+    participant moveController as moveController
     participant MoveService as moveService
     participant Game as Game
     participant Move as Move
@@ -311,22 +286,22 @@ sequenceDiagram
         JWTAuth-->>Client: 401 Unauthorized (Invalid or missing token)
     else Token JWT valido
         JWTAuth->>MoveRoute: Autenticazione valida
-        MoveRoute->>MoveController: executeMove()
-        MoveController->>MoveService: executeMove(gameId, from, to, playerId)
+        MoveRoute->>moveController: executeMove()
+        moveController->>MoveService: executeMove(gameId, from, to, playerId)
 
         alt Missing Parameters
             MoveService->>MoveFactory: createError(MISSING_PARAMS)
             MoveFactory-->>MoveService: MoveError("You have to specify the game id, from and to!")
-            MoveService-->>MoveController: 400 Bad Request
-            MoveController-->>Client: 400 Bad Request
+            MoveService-->>moveController: 400 Bad Request
+            moveController-->>Client: 400 Bad Request
         end
 
         MoveService->>Game: findByPk(gameId)
         alt Game Not Found
             MoveService->>MoveFactory: createError(GAME_NOT_FOUND)
             MoveFactory-->>MoveService: MoveError("The game doesn’t exist!")
-            MoveService-->>MoveController: 404 Not Found
-            MoveController-->>Client: 404 Not Found
+            MoveService-->>moveController: 404 Not Found
+            moveController-->>Client: 404 Not Found
         end
 
         Game-->>MoveService: Game data
@@ -334,32 +309,32 @@ sequenceDiagram
         alt Game Not Ongoing
             MoveService->>GameFactory: createError(GAME_NOT_IN_PROGRESS)
             GameFactory-->>MoveService: GameError("The game is not more available.")
-            MoveService-->>MoveController: 409 Conflict
-            MoveController-->>Client: 409 Conflict
+            MoveService-->>moveController: 409 Conflict
+            moveController-->>Client: 409 Conflict
         end
 
         MoveService->>Player: findByPk(playerId)
         alt Player Not Authorized
             MoveService->>AuthFactory: createError(UNAUTHORIZED)
             AuthFactory-->>MoveService: AuthError("You are not authorized to perform this action.")
-            MoveService-->>MoveController: 403 Forbidden
-            MoveController-->>Client: 403 Forbidden
+            MoveService-->>moveController: 403 Forbidden
+            moveController-->>Client: 403 Forbidden
         end
 
         MoveService->>Move: findOne(last move details)
         alt Timeout or Duplicate Move
             MoveService->>MoveFactory: createError(NOT_VALID_MOVE)
             MoveFactory-->>MoveService: MoveError("The move is not valid!")
-            MoveService-->>MoveController: 422 Unprocessable Entity
-            MoveController-->>Client: 422 Unprocessable Entity
+            MoveService-->>moveController: 422 Unprocessable Entity
+            moveController-->>Client: 422 Unprocessable Entity
         end
 
         MoveService->>Game: parse and validate board
         alt Failed Parsing or Invalid Board
             MoveService->>MoveFactory: createError(FAILED_PARSING or NOT_VALID_ARRAY)
             MoveFactory-->>MoveService: MoveError("The parsing of the board has failed" or "The board's conversion is not valid!")
-            MoveService-->>MoveController: 400 Bad Request
-            MoveController-->>Client: 400 Bad Request
+            MoveService-->>moveController: 400 Bad Request
+            moveController-->>Client: 400 Bad Request
         end
 
         MoveService->>Draughts: setup board and execute move
@@ -368,16 +343,16 @@ sequenceDiagram
         alt No Valid Move
             MoveService->>MoveFactory: createError(NOT_VALID_MOVE)
             MoveFactory-->>MoveService: MoveError("The move is not valid!")
-            MoveService-->>MoveController: 422 Unprocessable Entity
-            MoveController-->>Client: 422 Unprocessable Entity
+            MoveService-->>moveController: 422 Unprocessable Entity
+            moveController-->>Client: 422 Unprocessable Entity
         end
 
         MoveService->>Move: create(new move entry)
         Move-->>MoveService: Move saved
 
         MoveService->>Game: Update board and total_moves
-        MoveService-->>MoveController: Move execution result
-        MoveController-->>Client: 200 OK, move result
+        MoveService-->>moveController: Move execution result
+        moveController-->>Client: 200 OK, move result
     end
 
 ```

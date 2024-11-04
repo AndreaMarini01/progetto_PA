@@ -78,7 +78,7 @@ class gameService {
         type: GameType,
         aiDifficulty: AIDifficulty = AIDifficulty.ABSENT,
         board: any,
-        total_moves: number,
+        total_moves: number
     ): Promise<Game> {
         const player = await Player.findByPk(playerId);
         if (!player) {
@@ -100,6 +100,7 @@ class gameService {
             }
             opponentId = opponent.player_id;
         }
+
         const newGame = await Game.create({
             player_id: playerId,
             opponent_id: type === GameType.PVP ? opponentId : -1,

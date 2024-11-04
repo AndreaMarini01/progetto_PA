@@ -424,7 +424,7 @@ class moveService {
             from_position: move.from_position,
             to_position: move.to_position,
             piece_type: move.piece_type,
-            created_at: moment.parseZone(move.created_at).format('DD/MM/YYYY HH:mm:ss'),
+            created_at: moment.parseZone(move.created_at).format('YYYY-MM-DD HH:mm:ss'),
             username: move.user_id === -1 ? 'Artificial Intelligence' : userMap[move.user_id!] || 'Unknown Player',
         }));
         // Ritorna in formato JSON o PDF
