@@ -1635,8 +1635,8 @@ Nel caso di una partita PVP, se la richiesta viene effettuata correttamente, vie
 ```json
 {
     "message": "Move successfully executed",
-    "game_id": 6,
-    "moveDescription": "You moved a single from A7 to E7."
+    "game_id": 5,
+    "moveDescription": "You moved a single from G7 to H6."
 }
 ```
 
