@@ -1740,7 +1740,7 @@ Se la richiesta viene effettuata correttamente, viene restituito il seguente mes
 ```json
 {
   "message": "Tokens have been updated!",
-  "tokens": 3
+  "currentTokens": 3
 }
 ```
 
