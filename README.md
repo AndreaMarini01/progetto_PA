@@ -838,7 +838,7 @@ Nella versione attuale è possibile testare l'applicativo e le relative rotte.
 ## Postman
 È possibile testare il progetto utilizzando Postman. Forniamo una collection Postman che contiene tutte le richieste necessarie per testare le API, e le relative variabili d'ambiente. 
 
-Importare la collection in Postman e seguire le istruzioni per testare le diverse rotte.
+Importare la collection e le variabili d'ambiente in Postman e seguire le istruzioni per testare le diverse rotte.
 
 [Scarica la Collection Postman](./postman-collections/progetto_pa.postman_collection.json)
 
