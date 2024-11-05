@@ -1,25 +1,27 @@
 services:
   app:
-    # Costruisce l'immagine a partire dai file presenti nella directory
+    # Costruisce l'immagine a partire dal Dockerfile presente nella directory
     build: .
     container_name: express_app
     # Mappa la porta 3001 dell'host alla porta 3000 del container
     ports:
       - "3001:3000"
-    # L'app dipende dal servizio db
+    # Indica che il servizio 'app' dipende dal servizio 'db'
     depends_on:
       - db
     # Recupera le variabile d'ambiente, necessarie per la connessione al db, dal .env
     env_file:
       - .env
-    # Definisce uno script di avvio personalizzato per l'applicazione
+    # Definisce uno script di avvio personalizzato per l'applicazione, sostituendo il comando di default del Dockerfile
     entrypoint: ["/bin/bash", "/usr/src/app/entrypoint.sh"]
 
   db:
+    # Utilizza l'immagine ufficiale PostgreSQL versione 17
     image: postgres:17
     container_name: postgres_db
     # Riavvia il container se si arresta inaspettatamente
     restart: always
+    # Configura il database utilizzando le variabili d'ambiente specificate nel file .env
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}

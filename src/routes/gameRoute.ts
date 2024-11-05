@@ -41,13 +41,16 @@ import express from 'express';
 import gameController from '../controllers/GameController';
 import { authenticationWithJWT } from '../middleware/authMiddleware';
 
+// Crea un router utilizzando il modulo express.Router()
 const router = express.Router();
 
+// Rotte protette da middleware di autenticazione
 router.post('/create/new-game', authenticationWithJWT, gameController.createGame);
 router.post('/abandon-game/:gameId', authenticationWithJWT, gameController.abandonGame);
 router.get('/game-status/:gameId', authenticationWithJWT, gameController.evaluateGameStatus);
 router.get('/completed-games', authenticationWithJWT, gameController.getCompletedGames);
-router.get('/leaderboard', gameController.getPlayerLeaderboard);
 router.get('/win-certificate/:gameId', authenticationWithJWT, gameController.getVictoryCertificate)
+// Rotta non protetta da middleware, quindi pubblica
+router.get('/leaderboard', gameController.getPlayerLeaderboard);
 
 export default router;

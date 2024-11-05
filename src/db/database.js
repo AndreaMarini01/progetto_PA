@@ -34,14 +34,18 @@
 
 'use strict';
 
+// Importa Sequelize per gestire la connessione al database
 const { Sequelize } = require('sequelize');
+// Importa dotenv per caricare le variabili d'ambiente dal file .env
 const dotenv = require('dotenv');
-
-dotenv.config(); // Carica le variabili d'ambiente dal file .env
+// Carica le variabili d'ambiente dal file .env
+dotenv.config();
 
 class Database {
     constructor() {
+        // Controlla se un'istanza della classe Database esiste già
         if (!Database.instance) {
+            // Crea una nuova istanza di Sequelize per gestire la connessione al database
             this._sequelize = new Sequelize(
                 process.env.DB_NAME,
                 process.env.DB_USER,
@@ -53,24 +57,29 @@ class Database {
                     logging: false,
                 }
             );
-            Database.instance = this; // Salva l'istanza
+            // Salva l'istanza corrente nella proprietà statica Database.instance
+            Database.instance = this;
         }
+        // Ritorna l'istanza esistente di Database
         return Database.instance;
     }
 
-    // Metodo statico per ottenere l'istanza
+    // Metodo statico per ottenere l'istanza singleton di Database
     static getInstance() {
+        // Se l'istanza non esiste, la crea e la congela per evitare modifiche
         if (!Database.instance) {
             Database.instance = new Database();
-            // Congela l'istanza di Database per evitare modifiche esterne
             Object.freeze(Database);
         }
+        // Restituisce l'istanza unica
         return Database.instance;
     }
+
+    // Metodo per ottenere l'istanza di Sequelize
     getSequelize() {
         return this._sequelize;
     }
 }
 
-// Esporta globalmente l'istanza come default
+// Esporta globalmente l'istanza singleton di Database
 module.exports = Database.getInstance();

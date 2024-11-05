@@ -1,5 +1,5 @@
 /**
- * Migrazione per l'inserimento di utenti di esempio nella tabella `Player`.
+ * Seeder per l'inserimento di utenti di esempio nella tabella `Player`.
  *
  * @param {object} queryInterface - L'interfaccia utilizzata per eseguire le query nel database.
  * @param {object} Sequelize - L'istanza di Sequelize che fornisce i tipi di dati per i campi della tabella.
@@ -21,15 +21,17 @@
 
 'use strict';
 
+// Modulo nativo di Node per hashing della password
 const crypto = require('crypto');
 
 module.exports = {
-
+  // Inserimento dei dati all'interno della tabella Player
   async up(queryInterface, Sequelize) {
     const players = [
       {
         username: 'Andrea Marini',
         email: 'andrea@gmail.com',
+        // Hash della password
         ...hashPassword('password1'),
         tokens: 0.3,
         role: 'user',
@@ -38,6 +40,7 @@ module.exports = {
       {
         username: 'Alessio Capriotti',
         email: 'alessio@gmail.com',
+        // Hash della password
         ...hashPassword('password2'),
         tokens: 3,
         role: 'user',
@@ -46,6 +49,7 @@ module.exports = {
       {
         username: 'Admin Admin',
         email: 'admin@gmail.com',
+        // Hash della password
         ...hashPassword('adminpassword'),
         tokens: 200,
         role: 'admin',
@@ -53,6 +57,7 @@ module.exports = {
       }, {
         username: 'Prova Prova',
         email: 'prova@gmail.com',
+        // Hash della password
         ...hashPassword('password3'),
         tokens: 3,
         role: 'user',
@@ -60,13 +65,13 @@ module.exports = {
       }
     ];
     await queryInterface.bulkInsert('Player', players, {});
-
     // Necessario per inserire separatamente un record rappresentante l'IA
     await queryInterface.bulkInsert('Player', [
       {
         player_id: -1,
         username: 'Artificial Intelligence',
         email: 'artificialintelligence@gmail.com',
+        // Hash della password
         ...hashPassword('no_password'),
         tokens: 0,
         role: 'user',
@@ -74,9 +79,8 @@ module.exports = {
       }
     ], {});
   },
-
+  // Eliminazione dei record dalla tabella Player
   async down(queryInterface, Sequelize) {
-    // Eliminazione di tutti i record dalla tabella Player
     await queryInterface.bulkDelete('Player', null, {});
   }
 };
@@ -89,7 +93,8 @@ module.exports = {
  * @returns {object} Un oggetto contenente `salt` e `password_hash`.
  */
 
-
+// pbkdf2Sync è la funzione per applicare l'algoritmo di hashing, 1000 è il numero di iterazioni dell'algoritmo di hashing,
+// 64 sono i byte che compongono l'hash finale, sha256 è l'algoritmo di hashing
 function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
   const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha256').toString('hex');
   return { salt, password_hash: hash };

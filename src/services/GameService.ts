@@ -57,29 +57,27 @@ const GAME_CREATION_COST = 0.35;
 
 class GameService {
 
+    // Metodo per verificare che un utente non sia coinvolto in partite con status ongoing
     public async findActiveGameForPlayer(playerId: number, opponentId: number): Promise<Game | null> {
+        // Crea una condizione per cui il valore di player_id corrisponde a playerId e il valore di opponent_id corrisponde a playerId
         const orConditions = [{ player_id: playerId }, { opponent_id: playerId }];
-
+        // Condizione nel caso in cui l'opponent non sia l'IA
         if (opponentId !== -1) {
+            // Aggiunge condizioni per cui il valore di player_id corrisponde a opponent_id e il valore di opponent_id corrisponde a opponent_id
             orConditions.push({ player_id: opponentId }, { opponent_id: opponentId });
         }
-
         return Game.findOne({
+            // Verifica se esiste almeno un game con una delle condizioni soddisfatte
             where: {
                 status: GameStatus.ONGOING,
+                // Lega con il costrutto OR le precedenti condizioni
                 [Op.or]: orConditions
             }
         });
     }
 
-    public async createGame(
-        playerId: number,
-        opponentEmail: number,
-        type: GameType,
-        aiDifficulty: AIDifficulty = AIDifficulty.ABSENT,
-        board: any,
-        total_moves: number
-    ): Promise<Game> {
+    public async createGame(playerId: number, opponentEmail: number, type: GameType, aiDifficulty: AIDifficulty = AIDifficulty.ABSENT, board: any, total_moves: number): Promise<Game> {
+        // Cerca un player avente l'id passato alla funzione
         const player = await Player.findByPk(playerId);
         if (!player) {
             throw GameFactory.createError(gameErrorType.MISSING_PLAYER_ID);
@@ -89,7 +87,9 @@ class GameService {
         }
         player.tokens -= GAME_CREATION_COST;
         await player.save();
+        // Imposta di deafult il valore di opponent_id a -1
         let opponentId: number = -1;
+        // Se il game è di tipo PVP, cerca l'opponent sulla base dell'email fornita
         if (type === GameType.PVP) {
             if (!opponentEmail) {
                 throw GameFactory.createError(gameErrorType.MISSING_GAME_PARAMETERS);
@@ -98,9 +98,10 @@ class GameService {
             if (!opponent) {
                 throw GameFactory.createError(gameErrorType.OPPONENT_NOT_FOUND);
             }
+            // Salva l'id dell'opponent
             opponentId = opponent.player_id;
         }
-
+        // Crea un nuovo gioco
         const newGame = await Game.create({
             player_id: playerId,
             opponent_id: type === GameType.PVP ? opponentId : -1,
@@ -114,19 +115,24 @@ class GameService {
     }
 
     public async abandonGame(gameId: number, playerId: number): Promise<Game> {
+        // Trova il gioco sulla base dell'id
         const game = await Game.findByPk(gameId);
         if (!game) {
             throw GameFactory.createError(gameErrorType.GAME_NOT_FOUND);
         }
+        // Se il player che effettua la richiesta non è coinvolto nella partita, lancia un errore
         if (game.player_id !== playerId && game.opponent_id !== playerId) {
             throw AuthFactory.createError(authErrorType.UNAUTHORIZED);
         }
+        // Se il gioco non è in corso, restituisce un errore
         if (game.status !== GameStatus.ONGOING) {
             throw GameFactory.createError(gameErrorType.GAME_NOT_IN_PROGRESS);
         }
         // Cambia lo stato della partita in "Abandoned"
         game.status = GameStatus.ABANDONED;
+        // Modifica il campo 'ended_at'
         game.ended_at = new Date();
+        // Se la partita è PVE
         if (game.type === GameType.PVE) {
             // Se è una partita PvE, l'IA vince se il giocatore abbandona
             game.winner_id = -1;
@@ -141,18 +147,25 @@ class GameService {
             player.score -= 0.5;
             await player.save();
         }
+        // Incrementa il punteggio del giocatore vincitore
+        if (game.winner_id) {
+            const winner = await Player.findByPk(game.winner_id);
+            if (winner) {
+                winner.score += 1;
+                await winner.save();
+            }
+        }
         return game;
     }
 
-    public async getCompletedGames(
-        playerId: number,
-        startDate?: string,
-        endDate?: string
-    ): Promise<{ message?: string, games: Game[], wins: number, losses: number }> {
+    public async getCompletedGames(playerId: number, startDate?: string, endDate?: string): Promise<{ message?: string, games: Game[], wins: number, losses: number }> {
+        // Se uno dei due parametri non è specificato, lancia un'eccezione
         if ((startDate && !endDate) || (!startDate && endDate)) {
             throw GameFactory.createError(gameErrorType.MISSING_DATE);
         }
+        // Formattazione ISO delle date
         const isoDateRegex = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(?:\.\d{3})?(Z|[+-]\d{2}:\d{2}))?$/;
+        // Lancia un errore nel caso in cui le date abbiano una formattazione errata
         if (startDate && !isoDateRegex.test(startDate)) {
             throw GameFactory.createError(gameErrorType.INVALID_DATE);
         }
@@ -162,6 +175,7 @@ class GameService {
         // Validazione delle date
         const parsedStartDate = startDate ? new Date(startDate) : null;
         const parsedEndDate = endDate ? new Date(endDate) : null;
+        // isNaN verifica se il risultato è NaN. Se è vero, significa che startDate (o endDate) non è una data valida, quindi viene lanciato un errore
         if (startDate && parsedStartDate && isNaN(parsedStartDate.getTime())) {
             throw GameFactory.createError(gameErrorType.INVALID_DATE);
         }
@@ -179,7 +193,9 @@ class GameService {
         }
         // Costruzione della query di ricerca
         const whereClause: any = {
+            // Questo operatore indica che il valore del campo status deve essere contenuto in un insieme specifico di valori
             status: { [Op.in]: [GameStatus.COMPLETED, GameStatus.ABANDONED, GameStatus.TIMED_OUT] },
+            // Questo operatore indica che almeno una delle condizioni all'interno dell'array deve essere vera
             [Op.or]: [
                 { player_id: playerId },
                 { opponent_id: playerId }
@@ -187,8 +203,10 @@ class GameService {
         };
         // Data compresa tra la dati di inizio e quella di fine
         if (parsedStartDate) {
+            // L'operatore verifica che ended_at sia maggiore o uguale a parsedStartDate.
             whereClause.ended_at = { [Op.gte]: parsedStartDate };
         }
+        // Se nextDay è presente, aggiunge un ulteriore controllo su ended_at, utilizzando l'operatore [Op.lt] (Less Than), che filtra per date inferiori a nextDay.
         if (nextDay) {
             whereClause.ended_at = whereClause.ended_at
                 ? { ...whereClause.ended_at, [Op.lt]: nextDay }
@@ -222,6 +240,7 @@ class GameService {
                 // Controllo per le sconfitte nelle partite PvP
                 losses++;
             }
+            // Aggiunge il campo outcome per indicare la vittoria o la sconfitta della partita
             (game as any).dataValues.outcome = outcome;
         }
         return { games, wins, losses };
@@ -252,14 +271,12 @@ class GameService {
         const endedAt = game.ended_at ? new Date(game.ended_at).getTime() : 0;
         const createdAt = game.created_at ? new Date(game.created_at).getTime() : 0;
         const timeTaken = endedAt - createdAt;
-        const timeTakenMinutes = Math.floor(timeTaken / (1000 * 60)); // Tempo in minuti
-        // Conta il numero totale di mosse
+        // Tempo in minuti
+        const timeTakenMinutes = Math.floor(timeTaken / (1000 * 60));
+        // Ottiene il numero totale di mosse
         const totalMoves = game.total_moves;
-
-        // Imposta il nome del vincitore come l'utente loggato (playerId) di default
         let winnerName = "Sconosciuto";
         let opponentName = "Sconosciuto";
-
         // Recupera il nome del vincitore usando `game.winner_id`
         if (game.winner_id === playerId) {
             // Il chiamante è il vincitore
@@ -277,13 +294,12 @@ class GameService {
                 }
             }
         }
-
+        // Se il vincitore è l'opponent
         if (game.opponent_id === playerId) {
                 const winner = await Player.findOne({where: { player_id: game.opponent_id}});
             if (winner) {
                 winnerName = winner.username;
             }
-
             if (game.player_id === -1) {
                 opponentName = "AI";
             } else if (game.player_id !== -1) {
@@ -292,12 +308,12 @@ class GameService {
                     opponentName = opponent.username
                 }
             }
-
         }
+        // Formatta la data nel formato desiderato
         const formattedStartDate = game.created_at
             ? moment(game.created_at).tz('Europe/Rome').format('YYYY-MM-DD HH:mm:ss')
             : "Data non disponibile";
-
+        // Formatta la data nel formato desiderato
         const formattedEndDate = game.ended_at
             ? moment(game.ended_at).tz('Europe/Rome').format('YYYY-MM-DD HH:mm:ss')
             : "Data non disponibile";
@@ -332,7 +348,6 @@ class GameService {
         doc.moveDown();
         doc.text('Game System Signature', { align: 'center' });
         doc.end();
-
         await new Promise((resolve) => doc.on('end', resolve));
         return Buffer.concat(buffers);
     }

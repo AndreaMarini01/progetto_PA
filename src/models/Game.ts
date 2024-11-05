@@ -36,6 +36,7 @@ export enum AIDifficulty {
 
 /**
  * Interfaccia che definisce gli attributi del modello `Game`.
+ * Utile per garanitre una corretta struttura e tipizzazione.
  */
 
 interface GameAttributes {
@@ -54,7 +55,7 @@ interface GameAttributes {
 
 /**
  * Interfaccia che definisce i tipi per l'inserimento di nuovi record `Game`.
- * Rende opzionali alcuni campi durante la creazione del record.
+ * Rende opzionali alcuni campi durante la creazione di nuovi record.
  */
 
 interface GameCreationAttributes extends Optional<GameAttributes, 'game_id' | 'ended_at' | 'ai_difficulty'> {}
@@ -117,7 +118,9 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
     public total_moves!: number;
     public winner_id?: number | null;
 
+    // Configura il modello Sequelize associato alla tabella Game nel database
     public static initialize() {
+        // Inizializza il modello Game
         Game.init(
             {
                 game_id: {
@@ -150,6 +153,7 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
                     type: DataTypes.DATE,
                     allowNull: false,
                     defaultValue: DataTypes.NOW,
+                    // Formatta l'orario al fuso locale
                     get() {
                         const rawDate = this.getDataValue('created_at');
                         return rawDate ? moment(rawDate).tz('Europe/Rome').format() : null;
@@ -158,6 +162,7 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
                 ended_at: {
                     type: DataTypes.DATE,
                     allowNull: true,
+                    // Formatta l'orario al fuso locale
                     get() {
                         const rawDate = this.getDataValue('ended_at');
                         return rawDate ? moment(rawDate).tz('Europe/Rome').format() : null;
@@ -188,17 +193,24 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
                 }
             },
             {
+                // Restituisce l'istanza singleton di Sequelize da utilizzare
                 sequelize: Database.getSequelize(),
                 tableName: 'Game',
+                // Disabilita la creazione automatica dei campi createdAt e updatedAt
                 timestamps: false,
+                // Mappa il campo createdAt di Sequelize al campo created_at nel database.
                 createdAt: 'created_at',
             }
         );
     }
 
     public static associate() {
+        // Indica che un singolo Game può avere più Move (mosse) (relazione uno a molti)
+        // Imposta game_id come chiave esterna nella tabella Move, associando ciascuna mossa a un gioco specifico
         Game.hasMany(Move, { foreignKey: 'game_id', as: 'moves' });
+        // Indica che un singolo Game appartiene a un singolo Player, identificato da player_id (relazione molti a uno)
         Game.belongsTo(Player, { foreignKey: 'player_id', as: 'player' });
+        // Indica che un Game appartiene a un singolo Player, identificato da opponent_id (relazione molti a uno)
         Game.belongsTo(Player, { foreignKey: 'opponent_id', as: 'opponent' });
     }
 }

@@ -8,6 +8,8 @@ import { JwtPayload } from 'jsonwebtoken';
  * e include le proprietà `id_player`, `email`, e `role`, oltre ai campi di default di `JwtPayload`.
  */
 
+// Questa estensione dell'interfaccia Request di Express migliora la gestione del payload JWT all'interno dell'applicazione,
+// permettendo di accedere facilmente ai dati dell'utente autenticato e di mantenerli tipizzati correttamente in tutto il progetto
 declare global {
     namespace Express {
         interface Request {

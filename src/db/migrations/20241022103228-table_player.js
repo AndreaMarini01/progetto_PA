@@ -22,7 +22,7 @@
  */
 
 module.exports = {
-
+  // Metodo per la creazione della tabella Player
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Player', {
       player_id: {
@@ -65,7 +65,7 @@ module.exports = {
       },
     });
   },
-
+  // Metodo per eliminare la tabella Player
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('Player');
   }

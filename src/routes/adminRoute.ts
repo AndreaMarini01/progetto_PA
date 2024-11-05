@@ -23,8 +23,10 @@ import { authenticationWithJWT } from '../middleware/authMiddleware';
 import { adminAuthMiddleware } from '../middleware/adminAuthMiddleware';
 import adminController from '../controllers/AdminController';
 
+// Crea un router utilizzando il modulo express.Router()
 const router = express.Router();
 
+// Rotta di tipo put con middleware di autenticazione e middleware per il ruolo di admin
 router.put('/chargeTokens', authenticationWithJWT, adminAuthMiddleware, adminController.chargeTokens);
 
 export default router;

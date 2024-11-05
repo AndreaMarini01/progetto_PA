@@ -19,20 +19,25 @@ import AuthFactory, {authErrorType} from "../factories/AuthFactory";
 
 export const adminAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        // Verifica se l'utente è autenticato
         if (!req.user) {
             throw AuthFactory.createError(authErrorType.INVALID_CREDENTIALS);
         }
-        // Trova il giocatore nel database utilizzando l'ID presente nel token JWT
+        // Trova il giocatore nel database utilizzando l'ID dell'utente autenticato
         const player = await Player.findOne({ where: { player_id: req.user.player_id } });
         if (!player) {
             throw AuthFactory.createError(authErrorType.INVALID_CREDENTIALS);
         }
+        // Verifica se il ruolo del giocatore è 'ADMIN'
         if (player.role === PlayerRole.ADMIN) {
+            // Se il giocatore è un amministratore, passa il controllo al prossimo middleware
             next();
         } else {
+            // Se il giocatore non è un amministratore, lancia un errore di autorizzazione specifico per admin
             throw TokenFactory.createError(tokenErrorType.ADMIN_AUTHORIZATION);
         }
     } catch (err) {
+        // In caso di errore, passa l'errore al middleware di gestione degli errori
         next(err);
     }
 };

@@ -12,10 +12,11 @@
  *   - `dialect` {string | undefined} - Dialetto del database (es. 'postgres', 'mysql'), ottenuto da `process.env.DB_DIALECT`.
  */
 
-const dotenv = require('dotenv'); // Carica le variabili d'ambiente dal file .env
-
+// Carica le variabili d'ambiente dal file .env
+const dotenv = require('dotenv');
+// Configura dotenv per rendere disponibili le variabili d'ambiente definite nel file .env
 dotenv.config();
-
+// Esporta la configurazione del database per l'ambiente di sviluppo
 module.exports = {
     development: {
         username: process.env.DB_USER,

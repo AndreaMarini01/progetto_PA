@@ -8,7 +8,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "allowJs": true,// Permette l'uso di file JavaScript
+    "allowJs": true,
     "types": ["node", "express"],
     "resolveJsonModule": true
   },

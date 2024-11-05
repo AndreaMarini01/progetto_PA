@@ -205,6 +205,13 @@ class MoveService {
                     player.score -= 0.5;
                     await player.save();
                 }
+                if (game.winner_id) {
+                    const winner = await Player.findByPk(game.winner_id);
+                    if (winner) {
+                        winner.score += 1;
+                        await winner.save();
+                    }
+                }
                 return {
                     message: `The game has ended due to a timeout after ${TIMEOUT_MINUTES} minutes.`,
                     game_id: gameId,

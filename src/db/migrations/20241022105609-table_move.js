@@ -25,7 +25,7 @@
 'use strict';
 
 module.exports = {
-
+  // Metodo per la creazione della tabella Move
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('Move', {
       move_id: {
@@ -36,16 +36,20 @@ module.exports = {
       },
       game_id: {
         type: Sequelize.INTEGER,
+        // Vincolo di integrità referenziale con game_id della tabella Game
         references: {
           model: 'Game',
           key: 'game_id'
         },
+        // Propagazione del cambiamento relativo alla chiave primaria a tutte le righe della tabella che fanno riferimento a quel valore
         onUpdate: 'CASCADE',
+        // Propagazione dell'eliminazione relativa alla chiave primaria a tutte le righe della tabella che fanno riferimento a quel valore
         onDelete: 'CASCADE',
         allowNull: false
       },
       user_id: {
         type: Sequelize.INTEGER,
+        // Vincolo di integrità referenziale con player_id della tabella Player
         references: {
           model: 'Player',
           key: 'player_id'
@@ -81,7 +85,7 @@ module.exports = {
       }
     });
   },
-
+  // Metodo per l'eliminazione della tabella Move
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('Move');
   }

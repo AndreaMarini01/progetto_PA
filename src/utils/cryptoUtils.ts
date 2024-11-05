@@ -11,7 +11,12 @@ import crypto from 'crypto';
  */
 
 export const verifyPassword = (password: string, hash: string, salt: string) => {
+    // pbkdf2Sync è la funzione per applicare l'algoritmo di hashing
+    // 1000 è il numero di iterazioni dell'algoritmo di hashing
+    // 64 sono i byte che compongono l'hash finale
+    // sha256 è l'algoritmo di hashing
     const hashToCompare = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha256').toString('hex');
+    // Confronto tra l'hash nel database e l'hash generato dalla password inserita dall'utente
     return hash === hashToCompare;
 };
 

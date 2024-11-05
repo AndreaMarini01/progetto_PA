@@ -41,6 +41,7 @@ class MoveController {
         if (req.body.to && typeof req.body.to === 'string') {
             req.body.to = req.body.to.toUpperCase();
         }
+        //Inserisci nelle variabili i campi del corpo della richiesta
         const { gameId, from, to } = req.body;
         // Ottieni il playerId dall'utente autenticato
         const playerId = req.user?.player_id;
@@ -76,14 +77,17 @@ class MoveController {
      */
 
     public static async getMoveHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
+        // Converte il numero passato nella richiesta come stringa in un valore numerico
         const gameId = parseInt(req.params.gameId, 10);
-        const format = req.query.format as string || 'json'; // Formato di default è JSON
+        // Formato di default è JSON
+        const format = req.query.format as string || 'json';
         try {
             // Controllo sull'esistenza del gioco
             const gameExists = await Game.findByPk(gameId);
             if (!gameExists) {
                 throw GameFactory.createError(gameErrorType.GAME_NOT_FOUND);
             }
+            // Richiama la funzione presente nel service per ottenere lo storico delle mosse
             const result = await moveService.exportMoveHistory(gameId, format);
             if (format === 'pdf') {
                 res.setHeader('Content-Type', 'application/pdf');

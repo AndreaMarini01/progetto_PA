@@ -23,10 +23,11 @@ import { Router } from 'express';
 import {authenticationWithJWT} from "../middleware/authMiddleware";
 import moveController from "../controllers/MoveController";
 
+// Crea un router utilizzando il modulo express.Router()
 const router = Router();
 
+// Rotte protette da middleware di autenticazione
 router.post('/new-move', authenticationWithJWT, moveController.executeMove);
 router.get('/game/:gameId/moves', authenticationWithJWT, moveController.getMoveHistory);
-
 
 export default router;

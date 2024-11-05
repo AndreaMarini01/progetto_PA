@@ -27,10 +27,9 @@
  */
 
 const { readFileSync } = require('fs');
-const path = require('path');
 
 module.exports = {
-
+  // Metodo per la creazione della tabella Game
   up: async (queryInterface, Sequelize) => {
     const initialBoardPath = 'src/initialBoard.json';
     const initialBoard = JSON.parse(readFileSync(initialBoardPath, 'utf8'));
@@ -86,7 +85,7 @@ module.exports = {
       },
     });
   },
-
+  // Metodo per l'eliminazione della tabella Game
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('Game');
   }

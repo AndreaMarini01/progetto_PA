@@ -1,5 +1,5 @@
 /**
- * Migrazione per l'inserimento di mosse di esempio nella tabella `Move`.
+ * Seeder per l'inserimento di mosse di esempio nella tabella `Move`.
  *
  * @param {object} queryInterface - L'interfaccia utilizzata per eseguire le query nel database.
  * @param {object} Sequelize - L'istanza di Sequelize che fornisce i tipi di dati per i campi della tabella.
@@ -26,13 +26,12 @@
 const { readFileSync } = require("fs");
 
 module.exports = {
-
+  // Inserimento dei dati all'interno della tabella Move
   async up(queryInterface, Sequelize) {
-
+    // Ottenimento della board iniziale dal file initialBoard.json
     const initialBoardPath = 'src/initialBoard.json';
     const initialBoardParsing = JSON.parse(readFileSync(initialBoardPath, 'utf8'));
     const initialBoard = JSON.stringify(initialBoardParsing, null, 2);
-
     const moves = [
       {
         game_id: 1,
@@ -67,7 +66,7 @@ module.exports = {
     ];
     await queryInterface.bulkInsert('Move', moves, {});
   },
-
+  // Eliminazione dei record dalla tabella Move
   async down(queryInterface, Sequelize) {
     await queryInterface.bulkDelete('Move', null, {});
   }

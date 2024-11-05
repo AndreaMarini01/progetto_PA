@@ -1,4 +1,4 @@
-# Utilizza l'immagine di base di node
+# Utilizza l'immagine di base di node versione 20
 FROM node:20
 
 # Imposta la home directory dell'immagine, ovvero da dove vengono eseguiti tutti gli altri comandi
@@ -16,8 +16,8 @@ COPY . .
 # Serve per compilare typescript in javascript
 RUN npm run build
 
-# Dice a Docker che la porta di ascolto è la 3000
+# Espone la porta 3000 del container, consentendo al container di rispondere alle richieste su questa porta
 EXPOSE 3000
 
-# Comando necessario per avviare l'applicazione (equivale ad eseguire sulla shell del terminale dell'immagine "npm start")
+# Specifica il comando di avvio del container
 CMD ["npm", "start"]

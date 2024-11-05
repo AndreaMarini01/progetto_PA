@@ -87,6 +87,7 @@ function ErrorHandler(err: any, req: Request, res: Response, next: NextFunction)
                 statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
                 break;
         }
+        // Restituisce la risposta ed il relativo messaggio di errore
         res.status(statusCode).json({ error: err.message});
     } else if (err instanceof AuthError) {
         let statusCode: number;
@@ -110,6 +111,7 @@ function ErrorHandler(err: any, req: Request, res: Response, next: NextFunction)
                 statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
                 break;
         }
+        // Restituisce la risposta ed il relativo messaggio di errore
         res.status(statusCode).json({ error: err.message});
     } else if (err instanceof TokenError) {
         let statusCode: number;
@@ -130,6 +132,7 @@ function ErrorHandler(err: any, req: Request, res: Response, next: NextFunction)
                 statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
                 break;
         }
+        // Restituisce la risposta ed il relativo messaggio di errore
         res.status(statusCode).json({error: err.message});
     } else if (err instanceof MoveError) {
         let statusCode: number;
@@ -162,6 +165,7 @@ function ErrorHandler(err: any, req: Request, res: Response, next: NextFunction)
                 statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
                 break;
         }
+        // Restituisce la risposta ed il relativo messaggio di errore
         res.status(statusCode).json({error: err.message});
     } else {
         // Gestione di errori generici non riconosciuti

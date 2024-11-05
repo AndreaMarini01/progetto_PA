@@ -17,8 +17,10 @@
 import express from 'express';
 import authController from "../controllers/AuthController";
 
+// Crea un router utilizzando il modulo express.Router()
 const router = express.Router();
 
+// Richiesta di tipo post, è una rotta pubblica in quanto non protetta da middleware
 router.post('/login', authController.login);
 
 export default router;

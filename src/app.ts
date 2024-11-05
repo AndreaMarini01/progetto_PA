@@ -8,7 +8,9 @@ import adminRoutes from './routes/adminRoute';
 import errorHandler from './factories/ErrorHandler';
 import moveRoute from "./routes/moveRoute";
 
+// App di tipo express
 const app = express();
+// Porta di ascolto
 const port = 3000;
 
 // Inizializza i modelli

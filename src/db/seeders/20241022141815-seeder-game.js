@@ -1,5 +1,5 @@
 /**
- * Migrazione per l'inserimento di partite di esempio nella tabella `Game`.
+ * Seeder per l'inserimento di partite di esempio nella tabella `Game`.
  *
  * @param {object} queryInterface - L'interfaccia utilizzata per eseguire le query nel database.
  * @param {object} Sequelize - L'istanza di Sequelize che fornisce i tipi di dati per i campi della tabella.
@@ -37,19 +37,18 @@ function getRandomDate() {
   const now = new Date();
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(now.getMonth() - 6);
-
   // Ottieni il timestamp casuale tra sei mesi fa e ora
   const randomTimestamp = Math.random() * (now.getTime() - sixMonthsAgo.getTime()) + sixMonthsAgo.getTime();
   return new Date(randomTimestamp);
 }
 
 module.exports = {
-
+  // Inserimento di partite nella tabella Game
   async up(queryInterface, Sequelize) {
+    // Ottenimento della board iniziale dal file initialBoard.json
     const initialBoardPath = 'src/initialBoard.json';
     const initialBoardParsing = JSON.parse(readFileSync(initialBoardPath, 'utf8'));
     const initialBoard = JSON.stringify(initialBoardParsing, null, 2);
-
     const games = [
       {
         player_id: 1,
@@ -78,7 +77,7 @@ module.exports = {
     ];
     await queryInterface.bulkInsert('Game', games, {});
   },
-
+  // Eliminazione dei record dalla tabella Game
   async down(queryInterface, Sequelize) {
     await queryInterface.bulkDelete('Game', null, {});
   }

@@ -32,39 +32,40 @@ class AuthController {
      */
 
     public async login(req: Request, res: Response, next: NextFunction): Promise<void> {
-        // Converte l'email in minuscolo, se presente
+        // Converte l'email presente nel corpo della richiesta in minuscolo
         if (req.body.email && typeof req.body.email === 'string') {
             req.body.email = req.body.email.toLowerCase();
         }
+        // Inserisce nelle variabili i campi del corpo della richiesta
         const { email, password } = req.body;
         try {
+            // Se almeno uno dei due parametri non viene inserito, lancia un'eccezione
             if (!email || !password) {
                 throw AuthFactory.createError(authErrorType.INVALID_CREDENTIALS);
             }
-
+            // Controlla se la struttura dell'email è valida
             if (!validator.isEmail(email)) {
                 throw AuthFactory.createError(authErrorType.INVALID_CREDENTIALS);
             }
-
             // Cerca l'utente nel database utilizzando l'email
             const user = await Player.findOne({ where: { email } });
             if (!user) {
                 throw AuthFactory.createError(authErrorType.INVALID_CREDENTIALS);
             }
-
             // Verifica la password fornita con l'hash salvato e il salt
             const isPasswordValid = verifyPassword(password, user.password_hash, user.salt);
+            // Se la password non è valida, lancia un errore
             if (!isPasswordValid) {
                 throw AuthFactory.createError(authErrorType.INVALID_CREDENTIALS);
             }
-
             // Genera un token JWT per l'utente autenticato
             const token = jwt.sign(
                 { player_id: user.player_id, email: user.email, role: user.role },
+                // JWT_SECRET è la variabile d'ambiente usata per firmare e verificare l'autenticità dei token JWT
                 process.env.JWT_SECRET as string,
+                // Tempo di permanenza del token JWT
                 { expiresIn: '1h' }
             );
-
             // Restituisce il token JWT all'utente
             res.json({ token });
         } catch (error) {

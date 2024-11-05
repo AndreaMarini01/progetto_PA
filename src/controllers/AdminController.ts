@@ -29,10 +29,11 @@ class AdminController {
      */
 
     public async chargeTokens(req: Request, res: Response, next: NextFunction): Promise<void> {
-        // Converte l'email in minuscolo, se presente
+        // Converte l'email presente nel corpo della richiesta in minuscolo
         if (req.body.email && typeof req.body.email === 'string') {
             req.body.email = req.body.email.toLowerCase();
         }
+        // Inserisce nelle variabili i campi del corpo della richiesta
         const { email, tokens } = req.body;
         try {
             // Controllo dei parametri richiesti
@@ -45,7 +46,7 @@ class AdminController {
                 throw TokenFactory.createError(tokenErrorType.USER_NOT_FOUND);
             }
             if (tokens > 0 && tokens > player.tokens) {
-                // Somma i nuovi token a quelli esistenti
+                // Imposta i token dell'utente con il nuovo credito specificato
                 player.tokens = tokens;
                 await player.save();
                 res.status(200).json({ message: 'Tokens have been updated!', currentTokens: player.tokens });

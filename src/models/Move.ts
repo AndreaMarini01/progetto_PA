@@ -66,6 +66,7 @@ interface MoveCreationAttributes extends Optional<MoveAttributes, 'move_id'> {}
  * @param {boolean} timestamps - Se impostato su `false`, disabilita i timestamp automatici.
  */
 
+
 class Move extends Model<MoveAttributes, MoveCreationAttributes> implements MoveAttributes {
     public move_id!: number;
     public game_id!: number;
@@ -77,7 +78,9 @@ class Move extends Model<MoveAttributes, MoveCreationAttributes> implements Move
     public to_position?: string;
     public piece_type?: string;
 
+    // Configura il modello Sequelize associato alla tabella Game nel database
     public static initialize() {
+        // Inizializza il modello Move
         Move.init(
             {
                 move_id: {
@@ -130,6 +133,7 @@ class Move extends Model<MoveAttributes, MoveCreationAttributes> implements Move
                     type: DataTypes.DATE,
                     allowNull: false,
                     defaultValue: DataTypes.NOW,
+                    // Formatta l'orario al fuso locale
                     get() {
                         const rawDate = this.getDataValue('created_at');
                         return rawDate ? moment(rawDate).tz('Europe/Rome').format() : null;
@@ -137,16 +141,19 @@ class Move extends Model<MoveAttributes, MoveCreationAttributes> implements Move
                 },
             },
             {
+                // Restituisce l'istanza singleton di Sequelize da utilizzare
                 sequelize: Database.getSequelize(),
                 tableName: 'Move',
+                // Disabilita la creazione automatica dei campi createdAt e updatedAt
                 timestamps: false,
             }
         );
     }
 
     public static associate() {
-        // Associazioni con altri modelli
+        //  Ogni Move appartiene a un singolo Game
         Move.belongsTo(Game, { foreignKey: 'game_id', as: 'game' });
+        //  Ogni Move appartiene a un singolo Player
         Move.belongsTo(Player, { foreignKey: 'user_id', as: 'player' });
     }
 }

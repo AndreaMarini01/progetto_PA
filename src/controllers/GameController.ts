@@ -37,27 +37,35 @@ class GameController {
      */
 
     public async createGame(req: Request, res: Response, next: NextFunction): Promise<void> {
-        // Converte `opponent_email` e `ai_difficulty` in minuscolo, se presenti
+        // Converte `opponent_email` e `ai_difficulty` del corpo della richiesta in minuscolo
         if (req.body.opponent_email && typeof req.body.opponent_email === 'string') {
             req.body.opponent_email = req.body.opponent_email.toLowerCase();
         }
         if (req.body.ai_difficulty && typeof req.body.ai_difficulty === 'string') {
             req.body.ai_difficulty = req.body.ai_difficulty.toLowerCase();
         }
+        // Inserisce i valori all'interno delle variabili
         const {opponent_email, ai_difficulty} = req.body;
+        // Recupera l'id dell'utente che ha effettuato la richiesta
         const playerId = req.user?.player_id;
         try {
             if (!playerId) {
                 throw GameFactory.createError(gameErrorType.MISSING_PLAYER_ID);
             }
-            let opponentId: number | null = -1
+            let opponentId: number = -1
+            // Se è stata inserita l'email nel corpo della richiesta
             if (opponent_email) {
+                // Cerca un utente che abbia l'email specificata nel corpo della richiesta
                 const opponent = await Player.findOne({where: {email: opponent_email}});
                 if (!opponent) {
+                    // Lancia un errore se non è stato trovato alcun utente con quella email
                     throw GameFactory.createError(gameErrorType.OPPONENT_NOT_FOUND);
                 }
+                // Recupera l'id dell'utente associato a opponent_email
                 opponentId = opponent.player_id;
             }
+            // Verifica se uno dei due utenti è già impegnato in un game attivo
+            // In caso affermativo restituisce un errore
             const existingGame = await gameService.findActiveGameForPlayer(playerId, opponentId);
             if (existingGame && existingGame.status === GameStatus.ONGOING) {
                 if (existingGame.player_id === playerId || existingGame.opponent_id === playerId) {
@@ -67,12 +75,15 @@ class GameController {
                     throw GameFactory.createError(gameErrorType.OPPONENT_ALREADY_IN_GAME);
                 }
             }
+            // Se l'utente inserisce la sua email viene restituito un errore
             if (req.user?.email === opponent_email) {
                 throw GameFactory.createError(gameErrorType.SELF_CHALLENGE_NOT_ALLOWED);
             }
+            // Se vengono inseriti entrambi i parametri, restituisce un errore
             if (opponent_email && ai_difficulty) {
                 throw GameFactory.createError(gameErrorType.INVALID_GAME_PARAMETERS);
             }
+            // Assegna il tipo del gioco (pvp o pve) sulla base del parametro inserito
             let type: GameType;
             if (opponent_email) {
                 type = GameType.PVP;
@@ -81,6 +92,7 @@ class GameController {
                 if (ai_difficulty === AIDifficulty.ABSENT) {
                     throw GameFactory.createError(gameErrorType.INVALID_DIFFICULTY);
                 }
+                // Se il livello di difficoltà inserito non è tra quelli predefiniti, restituisce un errore
                 if (!Object.values(AIDifficulty).includes(ai_difficulty)) {
                     throw GameFactory.createError(gameErrorType.INVALID_DIFFICULTY);
                 }
@@ -88,21 +100,20 @@ class GameController {
                 throw GameFactory.createError(gameErrorType.MISSING_GAME_PARAMETERS);
             }
             const total_moves = 0;
-
-            // Lettura della configurazione della board dal file JSON
+            // Lettura della configurazione iniziale della board dal file JSON
             const initialBoardPath = 'src/initialBoard.json';
+            // Prende una stringa JSON e la converte in un oggetto JavaScript.
             const initialBoard = JSON.parse(readFileSync(initialBoardPath, 'utf8'));
-
+            // Richiama la funzione nel service per la creazione di una nuova partita
             const newGame = await gameService.createGame(playerId, opponent_email, type, ai_difficulty, initialBoard, total_moves);
-
+            // Ottenimento della risposta e conversione in JSON
             const gameResponse = newGame.toJSON();
-
             // Cambia il formato dell'attributo created_at
             const formattedGameResponse = {
                 ...gameResponse,
                 created_at: gameResponse.created_at ? format(new Date(gameResponse.created_at), 'yyyy-MM-dd') : undefined,
             };
-
+            // Restituisce la risposta alla richiesta
             res.status(201).json({game: formattedGameResponse});
         } catch (error) {
             next(error);
@@ -128,9 +139,11 @@ class GameController {
      */
 
     public async abandonGame(req: Request, res: Response, next: NextFunction): Promise<void> {
+        // Converte il numero passato nella richiesta come stringa in un valore numerico
         const gameId = parseInt(req.params.gameId, 10);
         const playerId = req.user?.player_id;
         try {
+            //Richiama la funzione nel service per abbandonare una partita
             const game = await gameService.abandonGame(gameId, playerId!);
             res.status(200).json({
                 message: `Game with ID ${gameId} has been abandoned.`,
@@ -158,6 +171,7 @@ class GameController {
      */
 
     public async evaluateGameStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
+        // Converte il numero passato nella richiesta come stringa in un valore numerico
         const gameId = parseInt(req.params.gameId, 10);
         try {
             const game = await Game.findByPk(gameId);
@@ -194,28 +208,26 @@ class GameController {
 
     public async getCompletedGames(req: Request, res: Response, next: NextFunction): Promise<void> {
         const playerId = req.user?.player_id;
+        // Inserisce nelle variabili la data di inizio e la data di fine presenti nell'URL della richiesta
         const {startDate, endDate} = req.query;
-
         try {
             if (!playerId) {
                 throw GameFactory.createError(gameErrorType.MISSING_PLAYER_ID);
             }
-
-            // Chiama il metodo del servizio per ottenere le partite concluse
+            // Chiama il metodo del servizio per ottenere le partite concluse nel range di date specificato
             const result = await gameService.getCompletedGames(playerId, startDate as string, endDate as string);
-
             // Crea un nuovo array di partite con `created_at` e `ended_at` formattati e rimuove `board` dalla risposta
             const formattedGames = result.games.map(game => {
-                const gameResponse = game.toJSON(); // Converte `game` in un oggetto semplice
-
+                const gameResponse = game.toJSON();
                 return {
                     ...gameResponse,
+                    // Sostituisce i campi created_at e ended_at formattati correttamente
                     created_at: gameResponse.created_at ? format(new Date(gameResponse.created_at), 'yyyy-MM-dd HH:mm:ss') : undefined,
                     ended_at: gameResponse.ended_at ? format(new Date(gameResponse.ended_at), 'yyyy-MM-dd HH:mm:ss') : undefined,
-                    board: undefined, // Rimuove `board` dalla risposta
+                    // Rimuove la board dalla risposta
+                    board: undefined,
                 };
             });
-
             // Invia la risposta con i dati delle partite concluse
             res.status(200).json({
                 data: {
@@ -278,11 +290,11 @@ class GameController {
      */
 
     public async getVictoryCertificate(req: Request, res: Response, next: NextFunction): Promise<void> {
+        // Converte il numero passato nella richiesta come stringa in un valore numerico
         const gameId = parseInt(req.params.gameId, 10);
         const playerId = req.user?.player_id;
-
         try {
-            // Richiama il servizio per generare il certificato
+            // Richiama il servizio per generare il certificato di vittoria
             const pdfData = await gameService.generateVictoryCertificate(gameId, playerId!);
             // Configura la risposta per il download del PDF
             res.writeHead(200, {

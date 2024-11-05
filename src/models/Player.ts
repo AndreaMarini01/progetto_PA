@@ -82,7 +82,9 @@ class Player extends Model<PlayerAttributes, PlayerCreationAttributes> implement
     public role!: PlayerRole;
     public score!: number;
 
+    // Configura il modello Sequelize associato alla tabella Game nel database
     public static initialize() {
+        // Inizializza il modello Move
         Player.init(
             {
                 player_id: {
@@ -125,15 +127,21 @@ class Player extends Model<PlayerAttributes, PlayerCreationAttributes> implement
                 }
             },
             {
+                // Restituisce l'istanza singleton di Sequelize da utilizzare
                 sequelize: Database.getSequelize(),
                 tableName: 'Player',
+                // Disabilita la creazione automatica dei campi createdAt e updatedAt
                 timestamps: false
             }
         );
     }
 
     public static associate() {
+        // Indica che un singolo Player può avere più Move (mosse) associate.
+        // As definisce un alias moves per questa relazione, consentendo di accedere a tutte le mosse di un giocatore tramite player.moves
         Player.hasMany(Move, { foreignKey: 'user_id', as: 'moves' });
+        // Specifica che un singolo Player può avere più Game (partite) associate.
+        // As definisce un alias games per questa relazione, consentendo di accedere a tutte le partite di un giocatore tramite player.games
         Player.hasMany(Game, { foreignKey: 'player_id', as: 'games' });
     }
 }

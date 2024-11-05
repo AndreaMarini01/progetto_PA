@@ -19,15 +19,20 @@ import AuthFactory, {authErrorType} from "../factories/AuthFactory";
  */
 
 export const authenticationWithJWT = (req: Request, res: Response, next: NextFunction) => {
+    // Recupera l'header di autorizzazione dalla richiesta
     const authHeader = req.headers.authorization;
     if (authHeader) {
+        // Estrae il token dall'header
         const token = authHeader.split(' ')[1];
+        // Verifica il token utilizzando il segreto definito in JWT_SECRET nel .env
         jwt.verify(token, process.env.JWT_SECRET as string, (err, decoded) => {
             if (err) {
+                // Se il token è scaduto o non valido, lancia un errore di token scaduto
                 throw AuthFactory.createError(authErrorType.TOKEN_EXPIRED);
             }
-            // Verifica che decoded sia di tipo JwtPayload
+            // Verifica che il token decodificato (`decoded`) sia di tipo `JwtPayload`
             if (typeof decoded === 'object' && decoded !== null) {
+                // Associa i dati del payload JWT all'oggetto `req.user`, ovvero l'utente che fa la richiesta
                 req.user = decoded as JwtPayload & {
                     player_id: number;
                     email: string;
@@ -39,6 +44,7 @@ export const authenticationWithJWT = (req: Request, res: Response, next: NextFun
             }
         });
     } else {
+        // Se l'header di autorizzazione è assente, lancia un errore di autorizzazione necessaria
         throw AuthFactory.createError(authErrorType.NEED_AUTHORIZATION);
     }
 };
