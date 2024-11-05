@@ -944,6 +944,17 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
         },
         {
           "dark": true,
+          "position": 0,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
           "position": 1,
           "piece": {
             "player": "dark",
@@ -973,15 +984,15 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
           }
         },
         {
-          "dark": false
-        },
-        {
           "dark": true,
           "position": 4,
           "piece": {
             "player": "dark",
             "king": false
           }
+        },
+        {
+          "dark": false
         },
         {
           "dark": true,
@@ -1017,22 +1028,22 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
           "dark": false
         },
         {
+          "dark": false
+        },
+        {
           "dark": true,
-          "position": 8,
+          "position": 8
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 9,
           "piece": {
             "player": "dark",
             "king": false
           }
-        },
-        {
-          "dark": false
-        },
-        {
-          "dark": false
-        },
-        {
-          "dark": true,
-          "position": 9
         },
         {
           "dark": false
@@ -1057,9 +1068,6 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
           }
         },
         {
-          "dark": false
-        },
-        {
           "dark": true,
           "position": 12,
           "piece": {
@@ -1068,12 +1076,11 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
           }
         },
         {
+          "dark": false
+        },
+        {
           "dark": true,
-          "position": 13,
-          "piece": {
-            "player": "dark",
-            "king": false
-          }
+          "position": 13
         },
         {
           "dark": false
@@ -1093,11 +1100,11 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
           "dark": false
         },
         {
-          "dark": true,
-          "position": 16
+          "dark": false
         },
         {
-          "dark": false
+          "dark": true,
+          "position": 16
         },
         {
           "dark": false
@@ -1111,14 +1118,7 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
         },
         {
           "dark": true,
-          "position": 18
-        },
-        {
-          "dark": false
-        },
-        {
-          "dark": true,
-          "position": 19,
+          "position": 18,
           "piece": {
             "player": "light",
             "king": false
@@ -1129,7 +1129,18 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
         },
         {
           "dark": true,
-          "position": 20
+          "position": 19
+        },
+        {
+          "dark": true,
+          "position": 20,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
         },
         {
           "dark": true,
@@ -1155,21 +1166,21 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
         },
         {
           "dark": true,
-          "position": 23,
-          "piece": {
-            "player": "light",
-            "king": false
-          }
+          "position": 23
+        },
+        {
+          "dark": false
         },
         {
           "dark": false
         },
         {
           "dark": true,
-          "position": 24
-        },
-        {
-          "dark": false
+          "position": 24,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
         },
         {
           "dark": false
@@ -1205,15 +1216,15 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
           }
         },
         {
-          "dark": false
-        },
-        {
           "dark": true,
           "position": 28,
           "piece": {
             "player": "light",
             "king": false
           }
+        },
+        {
+          "dark": false
         },
         {
           "dark": true,
@@ -1240,17 +1251,6 @@ Se la richiesta viene effettuata correttamente viene restituito il seguente mess
         {
           "dark": true,
           "position": 31,
-          "piece": {
-            "player": "light",
-            "king": false
-          }
-        },
-        {
-          "dark": false
-        },
-        {
-          "dark": true,
-          "position": 32,
           "piece": {
             "player": "light",
             "king": false
@@ -1296,6 +1296,17 @@ Se la richiesta viene effettuata correttamente, viene restituita la seguente ris
         },
         {
           "dark": true,
+          "position": 0,
+          "piece": {
+            "player": "dark",
+            "king": false
+          }
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
           "position": 1,
           "piece": {
             "player": "dark",
@@ -1325,15 +1336,15 @@ Se la richiesta viene effettuata correttamente, viene restituita la seguente ris
           }
         },
         {
-          "dark": false
-        },
-        {
           "dark": true,
           "position": 4,
           "piece": {
             "player": "dark",
             "king": false
           }
+        },
+        {
+          "dark": false
         },
         {
           "dark": true,
@@ -1369,22 +1380,22 @@ Se la richiesta viene effettuata correttamente, viene restituita la seguente ris
           "dark": false
         },
         {
+          "dark": false
+        },
+        {
           "dark": true,
-          "position": 8,
+          "position": 8
+        },
+        {
+          "dark": false
+        },
+        {
+          "dark": true,
+          "position": 9,
           "piece": {
             "player": "dark",
             "king": false
           }
-        },
-        {
-          "dark": false
-        },
-        {
-          "dark": false
-        },
-        {
-          "dark": true,
-          "position": 9
         },
         {
           "dark": false
@@ -1409,9 +1420,6 @@ Se la richiesta viene effettuata correttamente, viene restituita la seguente ris
           }
         },
         {
-          "dark": false
-        },
-        {
           "dark": true,
           "position": 12,
           "piece": {
@@ -1420,12 +1428,11 @@ Se la richiesta viene effettuata correttamente, viene restituita la seguente ris
           }
         },
         {
+          "dark": false
+        },
+        {
           "dark": true,
-          "position": 13,
-          "piece": {
-            "player": "dark",
-            "king": false
-          }
+          "position": 13
         },
         {
           "dark": false
@@ -1445,11 +1452,11 @@ Se la richiesta viene effettuata correttamente, viene restituita la seguente ris
           "dark": false
         },
         {
-          "dark": true,
-          "position": 16
+          "dark": false
         },
         {
-          "dark": false
+          "dark": true,
+          "position": 16
         },
         {
           "dark": false
@@ -1463,14 +1470,7 @@ Se la richiesta viene effettuata correttamente, viene restituita la seguente ris
         },
         {
           "dark": true,
-          "position": 18
-        },
-        {
-          "dark": false
-        },
-        {
-          "dark": true,
-          "position": 19,
+          "position": 18,
           "piece": {
             "player": "light",
             "king": false
@@ -1481,7 +1481,18 @@ Se la richiesta viene effettuata correttamente, viene restituita la seguente ris
         },
         {
           "dark": true,
-          "position": 20
+          "position": 19
+        },
+        {
+          "dark": true,
+          "position": 20,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
+        },
+        {
+          "dark": false
         },
         {
           "dark": true,
@@ -1507,21 +1518,21 @@ Se la richiesta viene effettuata correttamente, viene restituita la seguente ris
         },
         {
           "dark": true,
-          "position": 23,
-          "piece": {
-            "player": "light",
-            "king": false
-          }
+          "position": 23
+        },
+        {
+          "dark": false
         },
         {
           "dark": false
         },
         {
           "dark": true,
-          "position": 24
-        },
-        {
-          "dark": false
+          "position": 24,
+          "piece": {
+            "player": "light",
+            "king": false
+          }
         },
         {
           "dark": false
@@ -1557,15 +1568,15 @@ Se la richiesta viene effettuata correttamente, viene restituita la seguente ris
           }
         },
         {
-          "dark": false
-        },
-        {
           "dark": true,
           "position": 28,
           "piece": {
             "player": "light",
             "king": false
           }
+        },
+        {
+          "dark": false
         },
         {
           "dark": true,
@@ -1592,17 +1603,6 @@ Se la richiesta viene effettuata correttamente, viene restituita la seguente ris
         {
           "dark": true,
           "position": 31,
-          "piece": {
-            "player": "light",
-            "king": false
-          }
-        },
-        {
-          "dark": false
-        },
-        {
-          "dark": true,
-          "position": 32,
           "piece": {
             "player": "light",
             "king": false
