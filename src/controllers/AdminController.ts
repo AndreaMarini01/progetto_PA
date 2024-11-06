@@ -25,7 +25,7 @@ class AdminController {
      * @throws {TokenError} - Genera un errore nei seguenti casi:
      *   - email o tokens non sono presenti nel corpo della richiesta.
      *   - Il giocatore con l'email specificata non viene trovato.
-     *   - Il valore di tokens è negativo o uguale a zero.
+     *   - Il valore di tokens è negativo, uguale a zero o inferiore al credito attuale dell'utente.
      */
 
     public async chargeTokens(req: Request, res: Response, next: NextFunction): Promise<void> {

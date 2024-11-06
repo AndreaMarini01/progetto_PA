@@ -788,12 +788,21 @@ Questo pattern estende il tradizionale modello MVC, aggiungendo un livello di se
 - **Controller:** I controller ricevono le richieste HTTP e coordinano le operazioni tra le varie componenti, gestendo principalmente il flusso delle operazioni e smistando le richieste ai servizi nei casi più complessi. Tuttavia, non sempre è stata applicata una netta separazione tra controller e servizi: per le situazioni più semplici, abbiamo adottato un pattern MVC tradizionale, mantenendo la logica di business direttamente nei controller. Nei casi più complessi, come la gestione delle partite e delle mosse, abbiamo invece introdotto uno strato di Service per incapsulare e gestire la logica di business in modo più modulare.
 - **Service:** Lo strato dei servizi è stato implementato solo dove necessario, per gestire le operazioni più complesse legate alla logica di business, come la creazione di partite, la gestione delle mosse e l’aggiornamento dei punteggi. Nei servizi viene centralizzata la logica aziendale, consentendo una separazione chiara dai controller, che restano concentrati sulla gestione delle richieste e delle risposte HTTP. Questa divisione ha permesso di semplificare il codice nelle parti più intricate dell’applicazione, mantenendo il sistema organizzato e facile da manutenere.
 
+#### Motivazione della scelta
+Abbiamo deciso di utilizzare il pattern MVCS per una maggiore modularità e manutenibilità, delegando la logica complessa ai servizi e mantenendo i controller focalizzati sulla gestione delle richieste HTTP.
+
 ## Data Access Object (DAO)
 Il pattern DAO (Data Access Object) è una struttura progettuale che serve a isolare la logica di accesso al database dal resto dell'applicazione. In un’applicazione organizzata secondo questo pattern, tutte le operazioni di creazione, lettura, aggiornamento e cancellazione (CRUD) sono centralizzate in un livello dedicato, costituito da classi o moduli specifici che interagiscono con il database. È importante specificare che questo pattern è stato implementato utilizzando Sequelize, che fornisce un’interfaccia per l’accesso ai dati.
+
+#### Motivazione della scelta
+Abbiamo scelto il pattern DAO per isolare la logica di accesso al database, centralizzando le operazioni CRUD in un livello dedicato tramite Sequelize.
 
 ## Chain of Responsibility (COR)
 Il pattern Chain of Responsibility è stato implementato nel nostro progetto per gestire in modo efficace la logica di autenticazione e la gestione degli errori attraverso middleware dedicati. Ad esempio, abbiamo sviluppato un middleware di autenticazione che verifica se l'utente è autenticato tramite JWT. Se l'utente non è autenticato, il middleware interrompe il flusso della richiesta e restituisce un messaggio di errore personalizzato, impedendo l'accesso a risorse riservate. Questo approccio non solo semplifica la logica di controllo dell'accesso, ma consente di gestire in modo centralizzato la validazione dell'autenticazione. Inoltre, abbiamo implementato un middleware per la gestione degli errori, che si attiva quando viene riscontrato un errore durante l'elaborazione della richiesta. Questo middleware genera messaggi di errore personalizzati che forniscono feedback chiaro all'utente, migliorando l'esperienza utente e garantendo una gestione uniforme delle eccezioni nel sistema.
 Infine, abbiamo implementato anche un middleware che, oltre a verificare l'autenticazione dell'utente, sempre tramite JWT, controlla che l'utente abbia il ruolo di admin, riservando a quest'ultimo ulteriori funzionalità. In caso di permesso mancato, il middleware restituisce un messaggio di errore personalizzato. In questo modo, il pattern Chain of Responsibility consente di mantenere il codice ben organizzato e facilmente manutenibile.
+
+#### Motivazione della scelta
+Abbiamo deciso di utilizzare il pattern Chain of Responsibility (COR) per organizzare l'autenticazione e la gestione degli errori tramite middleware dedicati, migliorando la centralizzazione e la manutenibilità del codice.
 
 ## Factory
 La gestione degli errori è centralizzata tramite un file chiamato errorHandler, responsabile di lanciare gli errori in modo coerente e strutturato. Per ogni macro area (auth, game, move e token), abbiamo creato una Factory di errori dedicata, che facilita la generazione di errori specifici per ciascun contesto applicativo.
@@ -804,11 +813,15 @@ Ogni Factory fornisce un’interfaccia unificata per la creazione degli errori H
 - **Uniformità nei codici di stato HTTP:** Utilizzando una libreria come http-status-codes, le Factory possono associare facilmente i codici HTTP appropriati agli errori, garantendo una gestione standardizzata delle eccezioni.
 - **Estensibilità:** Le Factory per **auth**, **game**, **move** e **token** rendono il sistema di gestione degli errori flessibile, consentendo di aggiungere nuovi tipi di errori o modificare quelli esistenti senza intervenire in ogni singola area del codice.
 
+#### Motivazione della scelta
+Abbiamo deciso di centralizzare la gestione degli errori con errorHandler e Factory dedicate per ogni categoria, garantendo coerenza, uniformità nei codici HTTP e maggiore estensibilità nel sistema di gestione delle eccezioni.
+
 ## Singleton
-
-
 Nel progetto è stato adottato il pattern Singleton per gestire la connessione al database. Durante l'inizializzazione dell'applicazione, viene creata un’unica istanza di Sequelize, responsabile di tutte le interazioni con il database. Questo approccio garantisce una connessione centralizzata e condivisa tra le diverse componenti dell’applicazione, prevenendo problemi di concorrenza e conflitti di connessione. L'uso del Singleton per la connessione al database contribuisce a migliorare l'efficienza e la coerenza nelle operazioni di lettura e scrittura sui dati.
 Per implementare il pattern Singleton, è stata creata la classe Database, che memorizza l'istanza di Sequelize in una proprietà statica. Il metodo getInstance() verifica se l'istanza è già presente: in tal caso, la restituisce; altrimenti, ne crea una nuova utilizzando le variabili d'ambiente configurate. In questo modo, si assicura che tutte le richieste nell’applicazione utilizzino un'unica connessione al database, ottimizzando le risorse.
+
+#### Motivazione della scelta
+Abbiamo scelto di adottare il pattern Singleton per garantire una connessione centralizzata e condivisa al database, migliorando l'efficienza e prevenendo conflitti nelle operazioni sui dati.
 
 # Avvio del Progetto
 ## Prerequisiti
