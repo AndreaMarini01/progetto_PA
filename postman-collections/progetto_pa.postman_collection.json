@@ -215,7 +215,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"gameId\":3,\n    \"from\":\"E3\",\n    \"to\":\"D4\"\n}",
+					"raw": "{\n    \"gameId\":3,\n    \"from\":\"G7\",\n    \"to\":\"H6\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
