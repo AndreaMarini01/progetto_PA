@@ -208,8 +208,6 @@ class MoveService {
                 // Decrementa il punteggio del perdente di 0.5 punti
                 const player = await Player.findByPk(playerId);
                 if (player) {
-                    // La mossa non viene eseguita, quindi non scala i token della mossa
-                    player.tokens += 0.02;
                     player.score -= 0.5;
                     await player.save();
                 }
@@ -221,13 +219,6 @@ class MoveService {
                         await winner.save();
                     }
                 }
-                // Restituisce la risposta json di abbandono per time out
-                /*
-                return {
-                    message: `The game has ended due to a timeout after ${TIMEOUT_MINUTES} minutes.`,
-                    game_id: gameId,
-                    status: game.status,
-                };*/
                 throw MoveFactory.createError(moveErrorType.TIME_OUT);
             }
         }
