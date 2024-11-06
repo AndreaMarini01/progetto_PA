@@ -222,8 +222,12 @@ class GameController {
                 return {
                     ...gameResponse,
                     // Sostituisce i campi created_at e ended_at formattati correttamente
-                    created_at: gameResponse.created_at ? format(new Date(gameResponse.created_at), 'yyyy-MM-dd HH:mm:ss') : undefined,
-                    ended_at: gameResponse.ended_at ? format(new Date(gameResponse.ended_at), 'yyyy-MM-dd HH:mm:ss') : undefined,
+                    created_at: gameResponse.created_at
+                        ? format(new Date(new Date(gameResponse.created_at).getTime() + 60 * 60 * 1000), 'yyyy-MM-dd HH:mm:ss')
+                        : undefined,
+                    ended_at: gameResponse.ended_at
+                        ? format(new Date(new Date(gameResponse.ended_at).getTime() + 60 * 60 * 1000), 'yyyy-MM-dd HH:mm:ss')
+                        : undefined,
                     // Rimuove la board dalla risposta
                     board: undefined,
                 };
