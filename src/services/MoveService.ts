@@ -208,6 +208,8 @@ class MoveService {
                 // Decrementa il punteggio del perdente di 0.5 punti
                 const player = await Player.findByPk(playerId);
                 if (player) {
+                    // La mossa non viene eseguita, quindi non scala i token della mossa
+                    player.tokens += 0.02;
                     player.score -= 0.5;
                     await player.save();
                 }

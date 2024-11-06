@@ -203,7 +203,7 @@ class GameService {
         };
         // Data compresa tra la dati di inizio e quella di fine
         if (parsedStartDate) {
-            // L'operatore verifica che ended_at sia maggiore o uguale a parsedStartDate.
+            // L'operatore verifica che ended_at sia maggiore o uguale a parsedStartDate (greater than equal)
             whereClause.ended_at = { [Op.gte]: parsedStartDate };
         }
         // Se nextDay è presente, aggiunge un ulteriore controllo su ended_at, utilizzando l'operatore [Op.lt] (Less Than), che filtra per date inferiori a nextDay.
