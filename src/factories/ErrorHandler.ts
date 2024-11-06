@@ -161,6 +161,9 @@ function ErrorHandler(err: any, req: Request, res: Response, next: NextFunction)
             case moveErrorType.NOT_PLAYER_TURN:
                 statusCode = StatusCodes.BAD_REQUEST;
                 break;
+            case moveErrorType.TIME_OUT:
+                statusCode = StatusCodes.BAD_REQUEST;
+                break;
             default:
                 statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
                 break;

@@ -220,11 +220,13 @@ class MoveService {
                     }
                 }
                 // Restituisce la risposta json di abbandono per time out
+                /*
                 return {
                     message: `The game has ended due to a timeout after ${TIMEOUT_MINUTES} minutes.`,
                     game_id: gameId,
                     status: game.status,
-                };
+                };*/
+                throw MoveFactory.createError(moveErrorType.TIME_OUT);
             }
         }
         // Controlla se la mossa corrente è uguale all'ultima mossa effettuata dallo stesso player

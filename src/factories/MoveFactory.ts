@@ -10,6 +10,7 @@
  * @property {string} NO_MOVES - Nessuna mossa disponibile per la partita specificata.
  * @property {string} INVALID_FORMAT - Formato richiesto non valido.
  * @property {string} NOT_PLAYER_TURN - Non è il turno del giocatore.
+ * @property {string} TIME_OUT - Troppo tempo impiegato.
  */
 
 export enum moveErrorType {
@@ -21,6 +22,7 @@ export enum moveErrorType {
     NO_MOVES = 'NO_MOVES',
     INVALID_FORMAT = 'INVALID_FORMAT',
     NOT_PLAYER_TURN = 'NOT_PLAYER_TURN',
+    TIME_OUT = 'TIME_OUT',
 }
 
 /**
@@ -78,6 +80,8 @@ class MoveFactory {
                 return 'Please, provide a valid format.';
             case moveErrorType.NOT_PLAYER_TURN:
                 return 'You must wait for your turn to play!';
+            case moveErrorType.TIME_OUT:
+                return 'The game has ended due to a timeout after 1 minute.';
             default:
                 return 'An unknown move error occurred.';
         }
